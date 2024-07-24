@@ -1,10 +1,11 @@
+using System.Security.Claims;
 using Keycloak.AuthServices.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
-
-builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration);
+builder.Services.AddKeycloakWebAppAuthentication(builder.Configuration);
+//builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -21,8 +22,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapRazorPages();
+app.MapRazorPages().RequireAuthorization();
 
 app.Run();
