@@ -1,3 +1,4 @@
 /src/common/bin/
 /src/common/obj/Debug/
 obj/
+/src/modules/UI/bin/

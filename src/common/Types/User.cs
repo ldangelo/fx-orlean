@@ -1,4 +1,3 @@
-using org.fortium.fx.common;
 using Whaally.Domain.Abstractions.Aggregate;
 
 namespace org.fortium.fx.common.Types
