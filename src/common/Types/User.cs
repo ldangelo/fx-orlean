@@ -10,6 +10,8 @@ namespace org.fortium.fx.common.Types
       public Email[]?  Emails { get; } = Array.Empty<Email>();
       public Phone[]? Phones { get; } = Array.Empty<Phone>();
       public Address[]? Addresses { get; } = Array.Empty<Address>();
+      public DateTime LastLogin { get; } = DateTime.Now;
+      public DateTime Created { get; } = DateTime.Now;
 
       public User(Guid? id, string firstName, string lastName, Email[] emails, Phone[] phones, Address[] addresses)
       {
