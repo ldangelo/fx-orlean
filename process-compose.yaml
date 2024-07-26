@@ -1,0 +1,20 @@
+version: "0.5"
+
+processes:
+    podman:
+        command: podman machine start
+
+    keycloak:
+        command: podman run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:25.0.2 start-dev
+        availability:
+            restart: "always"
+
+    collector:
+        command: podman run -p 4317:4317 -p 4318:4318 --rm -v $(pwd)/collector-config.yaml:/etc/otelcol/config.yaml otel/opentelemetry-collector
+        availability:
+            restart: "always"
+
+    zipkin:
+        command: podman run -d -p 9411:9411 openzipkin/zipkin
+        availability:
+            restart: "alway"
