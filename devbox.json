@@ -1,9 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.11.0/.schema/devbox.schema.json",
   "packages": [
-    "dotnet-sdk@latest",
-    "dotnet-runtime@latest",
-    "omnisharp-roslyn@latest"
+    "omnisharp-roslyn@latest",
+    "dotnet-sdk_8@latest"
   ],
   "shell": {
     "init_hook": [

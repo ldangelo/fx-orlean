@@ -21,5 +21,9 @@ namespace org.fortium.fx.common.Types
         this.Phones = phones;
         this.Addresses = addresses;
       }
+
+      public User()
+      {
+      }
     }
 }
