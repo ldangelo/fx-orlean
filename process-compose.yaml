@@ -10,7 +10,12 @@ processes:
             restart: "always"
 
     collector:
-        command: podman run -p 4317:4317 -p 4318:4318 --rm -v $(pwd)/collector-config.yaml:/etc/otelcol/config.yaml otel/opentelemetry-collector
+        command: podman run --name my-collector -d -p 4317:4317 -p 4318:4318 --rm -v $(pwd)/collector-config.yaml:/etc/otelcol/config.yaml otel/opentelemetry-collector
+        availability:
+            restart: "always"
+
+    prometheus:
+        command: podman run --name my-prometheus -d -p 9090:9090 --add-host host.docker.internal=host-gateway prom/prometheus
         availability:
             restart: "always"
 
