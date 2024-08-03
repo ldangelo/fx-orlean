@@ -1,25 +1,85 @@
 version: "0.5"
 
 processes:
-    podman:
-        command: podman machine start
-
     keycloak:
-        command: podman run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:25.0.2 start-dev
-        availability:
-            restart: "always"
+        command: docker run --name my-keycloak -d -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:25.0.2 start-dev
+        is_daemon: true
+        shutdown:
+            command: "docker stop my-keycloak"
+            signal: 15
+            timeout_seconds: 5
+        liveness_probe:
+            exec:
+                command: "[$(docker inspect -f '{{.State.Running}}' my-keycloak)]"
+            initial_delay_seconds: 5
+            period_seconds: 2
+            timeout_seconds: 5
+            success_threshold: 1
+            failure_threshold: 3
 
     collector:
-        command: podman run --name my-collector -d -p 4317:4317 -p 4318:4318 --rm -v $(pwd)/collector-config.yaml:/etc/otelcol/config.yaml otel/opentelemetry-collector
-        availability:
-            restart: "always"
+        command: docker run --name my-collector -d -p 4317:4317 -p 4318:4318 -v ./collector-config.yaml:/etc/otelcol/config.yaml otel/opentelemetry-collector
+        is_daemon: true
+        shutdown:
+            command: "docker stop my-collector"
+            signal: 15
+            timeout_seconds: 5
+        liveness_probe:
+            exec:
+                command: "[$(docker inspect -f '{{.State.Running}}' my-collector)]"
+            initial_delay_seconds: 5
+            period_seconds: 2
+            timeout_seconds: 5
+            success_threshold: 1
+            failure_threshold: 3
+
 
     prometheus:
-        command: podman run --name my-prometheus -d -p 9090:9090 --add-host host.docker.internal=host-gateway prom/prometheus
-        availability:
-            restart: "always"
+        command: docker run --name my-prometheus -d -p 9090:9090 prom/prometheus
+        is_daemon: true
+        shutdown:
+            command: "docker stop my-prometheus"
+            signal: 15
+            timeout_seconds: 5
+        liveness_probe:
+            exec:
+                command: "[$(docker inspect -f '{{.State.Running}}' my-prometheus)]"
+            initial_delay_seconds: 5
+            period_seconds: 2
+            timeout_seconds: 5
+            success_threshold: 1
+            failure_threshold: 3
+
 
     zipkin:
-        command: podman run -d -p 9411:9411 openzipkin/zipkin
-        availability:
-            restart: "alway"
+        command: docker run --name my-zipkin --hostname my-zipkin -d -p 9411:9411 openzipkin/zipkin
+        is_daemon: true
+        shutdown:
+            command: "docker stop my-zipkin"
+            signal: 15
+            timeout_seconds: 5
+        liveness_probe:
+            exec:
+                command: "[$(docker inspect -f '{{.State.Running}}' my-zipkin)]"
+            initial_delay_seconds: 5
+            period_seconds: 2
+            timeout_seconds: 5
+            success_threshold: 1
+            failure_threshold: 3
+
+
+    jaeger:
+        command: docker run --name my-jaeger -d  -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one
+        is_daemon: true
+        shutdown:
+            command: "docker stop my-jaeger"
+            signal: 15
+            timeout_seconds: 5
+        liveness_probe:
+            exec:
+                command: "[$(docker inspect -f '{{.State.Running}}' my-jaeger)]"
+            initial_delay_seconds: 5
+            period_seconds: 2
+            timeout_seconds: 5
+            success_threshold: 1
+            failure_threshold: 3

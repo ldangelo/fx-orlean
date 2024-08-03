@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "common", "src\common\common
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "src\modules\UI\UI.csproj", "{1E860FAB-8907-4329-9067-C786F764AF61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Users", "src\modules\Users\Users.csproj", "{0E8BF9C1-9D5C-497B-AD77-E8D28A38013C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,13 @@ Global
 		{F15E52AC-9EF5-4706-83C6-D429773B68AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F15E52AC-9EF5-4706-83C6-D429773B68AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F15E52AC-9EF5-4706-83C6-D429773B68AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46606497-283E-4D78-AFF5-6BEE0CE46FE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46606497-283E-4D78-AFF5-6BEE0CE46FE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46606497-283E-4D78-AFF5-6BEE0CE46FE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46606497-283E-4D78-AFF5-6BEE0CE46FE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E8BF9C1-9D5C-497B-AD77-E8D28A38013C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E8BF9C1-9D5C-497B-AD77-E8D28A38013C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E8BF9C1-9D5C-497B-AD77-E8D28A38013C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E8BF9C1-9D5C-497B-AD77-E8D28A38013C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

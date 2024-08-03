@@ -5,17 +5,33 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
+
 exporters:
   debug:
     verbosity: detailed
+
+  prometheus:
+    endpoint: 'my-prometheus:4317'
+    namespace: FX
+    send_timestamps: true
+    metric_expiration: 180m
+    resource_to_telemetry_conversion:
+        enabled: true
+
+  zipkin:
+    endpoint: http://my-zipkin:9411/api/v2/spans
+
+  otlp/jaeger:
+    endpoint: my-jaeger:4317
+    tls:
+        insecure: true
+
+processors:
+    batch:
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [debug]
-    metrics:
-      receivers: [otlp]
-      exporters: [debug]
-    logs:
-      receivers: [otlp]
-      exporters: [debug]
+      processors: [batch]
+      exporters: [debug, otlp/jaeger]
