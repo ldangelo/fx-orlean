@@ -1,31 +1,63 @@
-version '3'
-
-volumes:
-  postgres_data:
+  volumes:
+    postgres_data:
       driver: local
 
-services:
-  postgres:
-      image: postgres
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-      environment:
-        POSTGRES_DB: postgresDB
-        POSTGRES_USER: postgresUser
-        POSTGRES_PASSWORD: postgresPW
-  keycloak:
-      image: quay.io/keycloak/keycloak:latest
-      entrypoint: /opt/keycloak/bin/kc.sh start-dev --hostname-strict=false --hostname-port=7011
-      environment:
-        DB_VENDOR: POSTGRES
-        DB_ADDR: postgres
-        DB_DATABASE: keycloak
-        DB_USER: postgresUser
-        DB_SCHEMA: public
-        DB_PASSWORD: postgresPW
-        KEYCLOAK_ADMIN: admin
-        KEYCLOAK_ADMIN_PASSWORD: admin
+  networks:
+    default:
+      name: otel
+      external: false
+     
+  services:
+    postgres:
+        image: postgres
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+        environment:
+          POSTGRES_DB: postgresDB
+          POSTGRES_USER: postgresUser
+          POSTGRES_PASSWORD: postgresPW
+    keycloak:
+        image: quay.io/keycloak/keycloak:latest
+        entrypoint: /opt/keycloak/bin/kc.sh start-dev --hostname-strict=false
+        environment:
+          DB_VENDOR: POSTGRES
+          DB_ADDR: postgres
+          DB_DATABASE: keycloak
+          DB_USER: postgresUser
+          DB_SCHEMA: public
+          DB_PASSWORD: postgresPW
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin
+        ports:
+          - '7011:8080'
+        depends_on:
+          - postgres
+    jaeger:
+      image:  jaegertracing/all-in-one
+      container_name: my-jaeger
+      hostname: my-jaeger
       ports:
-        - '7011:8080'
+        - '6831:6831/udp'
+        - '6832:6832/udp'
+        - '5778:5778'
+        - '16686:16686'
+        - '14250:14250'
+        - '14268:14268'
+        - '14269:14269'
+        - '9411:9411'
+      environment:
+        - COLLECTOR_ZIPKIN_HOST_PORT:9411
+        - COLLECTOR_OTLP_ENABLED:true
+
+    collector:
+
+      image: otel/opentelemetry-collector
+      container_name: my-collector
+      hostname: my-collector
       depends_on:
-        - postgres
+        - jaeger
+      ports:
+        - '4317:4317'
+        - '4318:4318'
+      volumes:
+        - './collector-config.yaml:/etc/otelcol/config.yaml'

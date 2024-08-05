@@ -1,3 +1,7 @@
+extensions:
+  zpages:
+    endpoint: 0.0.0.0:55679
+   
 receivers:
   otlp:
     protocols:
@@ -26,10 +30,13 @@ exporters:
     tls:
         insecure: true
 
+
 processors:
     batch:
 
 service:
+  extensions: [zpages]
+
   pipelines:
     traces:
       receivers: [otlp]
