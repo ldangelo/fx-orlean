@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:12.0.2-openjdk-11
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KEYCLOAK_USER
+          value: "keycloak"
+        - name: KEYCLOAK_PASSWORD
+          value: "password"
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true"
+        volumeMounts:
+          - name: keycloak-pvc
+            mountPath: /opt/keycloak/data
+        volumes:
+          - name: keycloak-pvc
+            persistentVolumeClaim:
+              claimName: keycloak-pvc
