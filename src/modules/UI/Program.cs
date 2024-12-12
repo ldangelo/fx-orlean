@@ -10,6 +10,7 @@ using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using System.Diagnostics.Metrics;
+using org.fortium.fx;
 
 
 internal static class Program
@@ -179,7 +180,10 @@ internal static class Program
 
         //
         // Add Orleans
-        //builder.Host.AddOrleans();
+        builder.Host.UseOrleans(siloBuilder =>
+        {
+            siloBuilder.UseLocalhostClustering();
+        });
 
         builder.Services.AddFastEndpoints(options =>
         {

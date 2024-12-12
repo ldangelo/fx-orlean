@@ -12,12 +12,14 @@ namespace org.fortium.fx;
 
 public static class ServiceCollectionExtensions
 {
-    public static IHostBuilder AddOrleans(this IHostBuilder host)
+    public static IHostBuilder AddOrleans(IHostBuilder host)
     {
         host.UseOrleans(static siloBuilder =>
         {
             siloBuilder.UseLocalhostClustering();
-            siloBuilder.AddMemoryGrainStorage("fx");
+            siloBuilder.AddMemoryGrainStorage("partner");
+            siloBuilder.AddMemoryGrainStorage("users");
+            siloBuilder.AddMemoryGrainStorage("conference");
         });
 
         return host;
