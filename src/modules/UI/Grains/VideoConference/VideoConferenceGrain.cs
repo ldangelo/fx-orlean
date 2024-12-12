@@ -11,10 +11,6 @@ public sealed record class ConferenceDetails
     public IPartnerGrain? Partner { get; set; }
     public IUsersGrain? User { get; set; }
 }
-public interface IVideoConferenceFactory
-{
-    IVideoConference GetConference(Guid id);
-}
 
 public class VideoConferenceGrain([PersistentState(stateName: "conferences", storageName: "conferences")] IPersistentState<ConferenceDetails> state) : Grain, IVideoConference
 {
