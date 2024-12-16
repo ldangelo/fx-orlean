@@ -11,8 +11,8 @@ public interface IPartnerGrain : IGrainWithStringKey
     Task<string> GetLastName();
     Task<List<string>> GetSkills();
     Task<string> GetEmailAddress();
-    Task<List<IVideoConference>> getVideoConferences();
-    Task addVideoConference(IVideoConference videoConference);
+    Task<List<IVideoConferenceGrain>> getVideoConferences();
+    Task addVideoConference(IVideoConferenceGrain videoConference);
 }
 
 

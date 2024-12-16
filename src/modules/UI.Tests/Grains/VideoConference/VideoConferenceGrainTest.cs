@@ -19,7 +19,7 @@ internal sealed class TestSiloConfigurations : ISiloConfigurator
     }
 }
 [TestClass]
-[TestSubject(typeof(IVideoConference))]
+[TestSubject(typeof(IVideoConferenceGrain))]
 public class VideoConferenceGrainTest
 {
     [TestMethod]
@@ -39,7 +39,7 @@ public class VideoConferenceGrainTest
         await user.SetUserDetails("Leo", "D'Angelo", "leo.dangelo@FortiumPartners.com");
 
         var conferenceId = Guid.NewGuid();
-        var conference = cluster.GrainFactory.GetGrain<IVideoConference>(conferenceId);
+        var conference = cluster.GrainFactory.GetGrain<IVideoConferenceGrain>(conferenceId);
 
         Assert.IsNotNull(conference);
 

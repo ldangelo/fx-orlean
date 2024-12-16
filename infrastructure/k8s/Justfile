@@ -1,0 +1,20 @@
+
+default:
+    just --list
+
+deploy: deploy-jaeger deploy-keycloak deploy-otel deploy-marten
+
+deploy-keycloak:
+    kubectl apply -f keycloak/keycloak-pvc.yaml
+    kubectl apply -f keycloak/keycloak-secrets.yaml
+    kubectl apply -f keycloak/keycloak-deployment.yaml
+    kubectl apply -f keycloak/keycloak-service.yaml
+
+deploy-jaeger:
+    kubectl apply -f jaeger/jaeger-operator.yaml
+
+deploy-otel:
+    echo "no otel deployment"
+
+deploy-marten:
+    echo "no marten deployment"

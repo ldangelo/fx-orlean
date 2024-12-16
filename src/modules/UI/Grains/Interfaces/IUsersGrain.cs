@@ -6,8 +6,8 @@ public interface IUsersGrain : IGrainWithStringKey
     public Task<string> getFirstName();
     public Task<string> getLastName();
     public Task<string> getEmail();
-    public Task addVideoConference(IVideoConference videoConference);
-    public Task<List<IVideoConference>> getVideoConferences();
+    public Task addVideoConference(IVideoConferenceGrain videoConference);
+    public Task<List<IVideoConferenceGrain>> getVideoConferences();
 }
 
 

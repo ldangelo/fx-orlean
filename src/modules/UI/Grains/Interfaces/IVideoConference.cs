@@ -1,10 +1,10 @@
 namespace UI.Grains.Interfaces;
 
-public interface IVideoConference : IGrainWithGuidKey
+public interface IVideoConferenceGrain : IGrainWithGuidKey
 {
-    Task<IVideoConference> CreateConference(IPartnerGrain partner, IUsersGrain user, DateTime startTime, DateTime endTime);
-    Task<IVideoConference> JoinConference();
-    Task<IVideoConference> LeaveConference();
+    Task<IVideoConferenceGrain> CreateConference(IPartnerGrain partner, IUsersGrain user, DateTime startTime, DateTime endTime);
+    Task<IVideoConferenceGrain> JoinConference();
+    Task<IVideoConferenceGrain> LeaveConference();
 }
 
 

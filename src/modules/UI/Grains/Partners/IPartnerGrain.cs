@@ -16,7 +16,7 @@ public sealed record class PartnerDetails
     public string firstName { get; set; } = "";
     public string lastName { get; set; } = "";
     public List<String> skills { get; set; } = new List<String>();
-    public List<IVideoConference> videoConferences { get; set; } = new List<IVideoConference>();
+    public List<IVideoConferenceGrain> videoConferences { get; set; } = new List<IVideoConferenceGrain>();
 }
 
 public class PartnerGrain([PersistentState(stateName: "partners", storageName: "partners")] IPersistentState<PartnerDetails> state)
@@ -59,12 +59,12 @@ public class PartnerGrain([PersistentState(stateName: "partners", storageName: "
         return Task.FromResult(state.State.emailAddress);
     }
 
-    public async Task<List<IVideoConference>> getVideoConferences()
+    public async Task<List<IVideoConferenceGrain>> getVideoConferences()
     {
         return await Task.FromResult(state.State.videoConferences);
     }
 
-    public async Task addVideoConference(IVideoConference videoConference)
+    public async Task addVideoConference(IVideoConferenceGrain videoConference)
     {
         state.State.videoConferences.Add(videoConference);
         await state.WriteStateAsync();

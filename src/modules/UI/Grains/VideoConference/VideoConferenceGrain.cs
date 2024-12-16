@@ -12,9 +12,9 @@ public sealed record class ConferenceDetails
     public IUsersGrain? User { get; set; }
 }
 
-public class VideoConferenceGrain([PersistentState(stateName: "conferences", storageName: "conferences")] IPersistentState<ConferenceDetails> state) : Grain, IVideoConference
+public class VideoConferenceGrain([PersistentState(stateName: "conferences", storageName: "conferences")] IPersistentState<ConferenceDetails> state) : Grain, IVideoConferenceGrain
 {
-    public async Task<IVideoConference> CreateConference(IPartnerGrain partner, IUsersGrain user, DateTime startTime, DateTime endTime)
+    public async Task<IVideoConferenceGrain> CreateConference(IPartnerGrain partner, IUsersGrain user, DateTime startTime, DateTime endTime)
     {
         if (state.State == null)
             state.State = new ConferenceDetails();
@@ -31,17 +31,17 @@ public class VideoConferenceGrain([PersistentState(stateName: "conferences", sto
         return this;
     }
 
-    public Task<IVideoConference> JoinConference()
+    public Task<IVideoConferenceGrain> JoinConference()
     {
         throw new NotImplementedException();
     }
 
-    public Task<IVideoConference> LeaveConference()
+    public Task<IVideoConferenceGrain> LeaveConference()
     {
         throw new NotImplementedException();
     }
 
-    public Task<List<IVideoConference>> GetConferences()
+    public Task<List<IVideoConferenceGrain>> GetConferences()
     {
         throw new NotImplementedException();
     }

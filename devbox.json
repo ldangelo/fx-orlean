@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.11.0/.schema/devbox.schema.json",
   "packages": [
-    "omnisharp-roslyn@latest",
-    "dotnet-sdk_8@latest",
-    "otel-cli@latest"
+    "otel-cli@latest",
+    "just@latest",
+    "kubernetes-helm@latest"
   ],
   "shell": {
     "init_hook": [

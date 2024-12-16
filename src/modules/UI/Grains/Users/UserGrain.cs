@@ -9,7 +9,7 @@ public sealed record class UserDetails
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public List<IVideoConference> VideoConferences { get; set; } = new List<IVideoConference>();
+    public List<IVideoConferenceGrain> VideoConferences { get; set; } = new List<IVideoConferenceGrain>();
 }
 
 public class UserGrain([PersistentState(stateName: "users", storageName: "users")] IPersistentState<UserDetails> state) : Grain, IUsersGrain
@@ -21,7 +21,7 @@ public class UserGrain([PersistentState(stateName: "users", storageName: "users"
             FirstName = firstName,
             LastName = lastName,
             Email = email,
-            VideoConferences = state.State?.VideoConferences ?? new List<IVideoConference>()
+            VideoConferences = state.State?.VideoConferences ?? new List<IVideoConferenceGrain>()
         };
 
         await state.WriteStateAsync();
@@ -42,13 +42,13 @@ public class UserGrain([PersistentState(stateName: "users", storageName: "users"
         return Task.FromResult(state.State.Email);
     }
 
-    public Task addVideoConference(IVideoConference videoConference)
+    public Task addVideoConference(IVideoConferenceGrain videoConference)
     {
         state.State.VideoConferences.Add(videoConference);
         return state.WriteStateAsync();
     }
 
-    public Task<List<IVideoConference>> getVideoConferences()
+    public Task<List<IVideoConferenceGrain>> getVideoConferences()
     {
         return Task.FromResult(state.State.VideoConferences);
     }
