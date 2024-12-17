@@ -3,21 +3,12 @@ using UI.Grains.Interfaces;
 
 namespace UI.Grains.VideoConference;
 
-public sealed record class ConferenceDetails
-{
-    public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
-    public TimeSpan Duration => EndTime - StartTime;
-    public IPartnerGrain? Partner { get; set; }
-    public IUsersGrain? User { get; set; }
-}
-
-public class VideoConferenceGrain([PersistentState(stateName: "conferences", storageName: "conferences")] IPersistentState<ConferenceDetails> state) : Grain, IVideoConferenceGrain
+public class VideoConferenceGrain([PersistentState(stateName: "conferences", storageName: "conferences")] IPersistentState<VideoConferenceSnapshot> state) : Grain, IVideoConferenceGrain
 {
     public async Task<IVideoConferenceGrain> CreateConference(IPartnerGrain partner, IUsersGrain user, DateTime startTime, DateTime endTime)
     {
         if (state.State == null)
-            state.State = new ConferenceDetails();
+            state.State = new VideoConferenceSnapshot();
 
         state.State.Partner = partner;
         state.State.User = user;
