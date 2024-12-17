@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orleans.Hosting;
 using Orleans.Serialization;
 using Orleans.TestingHost;
-using UI.Grains.Interfaces;
 using UI.Grains.Users;
 using UI.Grains.Users.Commands;
 using UI.Tests.Grains.Partners;
@@ -37,7 +36,7 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
 }
 [TestClass]
 [TestSubject(typeof(UserAggregate))]
-public class UserGrainTests
+public class UserAggregateTests
 {
     private readonly IServiceProvider _serviceProvider = DependencyContainer.Create();
     private IAggregateHandlerFactory _aggregateHandlerFactory;

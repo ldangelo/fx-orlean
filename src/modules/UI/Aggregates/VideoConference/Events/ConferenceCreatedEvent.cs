@@ -1,4 +1,5 @@
 using UI.Aggregates.VideoConference;
+using Whaally.Domain;
 using Whaally.Domain.Abstractions;
 
 namespace UI.Grains.VideoConference.Commands;
@@ -26,7 +27,7 @@ public class ConferenceCreatedEventHandler : IEventHandler<VideoConferenceAggreg
         context.Aggregate.EndTime = @event.EndTime;
         context.Aggregate.UserId = @event.UserId;
         context.Aggregate.PartnerId = @event.PartnerId;
-        
+       
         return new VideoConferenceAggregate(@event.StartTime, @event.EndTime, @event.UserId, @event.PartnerId);
     }
 }

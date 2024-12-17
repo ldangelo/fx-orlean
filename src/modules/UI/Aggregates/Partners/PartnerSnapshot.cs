@@ -1,4 +1,3 @@
-using UI.Grains.Interfaces;
 using Whaally.Domain.Abstractions;
 
 namespace UI.Grains.Partners;
@@ -8,7 +7,7 @@ public record PartnerSnapshot(
     string firstName,
     string lastName,
     List<String> skills,
-    List<IVideoConferenceGrain> videoConferences): ISnapshot;
+    List<String> videoConferences): ISnapshot;
 
 public class PartnerSnapshotFactory : ISnapshotFactory<PartnerAggregate, PartnerSnapshot>
 {

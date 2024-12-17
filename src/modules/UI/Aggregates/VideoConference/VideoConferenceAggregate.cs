@@ -9,6 +9,11 @@ public record VideoConferenceAggregate: IAggregate
     public string UserId;
     public string PartnerId;
 
+    public VideoConferenceAggregate()
+    {
+        
+    }
+
     public VideoConferenceAggregate(DateTime eventStartTime, DateTime eventEndTime, string eventUserId, string eventPartnerId)
     {
         StartTime = eventStartTime;

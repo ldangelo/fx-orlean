@@ -1,4 +1,3 @@
-using UI.Grains.Interfaces;
 using Whaally.Domain.Abstractions;
 
 namespace UI.Grains.Users;
@@ -9,5 +8,5 @@ public record class UserAggregate: IAggregate
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public List<IVideoConferenceGrain> VideoConferences { get; set; } = new List<IVideoConferenceGrain>();
+    public List<String> VideoConferences { get; set; } = new List<String>();
 }

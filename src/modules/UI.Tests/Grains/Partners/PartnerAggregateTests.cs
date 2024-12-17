@@ -13,7 +13,7 @@ using Orleans.Serialization;
 using Orleans.TestingHost;
 using UI.Aggregates.Partners.Commands;
 using UI.Grains.Partners;
-using UI.Grains.Interfaces;
+using UI.Grains.Users;
 using Whaally.Domain;
 using Whaally.Domain.Abstractions;
 using Whaally.Domain.Infrastructure.OrleansHost;
@@ -57,15 +57,18 @@ public class PartnerAggregateTest
         var partner = _aggregateHandlerFactory.Instantiate<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.IsNotNull(partner);
 
+        var user = _aggregateHandlerFactory.Instantiate<UserAggregate>("ldangelo@mac.com");
+        Assert.IsNotNull(user);
+        
         var result = await partner.Evaluate(new SetPartnerDetalsCommand("leo.dangelo@FortiumPartners.com", "Leo", "D'Angelo"));
         var result2 = await partner.Evaluate(new AddPartnerSkillCommand("AWS"));
 
         Assert.IsTrue(result.IsSuccess);
         Assert.IsTrue(result2.IsSuccess);
 
-        PartnerSnapshot snapshot = await partner.Snapshot<PartnerSnapshot>();
-        Assert.AreEqual<String>(snapshot.firstName, "Leo");
-        var skills = snapshot.skills;
-        Assert.IsTrue(skills.Count == 1);
+        PartnerSnapshot partnerSnapshot = await partner.Snapshot<PartnerSnapshot>();
+        UserSnapshot userSnapshot = await user.Snapshot<UserSnapshot>();
+        Assert.AreEqual<String>(partnerSnapshot.firstName, "Leo");
+        Assert.IsTrue(partnerSnapshot.skills.Count == 1);
     }
 }
