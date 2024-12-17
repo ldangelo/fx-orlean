@@ -2,9 +2,10 @@
 namespace UI.Grains.Users;
 
 using UI.Grains.Interfaces;
+using Whaally.Domain.Abstractions;
 
 [GenerateSerializer, Alias(nameof(UserDetails))]
-public sealed record class UserDetails
+public record class UserDetails: IAggregate
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

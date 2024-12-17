@@ -1,4 +1,4 @@
-using Whaally.Domain.Abstractions.Aggregate;
+using Whaally.Domain.Abstractions;
 
 namespace org.fortium.fx.common.Types
 {

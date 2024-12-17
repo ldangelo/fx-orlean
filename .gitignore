@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 #src/common/obj
 bin
 obj
+devbox.lock

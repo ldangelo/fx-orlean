@@ -1,8 +1,7 @@
-
 using FluentResults;
 using org.fortium.fx.common.Events;
 using org.fortium.fx.common.Types;
-using Whaally.Domain.Abstractions.Command;
+using Whaally.Domain.Abstractions;
 
 namespace org.fortium.fx.commands;
 
