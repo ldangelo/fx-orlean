@@ -10,9 +10,9 @@ public record PartnerSnapshot(
     List<String> skills,
     List<IVideoConferenceGrain> videoConferences): ISnapshot;
 
-public class PartnerSnapshotFactory : ISnapshotFactory<Partner, PartnerSnapshot>
+public class PartnerSnapshotFactory : ISnapshotFactory<PartnerAggregate, PartnerSnapshot>
 {
-  public PartnerSnapshot Instantiate(Partner aggregate)
+  public PartnerSnapshot Instantiate(PartnerAggregate aggregate)
   {
     return new PartnerSnapshot(aggregate.emailAddress,aggregate.firstName,aggregate.lastName,aggregate.skills,aggregate.videoConferences);
   }

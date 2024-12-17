@@ -10,8 +10,8 @@ namespace UI.Aggregates.Partners.Commands;
 public record AddPartnerSkillCommand(string skill): ICommand
 {}
 
-public class PartnerSkillAddHandler: ICommandHandler<Partner, AddPartnerSkillCommand> {
-  public IResultBase Evaluate(ICommandHandlerContext<Partner> context, AddPartnerSkillCommand command) {
+public class PartnerSkillAddHandler: ICommandHandler<PartnerAggregate, AddPartnerSkillCommand> {
+  public IResultBase Evaluate(ICommandHandlerContext<PartnerAggregate> context, AddPartnerSkillCommand command) {
     context.StageEvent(new PartnerSkillAddedEvent(command.skill));
     return Result.Ok();
   }

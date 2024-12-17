@@ -3,7 +3,7 @@ using Whaally.Domain.Abstractions;
 
 namespace UI.Grains.Partners;
 
-public record Partner: IAggregate
+public record PartnerAggregate: IAggregate
 {
     public string emailAddress { get; set; } = "";
     public string firstName { get; set; } = "";

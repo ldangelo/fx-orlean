@@ -39,8 +39,8 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
     }
 }
 [TestClass]
-[TestSubject(typeof(Partner))]
-public class PartnerTest
+[TestSubject(typeof(PartnerAggregate))]
+public class PartnerAggregateTest
 {
     private readonly IServiceProvider _serviceProvider = DependencyContainer.Create();
     private IAggregateHandlerFactory _aggregateHandlerFactory;
@@ -54,7 +54,7 @@ public class PartnerTest
         var cluster = builder.Build();
         cluster.Deploy();
 
-        var partner = _aggregateHandlerFactory.Instantiate<Partner>("leo.dangelo@FortiumPartners.com");
+        var partner = _aggregateHandlerFactory.Instantiate<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.IsNotNull(partner);
 
         var result = await partner.Evaluate(new SetPartnerDetalsCommand("leo.dangelo@FortiumPartners.com", "Leo", "D'Angelo"));

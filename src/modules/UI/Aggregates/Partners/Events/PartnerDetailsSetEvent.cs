@@ -5,8 +5,8 @@ namespace UI.Aggregates.Partners.Events;
 
 public record PartnerDetailsSetEvent(string emailAddress, string firstName, string lastName): IEvent {}
 
-public class PartnerDetailsSetEventHandler: IEventHandler<Partner, PartnerDetailsSetEvent> {
-  public Partner Apply(IEventHandlerContext<Partner> context, PartnerDetailsSetEvent @event)
+public class PartnerDetailsSetEventHandler: IEventHandler<PartnerAggregate, PartnerDetailsSetEvent> {
+  public PartnerAggregate Apply(IEventHandlerContext<PartnerAggregate> context, PartnerDetailsSetEvent @event)
   {
 
       context.Aggregate.emailAddress = @event.emailAddress;

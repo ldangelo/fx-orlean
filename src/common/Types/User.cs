@@ -4,8 +4,8 @@ namespace org.fortium.fx.common.Types
 {
     public record User: IAggregate {
       public Guid? Id { get; }
-      public string? FirstName { get; }
-      public string? LastName { get; }
+      public string? FirstName { get; set; }
+      public string? LastName { get; set; }
       public Email[]?  Emails { get; } = Array.Empty<Email>();
       public Phone[]? Phones { get; } = Array.Empty<Phone>();
       public Address[]? Addresses { get; } = Array.Empty<Address>();

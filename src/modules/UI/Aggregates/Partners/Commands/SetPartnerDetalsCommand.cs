@@ -10,12 +10,9 @@ namespace UI.Aggregates.Partners.Commands;
 public record SetPartnerDetalsCommand(string emailAddress, string firstName, string lastName): ICommand 
 {}
 
-public class SetPartnerDetailsHandler: ICommandHandler<Partner, SetPartnerDetalsCommand> {
-    public IResultBase Evaluate(ICommandHandlerContext<Partner> context, SetPartnerDetalsCommand command) {
+public class SetPartnerDetailsHandler: ICommandHandler<PartnerAggregate, SetPartnerDetalsCommand> {
+    public IResultBase Evaluate(ICommandHandlerContext<PartnerAggregate> context, SetPartnerDetalsCommand command) {
       var result = new Result();
-
-      if(!context.Aggregate.IsInitialized)
-        result.WithError("Partner is not initialized");
 
       context.StageEvent(new PartnerDetailsSetEvent(command.emailAddress, command.firstName, command.lastName));
       return result;
