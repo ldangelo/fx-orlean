@@ -1,63 +1,97 @@
-  volumes:
-    postgres_data:
-      driver: local
-
-  networks:
-    default:
-      name: otel
-      external: false
-     
-  services:
-    postgres:
-        image: postgres
-        volumes:
-          - postgres_data:/var/lib/postgresql/data
-        environment:
-          POSTGRES_DB: postgresDB
-          POSTGRES_USER: postgresUser
-          POSTGRES_PASSWORD: postgresPW
-    keycloak:
-        image: quay.io/keycloak/keycloak:latest
-        entrypoint: /opt/keycloak/bin/kc.sh start-dev --hostname-strict=false
-        environment:
-          DB_VENDOR: POSTGRES
-          DB_ADDR: postgres
-          DB_DATABASE: keycloak
-          DB_USER: postgresUser
-          DB_SCHEMA: public
-          DB_PASSWORD: postgresPW
-          KEYCLOAK_ADMIN: admin
-          KEYCLOAK_ADMIN_PASSWORD: admin
-        ports:
-          - '7011:8080'
-        depends_on:
-          - postgres
-    jaeger:
-      image:  jaegertracing/all-in-one
-      container_name: my-jaeger
-      hostname: my-jaeger
-      ports:
-        - '6831:6831/udp'
-        - '6832:6832/udp'
-        - '5778:5778'
-        - '16686:16686'
-        - '14250:14250'
-        - '14268:14268'
-        - '14269:14269'
-        - '9411:9411'
-      environment:
-        - COLLECTOR_ZIPKIN_HOST_PORT:9411
-        - COLLECTOR_OTLP_ENABLED:true
-
-    collector:
-
-      image: otel/opentelemetry-collector
-      container_name: my-collector
-      hostname: my-collector
-      depends_on:
-        - jaeger
-      ports:
-        - '4317:4317'
-        - '4318:4318'
-      volumes:
-        - './collector-config.yaml:/etc/otelcol/config.yaml'
+services:
+  eureka:
+    container_name: eureka
+    image: ldangelo/fortium-eureka:latest
+    ports:
+      - 8761:8761
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    env_file:
+      - .dockerenv
+    networks:
+      - data-network
+    volumes:
+      - ${PWD}/docker/postgres/data:/var/lib/postgresql/data
+      - ${PWD}/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:25.0.1 # https://hub.docker.com/r/keycloak/keycloak/tags and https://github.com/keycloak/keycloak/releases/
+    env_file:
+      - .dockerenv
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - 8085:8080
+    volumes:
+      - ./docker/keycloak/:/opt/keycloak/data/import/
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_URL: http://localhost:8085
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8085
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true
+      KC_HTTP_RELATIVE_PATH: /
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+  prometheus:
+    image: prom/prometheus:v2.54.1 # https://hub.docker.com/r/prom/prometheus
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    command:
+      - --enable-feature=exemplar-storage
+      - --enable-feature=otlp-write-receiver
+      - --web.enable-remote-write-receiver
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - prometheus:/prometheus
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana:10.4.10 # https://hub.docker.com/r/grafana/grafana/tags
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+  tempo:
+    image: grafana/tempo:2.4.2 # https://hub.docker.com/r/grafana/tempo/tags and https://github.com/grafana/tempo/releases
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - tempo:/tmp/tempo
+      - ./docker/grafana/tempo.yml:/etc/tempo.yml:ro
+    ports:
+      - "3200:3200" # tempo
+      - "4318:4318" # otlp http
+  loki:
+    image: grafana/loki:3.1.2 # https://hub.docker.com/r/grafana/loki/tags and https://github.com/grafana/loki/releases
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - "3100:3100"
+volumes:
+  prometheus:
+    driver: local
+  tempo:
+    driver: local
+networks:
+  data-network:
+    driver: bridge
