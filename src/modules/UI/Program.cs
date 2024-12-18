@@ -1,7 +1,6 @@
 using Keycloak.AuthServices.Authentication;
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using Users;
 using System.Reflection;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -11,6 +10,7 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using System.Diagnostics.Metrics;
 using org.fortium.fx;
+using Users;
 
 
 internal static class Program

@@ -1,0 +1,3 @@
+export PCAuthCode=nhOXQjEAnBrylVZMvOtEkGAZCbf9LMkc
+export KEYCLOAK_ADMIN_PASSWORD=itsasecret
+export POSTGRES_PASSWORD=itsasecret

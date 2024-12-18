@@ -11,8 +11,10 @@ public class VideoConferenceAddedToUserEventHandler: IEventHandler<UserAggregate
 {
     public UserAggregate Apply(IEventHandlerContext<UserAggregate> context, VideoConferenceAddedToUserEvent @event)
     {
-        Log.Information("VideoConferenceAddedToUserEventHandler");
-        context.Aggregate.VideoConferences.Add(@event.conferenceId);
+        if(!context.Aggregate.VideoConferences.Contains(@event.conferenceId)) {
+            Log.Information("VideoConferenceAddedToUserEventHandler");
+            context.Aggregate.VideoConferences.Add(@event.conferenceId);
+        }
         return context.Aggregate;
     }
 }

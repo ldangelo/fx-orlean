@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Orleans.Serialization;
+using Serilog;
+using Serilog.Core;
 using UI.Aggregates.Partners.Commands;
 using UI.Aggregates.VideoConference;
 using UI.Grains.Partners;
@@ -34,7 +36,10 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
 
             services.AddMarten(config =>
             {
-                config.Connection(Environment.GetEnvironmentVariable("MARTEN_CONNECTION_STRING") ?? throw new InvalidOperationException());
+                String connectionString = Environment.GetEnvironmentVariable("MARTEN_CONNECTION_STRING");
+                Log.Information($"Marten connection string: {connectionString}");
+                if (connectionString == null) throw new InvalidOperationException();
+                config.Connection(connectionString);
             });
             services.AddSerializer(serializer => serializer.AddProtobufSerializer());
         }).AddCustomStorageBasedLogConsistencyProvider();
@@ -89,7 +94,7 @@ public class VideoConferenceAggregateTests
         var partnerSnapshot = await partner.Snapshot<PartnerSnapshot>();
             
         // ensure the conference was added to the user and the partner
-        Assert.IsTrue((partnerSnapshot.videoConferences).Count > 0);
+        Assert.IsTrue((partnerSnapshot.videoConferences).Count == 1);
         Assert.IsTrue(userSnapshot.videoConferences.Count == 1);
     }
 
