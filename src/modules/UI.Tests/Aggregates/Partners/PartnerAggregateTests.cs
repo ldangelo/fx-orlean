@@ -1,13 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentResults;
-using JasperFx.Core;
 using JetBrains.Annotations;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Namotion.Reflection;
 using Orleans.Hosting;
 using Orleans.Serialization;
 using Orleans.TestingHost;
@@ -38,13 +35,14 @@ file sealed class TestSiloConfigurations : ISiloConfigurator
         }).AddCustomStorageBasedLogConsistencyProvider();
     }
 }
+
 [TestClass]
 [TestSubject(typeof(PartnerAggregate))]
 public class PartnerAggregateTest
 {
     private readonly IServiceProvider _serviceProvider = DependencyContainer.Create();
     private IAggregateHandlerFactory _aggregateHandlerFactory;
-    
+
     [TestMethod]
     public async Task PartnerDetailsTest()
     {
@@ -59,16 +57,17 @@ public class PartnerAggregateTest
 
         var user = _aggregateHandlerFactory.Instantiate<UserAggregate>("ldangelo@mac.com");
         Assert.IsNotNull(user);
-        
-        var result = await partner.Evaluate(new SetPartnerDetalsCommand("leo.dangelo@FortiumPartners.com", "Leo", "D'Angelo"));
+
+        var result =
+            await partner.Evaluate(new SetPartnerDetalsCommand("leo.dangelo@FortiumPartners.com", "Leo", "D'Angelo"));
         var result2 = await partner.Evaluate(new AddPartnerSkillCommand("AWS"));
 
         Assert.IsTrue(result.IsSuccess);
         Assert.IsTrue(result2.IsSuccess);
 
-        PartnerSnapshot partnerSnapshot = await partner.Snapshot<PartnerSnapshot>();
-        UserSnapshot userSnapshot = await user.Snapshot<UserSnapshot>();
-        Assert.AreEqual<String>(partnerSnapshot.firstName, "Leo");
+        var partnerSnapshot = await partner.Snapshot<PartnerSnapshot>();
+        var userSnapshot = await user.Snapshot<UserSnapshot>();
+        Assert.AreEqual(partnerSnapshot.firstName, "Leo");
         Assert.IsTrue(partnerSnapshot.skills.Count == 1);
     }
 }

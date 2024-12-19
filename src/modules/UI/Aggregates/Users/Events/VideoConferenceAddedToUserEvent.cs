@@ -1,4 +1,5 @@
 using Serilog;
+using Serilog.Context;
 using UI.Aggregates.VideoConference;
 using UI.Grains.Users;
 using Whaally.Domain.Abstractions;
@@ -12,7 +13,9 @@ public class VideoConferenceAddedToUserEventHandler: IEventHandler<UserAggregate
     public UserAggregate Apply(IEventHandlerContext<UserAggregate> context, VideoConferenceAddedToUserEvent @event)
     {
         if(!context.Aggregate.VideoConferences.Contains(@event.conferenceId)) {
-            Log.Information("VideoConferenceAddedToUserEventHandler");
+            LogContext.PushProperty("ConferenceId", @event.conferenceId);
+            LogContext.PushProperty("PartnerId", context.Aggregate.Email);
+            Log.Information("Add video conference to user");
             context.Aggregate.VideoConferences.Add(@event.conferenceId);
         }
         return context.Aggregate;
