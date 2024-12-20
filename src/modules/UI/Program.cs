@@ -10,7 +10,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Users;
 
 internal static class Program
 {
@@ -188,7 +187,8 @@ internal static class Program
         // Add Orleans
         builder.Host.UseOrleans(siloBuilder => { siloBuilder.UseLocalhostClustering(); });
 
-        builder.Services.AddFastEndpoints(options => { options.Assemblies = [UserAssembly.Get()]; })
+/*
+ * builder.Services.AddFastEndpoints(options => { options.Assemblies = [UserAssembly.Get()]; })
             .SwaggerDocument(o =>
             {
                 o.AutoTagPathSegmentIndex = 2;
@@ -196,6 +196,7 @@ internal static class Program
                 o.TagStripSymbols = true; //this option is new
             });
 
+ */
         // Add services to the container.
         builder.Services.AddSerilog();
         builder.Services.AddRazorPages();

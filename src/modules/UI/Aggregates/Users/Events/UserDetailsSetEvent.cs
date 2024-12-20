@@ -1,27 +1,17 @@
-using Whaally.Domain .Abstractions;
+using Orleankka.Meta;
+
 namespace UI.Grains.Users.Commands;
 
-public class UserDetailsSetEvent : IEvent
+public class UserDetailsSetEvent : Event
 {
-    public string emailAddress { get; set; } = "";
-    public string firstName { get; set; } = "";
-    public string lastName { get; set; } = "";
     public UserDetailsSetEvent(string commandEmailAddress, string commandFirstName, string commandLastName)
     {
         emailAddress = commandEmailAddress;
         firstName = commandFirstName;
         lastName = commandLastName;
     }
-}
 
-public class UserDetailsSetEventHandler : IEventHandler<UserAggregate, UserDetailsSetEvent>
-{
-    public UserAggregate Apply(IEventHandlerContext<UserAggregate> context, UserDetailsSetEvent @event)
-    {
-        context.Aggregate.FirstName = @event.firstName;
-        context.Aggregate.LastName = @event.lastName;
-        context.Aggregate.Email = @event.emailAddress;
-        
-        return context.Aggregate;
-    }
+    public string emailAddress { get; set; } = "";
+    public string firstName { get; set; } = "";
+    public string lastName { get; set; } = "";
 }

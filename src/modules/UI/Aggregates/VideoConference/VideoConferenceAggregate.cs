@@ -1,24 +1,45 @@
-using Whaally.Domain.Abstractions;
+using Orleankka;
+using Orleankka.Meta;
+using Orleans.Concurrency;
+using Orleans.Serialization.Invocation;
+using UI.Grains.VideoConference;
 
 namespace UI.Aggregates.VideoConference;
 
-public record VideoConferenceAggregate: IAggregate
+[Alias("UI.Aggregates.VideoConference.IVideoConferenceAggregate")]
+public interface IVideoConferenceAggregate : IActorGrain, IGrainWithStringKey
 {
-    public DateTime StartTime;
+}
+
+[Serializable]
+[GenerateSerializer]
+public class GetVideoConferenceDetails : Query<VideoConferenceAggregate, VideoConferenceSnapshot>
+{
+}
+
+[MayInterleave(nameof(Interleave))]
+public class VideoConferenceAggregate : DispatchActorGrain, IVideoConferenceAggregate
+{
     public DateTime EndTime;
-    public string UserId;
     public string PartnerId;
+    public DateTime StartTime;
+    public string UserId;
 
     public VideoConferenceAggregate()
     {
-        
     }
 
-    public VideoConferenceAggregate(DateTime eventStartTime, DateTime eventEndTime, string eventUserId, string eventPartnerId)
+    public VideoConferenceAggregate(DateTime eventStartTime, DateTime eventEndTime, string eventUserId,
+        string eventPartnerId)
     {
         StartTime = eventStartTime;
         EndTime = eventEndTime;
         UserId = eventUserId;
         PartnerId = eventPartnerId;
+    }
+
+    public static bool Interleave(IInvokable req)
+    {
+        return req.Message() is GetVideoConferenceDetails;
     }
 }

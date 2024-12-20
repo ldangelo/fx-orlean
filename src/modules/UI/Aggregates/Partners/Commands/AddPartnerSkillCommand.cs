@@ -1,18 +1,10 @@
-using FluentResults;
-using UI.Aggregates.Partners.Events;
-using UI.Grains.Partners;
-using Whaally.Domain.Abstractions;
+using Orleankka.Meta;
 
 namespace UI.Aggregates.Partners.Commands;
 
 [Immutable]
+[Serializable]
 [GenerateSerializer]
-public record AddPartnerSkillCommand(string skill): ICommand
-{}
-
-public class PartnerSkillAddHandler: ICommandHandler<PartnerAggregate, AddPartnerSkillCommand> {
-  public IResultBase Evaluate(ICommandHandlerContext<PartnerAggregate> context, AddPartnerSkillCommand command) {
-    context.StageEvent(new PartnerSkillAddedEvent(command.skill));
-    return Result.Ok();
-  }
+public record AddPartnerSkillCommand(string skill) : Command
+{
 }
