@@ -23,7 +23,7 @@ public class GetUserDetails : Query<UserAggregate, UserSnapshot>
 [MayInterleave(nameof(Interleave))]
 public class UserAggregate : EventSourcedActor, IUserAggregate
 {
-    private bool active;
+    private bool active = false;
     private string FirstName { get; set; } = string.Empty;
     private string LastName { get; set; } = string.Empty;
     private string Email { get; set; } = string.Empty;

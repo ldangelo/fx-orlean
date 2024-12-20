@@ -25,10 +25,6 @@ public class VideoConferenceAggregate : DispatchActorGrain, IVideoConferenceAggr
     public DateTime StartTime;
     public string UserId;
 
-    public VideoConferenceAggregate()
-    {
-    }
-
     public VideoConferenceAggregate(DateTime eventStartTime, DateTime eventEndTime, string eventUserId,
         string eventPartnerId)
     {

@@ -5,6 +5,11 @@ using UI.Grains.Partners;
 
 namespace UI.Aggregates.Partners.Events;
 
-public class VideoConferenceAddedToPartnerEvent(string conferenceId) : Event
+public class VideoConferenceAddedToPartnerEvent : Event
 {
+    private string ConferenceId { get; init; } = "";
+
+    public VideoConferenceAddedToPartnerEvent(string conferenceId) {
+        ConferenceId = conferenceId;
+    }
 };

@@ -2,4 +2,11 @@ using Orleankka.Meta;
 
 namespace UI.Aggregates.Users.Commands;
 
-public class AddVideoConferenceToUserCommand(string conferenceId) : Command;
+public class AddVideoConferenceToUserCommand : Command
+{
+    private string ConferenceId {get; init; }= "";
+
+    public AddVideoConferenceToUserCommand(string conferenceId) {
+        ConferenceId = conferenceId;
+    }
+}
