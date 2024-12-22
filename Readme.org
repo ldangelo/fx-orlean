@@ -10,6 +10,27 @@ http://www.fortiumpartners.com/
 
 FX-expert uses DDD and CQRS to isolate Domain logic.
 
+There are a number of Aggregate roots required for this use case:
+
+** VideoConference
+
+Represents the VideoConference details, who will participate, the scheduled start/end time, the status (Scheduled, Cancelled, Started, Ended, etc...).
+
+** Partner
+
+Represents the partner details, Name, contact details as well as 'skills'.  The idea being that people will be looking for help with a particular topic and they would find an expert by searching the skills associated with that partner.
+
+** User
+
+Represents the person(s) who are requesting a video consultation.  It contains user details such as Name, contact details and associates payment details.
+
+** Payment
+
+Represents the payment details.  We will be utilizing Stripe in the beginning and utilizing the authorice/collect workflow.  Now payment information will be stored, we will simple store the Stripe id for the associated payment details.
+
+
+* Dependencies
+
 FX-expert is built using .Net Core (9.0).  It currently uses the following critical dependencies.
 
 ** Orleans: https://learn.microsoft.com/en-us/dotnet/orleans/overview
@@ -28,8 +49,16 @@ Marten provides an Event Store for the CQRS events.
 
 Postgres provides storage for Entity Framework Projections.
 
-** Wolverine:
+** Wolverine: https://wolverinefx.net
 
 I'm currently playing around with Wolverine for communication across Aggregates.
 
-* Dependencies
+** Stripe: https://github.com/stripe/stripe-dotnet
+
+** FluentValidator: https://docs.fluentvalidation.net/en/latest/index.html
+
+We will be using FluentValidators to validate Commands, Queries, Events as well as JSON requests/responses.
+
+** Blazor: https://learn.microsoft.com/en-us/aspnet/core/blazor/?view=aspnetcore-9.0
+
+I will be utilizing Blazor for the WebFrontend.
