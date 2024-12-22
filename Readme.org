@@ -1,7 +1,35 @@
-#+title: FX
+#+title: FX-expert
 
 * Introduction
 
+FX-expert is a WIP.  It's intended to be an application to allow 'users' to schedule video conferences with 'partners' at Fortium Partners. Fortium Partners provices executive level fractional leadership for CIO's, CTO's and CISO's.  I'm a partner within the CTO practice.
+
+http://www.fortiumpartners.com/
+
 * Architecture
+
+FX-expert uses DDD and CQRS to isolate Domain logic.
+
+FX-expert is built using .Net Core (9.0).  It currently uses the following critical dependencies.
+
+** Orleans: https://learn.microsoft.com/en-us/dotnet/orleans/overview
+
+Orleans is utilized as an 'Agent' framework.
+
+** Orleankka: https://github.com/OrleansContrib/Orleankka
+
+Orleankka provides a CQRS implementation on top of Orleans.
+
+** Marten: https://martendb.io
+
+Marten provides an Event Store for the CQRS events.
+
+** Postgres:
+
+Postgres provides storage for Entity Framework Projections.
+
+** Wolverine:
+
+I'm currently playing around with Wolverine for communication across Aggregates.
 
 * Dependencies
