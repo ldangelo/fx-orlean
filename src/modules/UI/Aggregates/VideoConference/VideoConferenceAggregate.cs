@@ -1,8 +1,10 @@
+using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
 using UI.Grains.VideoConference;
+using UI.Grains.VideoConference.Commands;
 
 namespace UI.Aggregates.VideoConference;
 
@@ -18,24 +20,32 @@ public class GetVideoConferenceDetails : Query<VideoConferenceAggregate, VideoCo
 }
 
 [MayInterleave(nameof(Interleave))]
-public class VideoConferenceAggregate : DispatchActorGrain, IVideoConferenceAggregate
+public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggregate
 {
-    public DateTime EndTime;
-    public string PartnerId;
-    public DateTime StartTime;
-    public string UserId;
+    private DateTime _conferenceEndTime;
+    private Guid _conferenceId;
+    private DateTime _conferenceStartTime;
+    private string _partnerId;
+    private string _userId;
 
-    public VideoConferenceAggregate(DateTime eventStartTime, DateTime eventEndTime, string eventUserId,
-        string eventPartnerId)
+    private async void On(VideoConferenceCreatedEvent e)
     {
-        StartTime = eventStartTime;
-        EndTime = eventEndTime;
-        UserId = eventUserId;
-        PartnerId = eventPartnerId;
+        _conferenceId = e.ConferenceId;
+        _conferenceStartTime = e.StartTime;
+        _conferenceEndTime = e.EndTime;
+        _userId = e.UserId;
+        _partnerId = e.PartnerId;
     }
 
     public static bool Interleave(IInvokable req)
     {
         return req.Message() is GetVideoConferenceDetails;
+    }
+
+    private IEnumerable<Event> Handle(CreateVideoConferenceCommand command)
+    {
+        yield return new VideoConferenceCreatedEvent(command.conferenceId, command.startTime, command.endTime,
+            command.userId,
+            command.partnerId);
     }
 }

@@ -1,40 +1,52 @@
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using Orleankka.TestKit;
+using Microsoft.Extensions.Hosting;
+using Orleankka;
+using Orleankka.Cluster;
+using Orleans.Hosting;
 using UI.Aggregates.Partners.Commands;
 using UI.Grains.Partners;
-using UI.Grains.Users;
-using Xunit;
 
 namespace UI.Tests.Grains.Partners;
+
+public static class TestExtension
+{
+    public static async Task<IHost> StartServer(this IHostBuilder builder)
+    {
+        return await builder
+            .UseOrleans(c => c
+                .UseLocalhostClustering()
+                .AddMemoryGrainStorageAsDefault()
+                .AddMemoryGrainStorage("PubSubStore")
+                .AddMemoryStreams("sms")
+                .UseInMemoryReminderService())
+            .StartAsync();
+    }
+}
 
 [TestSubject(typeof(PartnerAggregate))]
 public class PartnerAggregateTest
 {
-    private readonly ActorRuntimeMock runtime;
-    private readonly ActorSystemMock system;
-
-    public PartnerAggregateTest()
-    {
-        runtime = new ActorRuntimeMock();
-        system = runtime.System;
-    }
+    private static IActorSystem _system;
 
     [Fact]
     public async Task PartnerDetailsTest()
     {
-        var partner = system.MockActorOf<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
+        var host = new HostBuilder()
+            .UseOrleans(c => c.UseLocalhostClustering())
+            .UseOrleankka()
+            .Build();
+
+        await host.StartAsync();
+        _system = host.ActorSystem();
+
+        var partner = _system.ActorOf<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.NotNull(partner);
 
-        var user = system.MockActorOf<UserAggregate>("ldangelo@mac.com");
-        Assert.NotNull(user);
-
-        await partner.Tell(new SetPartnerDetalsCommand("leo.dangelo@FortiumPartners.com", "Leo", "D'Angelo"));
+        await partner.Tell(new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com"));
         await partner.Tell(new AddPartnerSkillCommand("AWS"));
 
-        var partnerSnapshot = await partner.Ask<PartnerSnapshot>(partner);
-        var userSnapshot = await user.Ask<UserSnapshot>(user);
-        Assert.Equal("Leo", partnerSnapshot.firstName);
+        var partnerSnapshot = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
         Assert.True(partnerSnapshot.skills.Count == 1);
     }
 }

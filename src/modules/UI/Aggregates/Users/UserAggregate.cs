@@ -23,11 +23,11 @@ public class GetUserDetails : Query<UserAggregate, UserSnapshot>
 [MayInterleave(nameof(Interleave))]
 public class UserAggregate : EventSourcedActor, IUserAggregate
 {
-    private bool active = false;
+    private bool active;
     private string FirstName { get; set; } = string.Empty;
     private string LastName { get; set; } = string.Empty;
     private string Email { get; set; } = string.Empty;
-    private List<string> VideoConferences { get; } = new();
+    private List<Guid?> VideoConferences { get; } = new();
 
     public static bool Interleave(IInvokable req)
     {
@@ -42,9 +42,19 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
         Email = e.EmailAddress;
     }
 
+    private void On(VideoConferenceAddedToUserEvent e)
+    {
+        VideoConferences.Add(e.ConferenceId);
+    }
+
     private IEnumerable<Event> Handle(CreateUserCommand cmd)
     {
         yield return new UserCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
+    }
+
+    private IEnumerable<Event> Handle(AddVideoConferenceToUserCommand cmd)
+    {
+        yield return new VideoConferenceAddedToUserEvent(cmd.ConferenceId);
     }
 
     private UserSnapshot Handle(GetUserDetails query)

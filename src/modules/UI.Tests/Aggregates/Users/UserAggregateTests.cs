@@ -6,7 +6,6 @@ using Orleankka.Cluster;
 using Orleans.Hosting;
 using UI.Aggregates.Users.Commands;
 using UI.Grains.Users;
-using Xunit;
 
 namespace UI.Tests.Aggregates.Users;
 
@@ -15,12 +14,13 @@ public static class TestExtension
     public static async Task<IHost> StartServer(this IHostBuilder builder)
     {
         return await builder
-            .UseOrleans(c => c
-                .UseLocalhostClustering()
-                .AddMemoryGrainStorageAsDefault()
-                .AddMemoryGrainStorage("PubSubStore")
-                .AddMemoryStreams("sms")
-                .UseInMemoryReminderService())
+            .UseOrleans(c =>
+                c.UseLocalhostClustering()
+                    .AddMemoryGrainStorageAsDefault()
+                    .AddMemoryGrainStorage("PubSubStore")
+                    .AddMemoryStreams("sms")
+                    .UseInMemoryReminderService()
+            )
             .StartAsync();
     }
 }
@@ -44,11 +44,13 @@ public class UserAggregateTests
         var user = _system.ActorOf<IUserAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.NotNull(user);
 
-        await user.Tell(new CreateUserCommand("Leo", "D'Angelo", "leo.dangelo@FortiumPartners.com"));
+        await user.Tell(
+            new CreateUserCommand("Leo", "D'Angelo", "leo.dangelo@FortiumPartners.com")
+        );
 
         var snapshot = await user.Ask<UserSnapshot>(new GetUserDetails());
 
         Assert.NotNull(snapshot);
-        Assert.Equal("Leo", snapshot.firstName);
+        Assert.Equal("Leo", snapshot.FirstName);
     }
 }

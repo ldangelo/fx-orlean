@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis;
 using Orleankka;
 using Orleankka.Meta;
 using UI.Grains.Users;
@@ -37,7 +36,7 @@ public abstract class EventSourcedActor : DispatchActorGrain, IEventSourcedActor
 
     //
     // TODO: Project events into EventDb or MartinDb
-    protected Task Project(Event @event)
+    private Task Project(Event @event)
     {
         return Task.CompletedTask;
     }

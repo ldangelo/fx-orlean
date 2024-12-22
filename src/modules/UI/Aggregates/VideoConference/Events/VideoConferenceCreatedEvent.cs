@@ -4,15 +4,18 @@ namespace UI.Grains.VideoConference.Commands;
 
 public class VideoConferenceCreatedEvent : Event
 {
-    public VideoConferenceCreatedEvent(DateTime commandStartTime, DateTime commandEndTime, string commandUserId,
+    public VideoConferenceCreatedEvent(Guid conferenceId, DateTime commandStartTime, DateTime commandEndTime,
+        string commandUserId,
         string commandPartnerId)
     {
+        ConferenceId = conferenceId;
         StartTime = commandStartTime;
         EndTime = commandEndTime;
         UserId = commandUserId;
         PartnerId = commandPartnerId;
     }
 
+    public Guid ConferenceId { get; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public string UserId { get; set; } = "";

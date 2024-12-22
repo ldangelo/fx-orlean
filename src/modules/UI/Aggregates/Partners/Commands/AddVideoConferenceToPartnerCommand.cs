@@ -4,4 +4,4 @@ namespace UI.Aggregates.Partners.Commands;
 
 [Serializable]
 [GenerateSerializer]
-public record AddVideoConferenceToPartnerCommand(string conferenceId) : Command;
+public record AddVideoConferenceToPartnerCommand(Guid? conferenceId) : Command;

@@ -1,35 +1,76 @@
 using System;
 using System.Threading.Tasks;
-using Orleankka.TestKit;
+using Microsoft.Extensions.Hosting;
+using Orleankka;
+using Orleankka.Cluster;
+using Orleans.Hosting;
 using UI.Aggregates.Partners.Commands;
+using UI.Aggregates.Users.Commands;
+using UI.Aggregates.VideoConference;
 using UI.Grains.Partners;
-using Xunit;
+using UI.Grains.Users;
+using UI.Grains.VideoConference.Commands;
 
 namespace UI.Tests.Aggregates.VideoConference;
 
+public static class TestExtension
+{
+    public static async Task<IHost> StartServer(this IHostBuilder builder)
+    {
+        return await builder
+            .UseOrleans(c => c
+                .UseLocalhostClustering()
+                .AddMemoryGrainStorageAsDefault()
+                .AddMemoryGrainStorage("PubSubStore")
+                .AddMemoryStreams("sms")
+                .UseInMemoryReminderService())
+            .StartAsync();
+    }
+}
+
 public class VideoConferenceAggregateTests
 {
-    private readonly ActorRuntimeMock runtime;
-    private readonly ActorSystemMock system;
-
-    public VideoConferenceAggregateTests()
-    {
-        runtime = new ActorRuntimeMock();
-        system = runtime.System;
-    }
+    private static IActorSystem _system;
 
     [Fact]
     public async Task TestVideoConferenceGrain()
     {
+        var host = new HostBuilder()
+            .UseOrleans(c => c.UseLocalhostClustering())
+            .UseOrleankka()
+            .Build();
+
+        await host.StartAsync();
+        _system = host.ActorSystem();
         var conferenceId = Guid.NewGuid();
-        var partner = system.MockActorOf<PartnerAggregate>("leo.dangelo@fortiumpartners.com");
+
+        var partner = _system.ActorOf<PartnerAggregate>("leo.dangelo@fortiumpartners.com");
         Assert.NotNull(partner);
+
+        var user = _system.ActorOf<UserAggregate>("ldangelo@mac.com");
+        Assert.NotNull(user);
+
+        await user.Tell(new CreateUserCommand("Leo", "D'Angelo", "ldangelo@mac.com"));
 
         await partner.Tell(new CreatePartnerCommand("leo.dangelo@fortiumpartners.com", "Leo", "D'Angelo"));
         await partner.Tell(new AddPartnerSkillCommand("AWS"));
 
-        var result = await partner.Ask<PartnerSnapshot>(partner);
+        var conference = _system.ActorOf<VideoConferenceAggregate>(conferenceId.ToString());
+        await conference.Tell(new CreateVideoConferenceCommand(conferenceId, DateTime.Now, DateTime.Now,
+            "ldangelo@mac.com",
+            "leo.dangelo@fortiumpartners.com"));
+        Assert.NotNull(conference);
+
+        await partner.Tell(new AddVideoConferenceToPartnerCommand(conferenceId));
+        await user.Tell(new AddVideoConferenceToUserCommand(conferenceId));
+
+        var result = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
         Assert.NotNull(result);
         Assert.True(result.skills.Count == 1);
+        Assert.True(result.videoConferences.Count == 1);
+
+        var userSnapshot = await user.Ask<UserSnapshot>(new GetUserDetails());
+        Assert.NotNull(userSnapshot);
+        Assert.True(userSnapshot.VideoConferences.Count == 1);
     }
 }
