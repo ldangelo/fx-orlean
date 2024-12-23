@@ -3,8 +3,12 @@ using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
-using UI.Grains.VideoConference;
-using UI.Grains.VideoConference.Commands;
+using UI.Aggregates.Partners.Commands;
+using UI.Aggregates.Users.Commands;
+using UI.Aggregates.Users;
+using UI.Aggregates.Partners;
+using UI.Aggregates.VideoConference.Commands;
+using UI.Aggregates.VideoConference.Events;
 
 namespace UI.Aggregates.VideoConference;
 
@@ -35,6 +39,16 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
         _conferenceEndTime = e.EndTime;
         _userId = e.UserId;
         _partnerId = e.PartnerId;
+
+        //
+        // Tell the User too add the Conference
+        var user = this.System.ActorOf<IUserAggregate>(e.UserId);
+        await user.Tell(new AddVideoConferenceToUserCommand(e.ConferenceId));
+
+        //
+        // Tell the partner too add the Conference
+        var partner = this.System.ActorOf<IPartnerAggregate>(e.PartnerId);
+        await partner.Tell(new AddVideoConferenceToPartnerCommand(e.ConferenceId));
     }
 
     public static bool Interleave(IInvokable req)

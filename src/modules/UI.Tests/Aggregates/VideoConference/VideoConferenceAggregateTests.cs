@@ -7,9 +7,9 @@ using Orleans.Hosting;
 using UI.Aggregates.Partners.Commands;
 using UI.Aggregates.Users.Commands;
 using UI.Aggregates.VideoConference;
-using UI.Grains.Partners;
-using UI.Grains.Users;
-using UI.Grains.VideoConference.Commands;
+using UI.Aggregates.Partners;
+using UI.Aggregates.Users;
+using UI.Aggregates.VideoConference.Commands;
 
 namespace UI.Tests.Aggregates.VideoConference;
 
@@ -61,8 +61,12 @@ public class VideoConferenceAggregateTests
             "leo.dangelo@fortiumpartners.com"));
         Assert.NotNull(conference);
 
-        await partner.Tell(new AddVideoConferenceToPartnerCommand(conferenceId));
-        await user.Tell(new AddVideoConferenceToUserCommand(conferenceId));
+        //
+        // Wait for the messages to be processed.
+        //
+        // VideoConferenceAggregate sends out commands to the user and partner aggregates
+        // This delay allows time for them to be processed so we can confirm they were delivered
+        await Task.Delay(1000);
 
         var result = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
         Assert.NotNull(result);

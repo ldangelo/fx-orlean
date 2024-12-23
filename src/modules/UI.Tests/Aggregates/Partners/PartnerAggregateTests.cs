@@ -5,7 +5,7 @@ using Orleankka;
 using Orleankka.Cluster;
 using Orleans.Hosting;
 using UI.Aggregates.Partners.Commands;
-using UI.Grains.Partners;
+using UI.Aggregates.Partners;
 
 namespace UI.Tests.Grains.Partners;
 

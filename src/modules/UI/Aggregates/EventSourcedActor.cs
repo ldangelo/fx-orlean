@@ -1,6 +1,6 @@
 using Orleankka;
 using Orleankka.Meta;
-using UI.Grains.Users;
+using UI.Aggregates;
 
 namespace org.fortium.fx.Aggregates;
 

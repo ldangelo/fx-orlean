@@ -1,6 +1,6 @@
 using Orleankka.Meta;
 
-namespace UI.Grains.VideoConference.Commands;
+namespace UI.Aggregates.VideoConference.Events;
 
 public class VideoConferenceCreatedEvent : Event
 {

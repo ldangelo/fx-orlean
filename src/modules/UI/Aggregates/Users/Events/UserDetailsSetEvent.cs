@@ -1,6 +1,6 @@
 using Orleankka.Meta;
 
-namespace UI.Grains.Users.Commands;
+namespace UI.Aggregates.Users.Commands;
 
 public class UserDetailsSetEvent : Event
 {

@@ -6,8 +6,9 @@ using Orleans.Serialization.Invocation;
 using Serilog;
 using UI.Aggregates.Partners.Commands;
 using UI.Aggregates.Partners.Events;
+using UI.Aggregates.VideoConference.Events;
 
-namespace UI.Grains.Partners;
+namespace UI.Aggregates.Partners;
 
 public interface IPartnerAggregate : IActorGrain, IGrainWithStringKey
 {
@@ -51,6 +52,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     {
         videoConferences.Add(e.ConferenceId);
     }
+
 
     private IEnumerable<Event> Handle(CreatePartnerCommand cmd)
     {

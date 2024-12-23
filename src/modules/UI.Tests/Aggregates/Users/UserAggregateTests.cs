@@ -5,7 +5,7 @@ using Orleankka;
 using Orleankka.Cluster;
 using Orleans.Hosting;
 using UI.Aggregates.Users.Commands;
-using UI.Grains.Users;
+using UI.Aggregates.Users;
 
 namespace UI.Tests.Aggregates.Users;
 

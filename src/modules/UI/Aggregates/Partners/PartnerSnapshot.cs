@@ -1,4 +1,4 @@
-namespace UI.Grains.Partners;
+namespace UI.Aggregates.Partners;
 
 [Serializable]
 [GenerateSerializer]

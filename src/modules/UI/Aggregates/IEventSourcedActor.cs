@@ -1,4 +1,4 @@
-namespace UI.Grains.Users;
+namespace UI.Aggregates;
 
 public interface IEventSourcedActor
 {

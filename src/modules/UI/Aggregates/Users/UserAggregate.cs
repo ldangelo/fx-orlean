@@ -6,7 +6,7 @@ using Orleans.Serialization.Invocation;
 using UI.Aggregates.Users.Commands;
 using UI.Aggregates.Users.Events;
 
-namespace UI.Grains.Users;
+namespace UI.Aggregates.Users;
 
 public interface IUserAggregate : IActorGrain, IGrainWithStringKey
 {
