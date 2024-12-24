@@ -2,48 +2,37 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using Orleankka;
-using Orleankka.Cluster;
 using Orleans.Hosting;
-using UI.Aggregates.Partners.Commands;
 using UI.Aggregates.Partners;
+using UI.Aggregates.Partners.Commands;
+using Xunit.Abstractions;
+using Xunit.DependencyInjection;
 
 namespace UI.Tests.Grains.Partners;
 
-public static class TestExtension
-{
-    public static async Task<IHost> StartServer(this IHostBuilder builder)
-    {
-        return await builder
-            .UseOrleans(c => c
-                .UseLocalhostClustering()
-                .AddMemoryGrainStorageAsDefault()
-                .AddMemoryGrainStorage("PubSubStore")
-                .AddMemoryStreams("sms")
-                .UseInMemoryReminderService())
-            .StartAsync();
-    }
-}
-
 [TestSubject(typeof(PartnerAggregate))]
-public class PartnerAggregateTest
+[Collection("Fx Collection")]
+public class PartnerAggregateTest : FxTest
 {
-    private static IActorSystem _system;
+    FxTestFixture fixture;
+
+    public PartnerAggregateTest(FxTestFixture _fixture, ITestOutputHelperAccessor accessor)
+        : base(accessor)
+    {
+        fixture = _fixture;
+    }
 
     [Fact]
     public async Task PartnerDetailsTest()
     {
-        var host = new HostBuilder()
-            .UseOrleans(c => c.UseLocalhostClustering())
-            .UseOrleankka()
-            .Build();
-
-        await host.StartAsync();
-        _system = host.ActorSystem();
-
-        var partner = _system.ActorOf<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
+        var partner = fixture
+            .getActorSystem()
+            .ActorOf<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.NotNull(partner);
 
-        await partner.Tell(new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com"));
+        await partner.Tell(
+            new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com")
+        );
         await partner.Tell(new AddPartnerSkillCommand("AWS"));
 
         var partnerSnapshot = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());

@@ -58,6 +58,8 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
 
     private IEnumerable<Event> Handle(CreateVideoConferenceCommand command)
     {
+        Serilog.Log.Information("Creating VideoConference: " + command.conferenceId);
+
         yield return new VideoConferenceCreatedEvent(command.conferenceId, command.startTime, command.endTime,
             command.userId,
             command.partnerId);

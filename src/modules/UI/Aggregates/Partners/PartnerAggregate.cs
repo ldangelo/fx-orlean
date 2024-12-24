@@ -10,15 +10,11 @@ using UI.Aggregates.VideoConference.Events;
 
 namespace UI.Aggregates.Partners;
 
-public interface IPartnerAggregate : IActorGrain, IGrainWithStringKey
-{
-}
+public interface IPartnerAggregate : IActorGrain, IGrainWithStringKey { }
 
 [Serializable]
 [GenerateSerializer]
-public class GetPartnerDetails : Query<PartnerAggregate, PartnerSnapshot>
-{
-}
+public class GetPartnerDetails : Query<PartnerAggregate, PartnerSnapshot> { }
 
 [MayInterleave(nameof(Interleave))]
 public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
@@ -39,20 +35,20 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     private void On(PartnerCreatedEvent e)
     {
         active = true;
-        Log.Information("Created partner: " + e.EmailAddress);
+        Log.Information("Partner {$PartnerCreatedEvent} created" ,e);
     }
 
     private void On(PartnerSkillAddedEvent e)
     {
         skills.Add(e.skill);
-        Log.Information("Added skill: " + e.skill);
+        Log.Information("Added skill {PartnerSkillAddedEvent}",e);
     }
 
     private void On(VideoConferenceAddedToPartnerEvent e)
     {
+        Log.Information("Video confereince added {@VideoConferenceAddedToPartnerEvent}",e );
         videoConferences.Add(e.ConferenceId);
     }
-
 
     private IEnumerable<Event> Handle(CreatePartnerCommand cmd)
     {
@@ -64,8 +60,12 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         if (string.IsNullOrEmpty(cmd.EmailAddress))
             throw new ArgumentException("Partner email address is required.");
 
-        Log.Information("Creating partner: " + cmd.EmailAddress);
-        yield return new PartnerCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
+        if (active) {
+            Log.Information("Partner {$CreatePartnerCommand} already exists",cmd);
+        } else {
+            Log.Information("Creating partner {$CreatePartnerCommand} ",cmd);
+            yield return new PartnerCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
+        }
     }
 
     private IEnumerable<Event> Handle(AddVideoConferenceToPartnerCommand cmd)
@@ -73,6 +73,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         if (cmd.conferenceId == null)
             throw new ArgumentException("Conference Id must be set.");
 
+        Log.Information("Add conference {@AddVideoConferenceToPartnerCommand}", cmd);
         yield return new VideoConferenceAddedToPartnerEvent(cmd.conferenceId);
     }
 
@@ -81,6 +82,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         if (string.IsNullOrEmpty(cmd.skill))
             throw new ArgumentException("Skill must be set.");
 
+        Log.Information("Adding {@AddPartnerSkillCommand} to {Id}",cmd,Id);
         yield return new PartnerSkillAddedEvent(cmd.skill);
     }
 

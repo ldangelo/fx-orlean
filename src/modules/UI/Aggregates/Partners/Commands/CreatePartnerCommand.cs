@@ -1,9 +1,10 @@
 using Orleankka.Meta;
 
-namespace UI.Aggregates.Partners.Commands {
-
+namespace UI.Aggregates.Partners.Commands
+{
     [Serializable, GenerateSerializer]
-    public class CreatePartnerCommand : Command {
+    public class CreatePartnerCommand : Command
+    {
         [Id(0)]
         public readonly string FirstName;
 
@@ -13,10 +14,15 @@ namespace UI.Aggregates.Partners.Commands {
         [Id(2)]
         public readonly string EmailAddress;
 
-        public CreatePartnerCommand(string FirstName, string LastName, string EmailAddress) {
+        public CreatePartnerCommand(string FirstName, string LastName, string EmailAddress)
+        {
             this.FirstName = FirstName;
             this.LastName = LastName;
             this.EmailAddress = EmailAddress;
+        }
+
+        public override String ToString(){
+            return $"FirstName: {FirstName}, LastName: {LastName}, EmailAddress: {EmailAddress}";
         }
     }
 }

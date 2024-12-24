@@ -4,12 +4,14 @@ using Microsoft.Extensions.Hosting;
 using Orleankka;
 using Orleankka.Cluster;
 using Orleans.Hosting;
+using Serilog;
+using UI.Aggregates.Partners;
 using UI.Aggregates.Partners.Commands;
+using UI.Aggregates.Users;
 using UI.Aggregates.Users.Commands;
 using UI.Aggregates.VideoConference;
-using UI.Aggregates.Partners;
-using UI.Aggregates.Users;
 using UI.Aggregates.VideoConference.Commands;
+using Xunit.DependencyInjection;
 
 namespace UI.Tests.Aggregates.VideoConference;
 
@@ -18,47 +20,60 @@ public static class TestExtension
     public static async Task<IHost> StartServer(this IHostBuilder builder)
     {
         return await builder
-            .UseOrleans(c => c
-                .UseLocalhostClustering()
-                .AddMemoryGrainStorageAsDefault()
-                .AddMemoryGrainStorage("PubSubStore")
-                .AddMemoryStreams("sms")
-                .UseInMemoryReminderService())
+            .UseOrleans(c =>
+                c.UseLocalhostClustering()
+                    .AddMemoryGrainStorageAsDefault()
+                    .AddMemoryGrainStorage("PubSubStore")
+                    .AddMemoryStreams("sms")
+                    .UseInMemoryReminderService()
+            )
             .StartAsync();
     }
 }
 
-public class VideoConferenceAggregateTests
+[Collection("Fx Collection")]
+public class VideoConferenceAggregateTests: FxTest
 {
-    private static IActorSystem _system;
+    private FxTestFixture _testFixture;
+
+    public VideoConferenceAggregateTests(FxTestFixture fixture,ITestOutputHelperAccessor accessor): base(accessor)
+
+    {
+        _testFixture = fixture;
+    }
 
     [Fact]
     public async Task TestVideoConferenceGrain()
     {
-        var host = new HostBuilder()
-            .UseOrleans(c => c.UseLocalhostClustering())
-            .UseOrleankka()
-            .Build();
-
-        await host.StartAsync();
-        _system = host.ActorSystem();
         var conferenceId = Guid.NewGuid();
 
-        var partner = _system.ActorOf<PartnerAggregate>("leo.dangelo@fortiumpartners.com");
+        var partner = _testFixture
+            .getActorSystem()
+            .ActorOf<PartnerAggregate>("leo.dangelo@fortiumpartners.com");
         Assert.NotNull(partner);
 
-        var user = _system.ActorOf<UserAggregate>("ldangelo@mac.com");
+        var user = _testFixture.getActorSystem().ActorOf<UserAggregate>("ldangelo@mac.com");
         Assert.NotNull(user);
 
         await user.Tell(new CreateUserCommand("Leo", "D'Angelo", "ldangelo@mac.com"));
 
-        await partner.Tell(new CreatePartnerCommand("leo.dangelo@fortiumpartners.com", "Leo", "D'Angelo"));
+        await partner.Tell(
+            new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com")
+        );
         await partner.Tell(new AddPartnerSkillCommand("AWS"));
 
-        var conference = _system.ActorOf<VideoConferenceAggregate>(conferenceId.ToString());
-        await conference.Tell(new CreateVideoConferenceCommand(conferenceId, DateTime.Now, DateTime.Now,
-            "ldangelo@mac.com",
-            "leo.dangelo@fortiumpartners.com"));
+        var conference = _testFixture
+            .getActorSystem()
+            .ActorOf<VideoConferenceAggregate>(conferenceId.ToString());
+        await conference.Tell(
+            new CreateVideoConferenceCommand(
+                conferenceId,
+                DateTime.Now,
+                DateTime.Now,
+                "ldangelo@mac.com",
+                "leo.dangelo@fortiumpartners.com"
+            )
+        );
         Assert.NotNull(conference);
 
         //
@@ -76,5 +91,10 @@ public class VideoConferenceAggregateTests
         var userSnapshot = await user.Ask<UserSnapshot>(new GetUserDetails());
         Assert.NotNull(userSnapshot);
         Assert.True(userSnapshot.VideoConferences.Count == 1);
+    }
+
+    private object LoggerConfiguration()
+    {
+        throw new NotImplementedException();
     }
 }

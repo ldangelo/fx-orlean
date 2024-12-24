@@ -4,8 +4,10 @@ using Microsoft.Extensions.Hosting;
 using Orleankka;
 using Orleankka.Cluster;
 using Orleans.Hosting;
-using UI.Aggregates.Users.Commands;
+using Serilog;
 using UI.Aggregates.Users;
+using UI.Aggregates.Users.Commands;
+using Xunit.DependencyInjection;
 
 namespace UI.Tests.Aggregates.Users;
 
@@ -26,22 +28,22 @@ public static class TestExtension
 }
 
 [TestSubject(typeof(UserAggregate))]
-public class UserAggregateTests
+[Collection("Fx Collection")]
+public class UserAggregateTests: FxTest
 {
-    private static IActorSystem _system;
+    private FxTestFixture _testFixture;
+
+    public UserAggregateTests(FxTestFixture fixture,ITestOutputHelperAccessor accessor): base(accessor)
+    {
+        _testFixture = fixture;
+    }
 
     [Fact]
     public async Task UserAggregateTest()
     {
-        var host = new HostBuilder()
-            .UseOrleans(c => c.UseLocalhostClustering())
-            .UseOrleankka()
-            .Build();
-
-        await host.StartAsync();
-        _system = host.ActorSystem();
-
-        var user = _system.ActorOf<IUserAggregate>("leo.dangelo@FortiumPartners.com");
+        var user = _testFixture
+            .getActorSystem()
+            .ActorOf<IUserAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.NotNull(user);
 
         await user.Tell(

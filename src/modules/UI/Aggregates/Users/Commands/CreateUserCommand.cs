@@ -2,8 +2,7 @@ using Orleankka.Meta;
 
 namespace UI.Aggregates.Users.Commands;
 
-[Serializable]
-[GenerateSerializer]
+[GenerateSerializer(IncludePrimaryConstructorParameters = true)]
 public class CreateUserCommand : Command
 {
     [Id(2)] public readonly string EmailAddress;
@@ -16,4 +15,10 @@ public class CreateUserCommand : Command
         this.LastName = LastName;
         this.EmailAddress = EmailAddress;
     }
+
+    public override String ToString()
+        {
+            return "FirstName: " + FirstName + " LastName: " + LastName + " Email: " + EmailAddress;
+        }
+
 }

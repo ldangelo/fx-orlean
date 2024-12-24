@@ -3,6 +3,7 @@ using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
+using Serilog;
 using UI.Aggregates.Users.Commands;
 using UI.Aggregates.Users.Events;
 
@@ -40,20 +41,24 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
         FirstName = e.FirstName;
         LastName = e.LastName;
         Email = e.EmailAddress;
+        Log.Information("User {@UserCreatedEvent} created.",e);
     }
 
     private void On(VideoConferenceAddedToUserEvent e)
     {
+        Log.Information("video conference: {@VideoConferenceAddedToUserEvent} added to user {Id}",e,Id);
         VideoConferences.Add(e.ConferenceId);
     }
 
     private IEnumerable<Event> Handle(CreateUserCommand cmd)
     {
+        Log.Information("Creating user {$cmd}",cmd);
         yield return new UserCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
     }
 
     private IEnumerable<Event> Handle(AddVideoConferenceToUserCommand cmd)
     {
+        Log.Information("Adding video conference {@AddVideoConferenceToUserCommand} to user {Id}",cmd,Id);
         yield return new VideoConferenceAddedToUserEvent(cmd.ConferenceId);
     }
 
