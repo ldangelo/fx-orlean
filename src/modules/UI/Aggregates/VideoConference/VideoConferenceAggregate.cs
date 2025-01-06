@@ -1,27 +1,25 @@
+using FluentValidation;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
-using UI.Aggregates.Partners.Commands;
-using UI.Aggregates.Users.Commands;
-using UI.Aggregates.Users;
 using UI.Aggregates.Partners;
+using UI.Aggregates.Partners.Commands;
+using UI.Aggregates.Users;
+using UI.Aggregates.Users.Commands;
 using UI.Aggregates.VideoConference.Commands;
 using UI.Aggregates.VideoConference.Events;
 
 namespace UI.Aggregates.VideoConference;
 
 [Alias("UI.Aggregates.VideoConference.IVideoConferenceAggregate")]
-public interface IVideoConferenceAggregate : IActorGrain, IGrainWithStringKey
-{
-}
+public interface IVideoConferenceAggregate : IActorGrain, IGrainWithStringKey { }
 
 [Serializable]
 [GenerateSerializer]
-public class GetVideoConferenceDetails : Query<VideoConferenceAggregate, VideoConferenceSnapshot>
-{
-}
+public class GetVideoConferenceDetails
+    : Query<VideoConferenceAggregate, VideoConferenceSnapshot> { }
 
 [MayInterleave(nameof(Interleave))]
 public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggregate
@@ -29,8 +27,8 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
     private DateTime _conferenceEndTime;
     private Guid _conferenceId;
     private DateTime _conferenceStartTime;
-    private string _partnerId;
-    private string _userId;
+    private string? _partnerId;
+    private string? _userId;
 
     private async void On(VideoConferenceCreatedEvent e)
     {
@@ -59,9 +57,15 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
     private IEnumerable<Event> Handle(CreateVideoConferenceCommand command)
     {
         Serilog.Log.Information("Creating VideoConference: " + command.conferenceId);
+        var validator = new CreateVideoConferenceCommandValidator();
+        validator.ValidateAndThrow(command);
 
-        yield return new VideoConferenceCreatedEvent(command.conferenceId, command.startTime, command.endTime,
+        yield return new VideoConferenceCreatedEvent(
+            command.conferenceId,
+            command.startTime,
+            command.endTime,
             command.userId,
-            command.partnerId);
+            command.partnerId
+        );
     }
 }

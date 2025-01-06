@@ -1,3 +1,4 @@
+using FluentValidation;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
@@ -6,7 +7,6 @@ using Orleans.Serialization.Invocation;
 using Serilog;
 using UI.Aggregates.Partners.Commands;
 using UI.Aggregates.Partners.Events;
-using UI.Aggregates.VideoConference.Events;
 
 namespace UI.Aggregates.Partners;
 
@@ -35,35 +35,33 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     private void On(PartnerCreatedEvent e)
     {
         active = true;
-        Log.Information("Partner {$PartnerCreatedEvent} created" ,e);
+        Log.Information("Partner {$PartnerCreatedEvent} created", e);
     }
 
     private void On(PartnerSkillAddedEvent e)
     {
         skills.Add(e.skill);
-        Log.Information("Added skill {PartnerSkillAddedEvent}",e);
+        Log.Information("Added skill {PartnerSkillAddedEvent}", e);
     }
 
     private void On(VideoConferenceAddedToPartnerEvent e)
     {
-        Log.Information("Video confereince added {@VideoConferenceAddedToPartnerEvent}",e );
+        Log.Information("Video confereince added {@VideoConferenceAddedToPartnerEvent}", e);
         videoConferences.Add(e.ConferenceId);
     }
 
     private IEnumerable<Event> Handle(CreatePartnerCommand cmd)
     {
-        // TODO: Change to fluid validator
-        if (string.IsNullOrEmpty(cmd.FirstName))
-            throw new ArgumentException("Partner first name is required.");
-        if (string.IsNullOrEmpty(cmd.LastName))
-            throw new ArgumentException("Partner last name is required.");
-        if (string.IsNullOrEmpty(cmd.EmailAddress))
-            throw new ArgumentException("Partner email address is required.");
+        var validator = new CreatePartnerCommandValidator();
+        validator.ValidateAndThrow(cmd);
 
-        if (active) {
-            Log.Information("Partner {$CreatePartnerCommand} already exists",cmd);
-        } else {
-            Log.Information("Creating partner {$CreatePartnerCommand} ",cmd);
+        if (active)
+        {
+            Log.Information("Partner {$CreatePartnerCommand} already exists", cmd);
+        }
+        else
+        {
+            Log.Information("Creating partner {$CreatePartnerCommand} ", cmd);
             yield return new PartnerCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
         }
     }
@@ -82,7 +80,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         if (string.IsNullOrEmpty(cmd.skill))
             throw new ArgumentException("Skill must be set.");
 
-        Log.Information("Adding {@AddPartnerSkillCommand} to {Id}",cmd,Id);
+        Log.Information("Adding {@AddPartnerSkillCommand} to {Id}", cmd, Id);
         yield return new PartnerSkillAddedEvent(cmd.skill);
     }
 
