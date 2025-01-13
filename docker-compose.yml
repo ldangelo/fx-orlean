@@ -7,6 +7,7 @@ services:
   postgres:
     container_name: postgres
     image: postgres:latest
+    platform: ${DOCKER_PLATFORM}
     ports:
       - 5432:5432
     env_file:
@@ -15,10 +16,11 @@ services:
       - data-network
     volumes:
       - ${PWD}/docker/postgres/data:/var/lib/postgresql/data
-      - ${PWD}/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ${PWD}/docker/postgres/init.sql:/docker-entrypoint-initdb.d/
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:25.0.1 # https://hub.docker.com/r/keycloak/keycloak/tags and https://github.com/keycloak/keycloak/releases/
+    image: quay.io/keycloak/keycloak # https://hub.docker.com/r/keycloak/keycloak/tags and https://github.com/keycloak/keycloak/releases/
+    platform: ${DOCKER_PLATFORM}
     env_file:
       - .dockerenv
     command:
@@ -43,10 +45,12 @@ services:
       - "host.docker.internal:host-gateway"
   zipkin:
     image: openzipkin/zipkin
+    platform: ${DOCKER_PLATFORM}
     ports:
       - 9411:9411
   prometheus:
     image: prom/prometheus:v2.54.1 # https://hub.docker.com/r/prom/prometheus
+    platform: ${DOCKER_PLATFORM}
     extra_hosts: ["host.docker.internal:host-gateway"]
     command:
       - --enable-feature=exemplar-storage
@@ -60,6 +64,7 @@ services:
       - "9090:9090"
   grafana:
     image: grafana/grafana:10.4.10 # https://hub.docker.com/r/grafana/grafana/tags
+    platform: ${DOCKER_PLATFORM}
     extra_hosts: ["host.docker.internal:host-gateway"]
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -73,6 +78,7 @@ services:
       - "3000:3000"
   tempo:
     image: grafana/tempo:2.4.2 # https://hub.docker.com/r/grafana/tempo/tags and https://github.com/grafana/tempo/releases
+    platform: ${DOCKER_PLATFORM}
     extra_hosts: ["host.docker.internal:host-gateway"]
     command: ["-config.file=/etc/tempo.yml"]
     volumes:

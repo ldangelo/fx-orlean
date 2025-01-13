@@ -12,7 +12,6 @@ namespace UI.Tests;
 
 public class Startup
 {
-    private IActorSystem _actorSystem;
     private IHost _host;
 
     public async void ConfigureHost(IHostBuilder builder)

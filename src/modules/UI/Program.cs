@@ -1,7 +1,5 @@
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using FastEndpoints;
-using FastEndpoints.Swagger;
 using Keycloak.AuthServices.Authentication;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AspNetCore;
@@ -215,7 +213,7 @@ internal static class Program
 
         //
         // Add Swagger Support
-        app.UseFastEndpoints().UseSwaggerGen();
+        //  app.UseFastEndpoints().UseSwaggerGen();
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();

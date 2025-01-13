@@ -1,3 +1,5 @@
+using FluentValidation;
+
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
@@ -53,12 +55,21 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
     private IEnumerable<Event> Handle(CreateUserCommand cmd)
     {
         Log.Information("Creating user {$cmd}",cmd);
+        var validator = new CreateUserCommandValdiator();
+
+        validator.ValidateAndThrow(cmd);
+
         yield return new UserCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
     }
+
 
     private IEnumerable<Event> Handle(AddVideoConferenceToUserCommand cmd)
     {
         Log.Information("Adding video conference {@AddVideoConferenceToUserCommand} to user {Id}",cmd,Id);
+
+        var validator = new AddVideoConferenceToUserCommandValidator();
+        validator.ValidateAndThrow(cmd);
+
         yield return new VideoConferenceAddedToUserEvent(cmd.ConferenceId);
     }
 
