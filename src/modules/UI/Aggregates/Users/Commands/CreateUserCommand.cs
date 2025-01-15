@@ -1,3 +1,4 @@
+using FluentValidation;
 using Orleankka.Meta;
 
 namespace UI.Aggregates.Users.Commands;
@@ -21,4 +22,13 @@ public class CreateUserCommand : Command
             return "FirstName: " + FirstName + " LastName: " + LastName + " Email: " + EmailAddress;
         }
 
+}
+
+public class CreateUserCommandValdiator: AbstractValidator<CreateUserCommand>
+{
+       public CreateUserCommandValdiator() {
+          RuleFor(command => command.FirstName).NotNull().NotEmpty().WithMessage("First Name is Required");
+          RuleFor(command => command.LastName).NotNull().NotEmpty().WithMessage("Last Name is Required");
+          RuleFor(command => command.EmailAddress).NotNull().NotEmpty().EmailAddress().WithMessage("Email address is required and must be valid.");
+       }
 }
