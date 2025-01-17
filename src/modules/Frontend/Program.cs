@@ -14,6 +14,12 @@ builder.Services.AddRazorComponents()
 
 builder.Services.Configure<CookiePolicyOptions>(options => { options.Secure = CookieSecurePolicy.Always; });
 
+
+//
+// connect too EventServer and add a singleton for dependency injection
+var actorSystem = await Connect(3, TimeSpan.FromSeconds(3));
+builder.Services.AddSingleton(actorSystem);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -40,7 +46,11 @@ app.MapRazorComponents<App>()
 app.Run();
 
 
-var OnClusterConnectionLost = () => { };
+void OnClusterConnectionLost()
+{
+    Console.WriteLine("Cluster connection lost. Trying to reconnect ...");
+}
+
 
 async Task<IClientActorSystem> Connect(int retries = 0, TimeSpan? retryTimeout = null)
 {
