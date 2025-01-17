@@ -1,0 +1,17 @@
+@page "/meetings/{id}" // Define the route
+
+<h3>Meeting Details</h3>
+
+@if (string.IsNullOrEmpty(PartnerId))
+{
+    <p>Loading...</p>
+}
+else
+{
+    <p>Partner ID: @PartnerId</p>
+}
+
+@code {
+    [Parameter]
+    public string? PartnerId { get; set; } // Parameter to capture the ID
+}

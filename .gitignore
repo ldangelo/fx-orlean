@@ -487,3 +487,4 @@ bin
 obj
 devbox.lock
 docker/postgres/data/*
+/.envrc
