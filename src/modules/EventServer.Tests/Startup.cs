@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 using Xunit.DependencyInjection;
 using Xunit.DependencyInjection.Logging;
 
-namespace UI.Tests;
+namespace EventServer.Tests;
 
 public class Startup
 {
@@ -17,7 +17,18 @@ public class Startup
     public async void ConfigureHost(IHostBuilder builder)
     {
         _host = new HostBuilder()
-            .UseOrleans(c => c.UseLocalhostClustering())
+            .UseOrleans(c =>
+            {
+                c.UseLocalhostClustering();
+                c.AddMemoryStreams("sms");
+                c.AddMemoryGrainStorage("sms");
+                c.AddMemoryStreams("conferences");
+                c.AddMemoryGrainStorage("conferences");
+                c.AddMemoryStreams("partner");
+                c.AddMemoryGrainStorage("partner");
+                c.AddMemoryStreams("users");
+                c.AddMemoryGrainStorage("users");
+            })
             .UseOrleankka()
             .Build();
 

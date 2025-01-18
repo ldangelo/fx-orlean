@@ -1,11 +1,16 @@
+using common.Commands;
 using Frontend.Components;
+using Frontend.Services;
 using Keycloak.AuthServices.Authentication;
+using org.fortium.fx.Aggregates;
+using Orleankka;
 using Orleankka.Client;
 using Orleankka.Cluster;
 using static Microsoft.AspNetCore.Builder.WebApplication;
 
 var builder = CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel((context, options) => options.Configure(context.Configuration.GetSection("Kestrel")));
 builder.Services.AddKeycloakWebAppAuthentication(builder.Configuration);
 
 // Add services to the container.
@@ -18,9 +23,20 @@ builder.Services.Configure<CookiePolicyOptions>(options => { options.Secure = Co
 //
 // connect too EventServer and add a singleton for dependency injection
 var actorSystem = await Connect(3, TimeSpan.FromSeconds(3));
+
+
 builder.Services.AddSingleton(actorSystem);
+builder.Services.AddScoped<PartnerService>();
 
 var app = builder.Build();
+
+//
+// add a partner for testing purposes
+if (app.Environment.IsDevelopment())
+{
+    var actorRef = actorSystem.ActorOf<IPartnerAggregate>("leo.dangelo@fortiumpartners.com");
+    await actorRef.Tell(new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com"));
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -31,7 +47,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseRouting();
 // keycloak authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,6 +1,6 @@
+using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleans.Streams;
-using UI.Aggregates.Partners;
 using UI.Aggregates.Partners.Events;
 using UI.Aggregates.VideoConference.Events;
 

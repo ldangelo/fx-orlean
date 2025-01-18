@@ -12,12 +12,14 @@
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="5.32.0"/>
         <PackageReference Include="FastEndpoints.Swagger" Version="5.32.0"/>
+        <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="9.0.1"/>
         <PackageReference Include="Microsoft.Orleans.Serialization.Abstractions" Version="9.0.1"/>
         <PackageReference Include="Microsoft.Orleans.Server" Version="9.0.1"/>
         <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.6.0"/>
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0"/>
         <PackageReference Include="Microsoft.Orleans.Streaming" Version="8.2.0"/>
         <PackageReference Include="Microsoft.Orleans.Transactions" Version="9.0.1"/>
+        <PackageReference Include="Npgsql" Version="9.0.2"/>
         <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.6.0-rc.1"/>
         <PackageReference Include="Orleankka" Version="8.0.0"/>
         <PackageReference Include="Orleankka.Runtime" Version="8.0.0"/>
@@ -35,5 +37,8 @@
     <ItemGroup>
         <Folder Include="Aggregates\Interfaces\"/>
         <Folder Include="Services\"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\common\common.csproj"/>
     </ItemGroup>
 </Project>

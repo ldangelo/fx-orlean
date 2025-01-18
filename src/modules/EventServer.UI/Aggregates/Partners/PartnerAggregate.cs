@@ -1,5 +1,8 @@
+using common.Commands;
+using common.Queries;
 using FluentValidation;
 using org.fortium.fx.Aggregates;
+using org.fortium.fx.common;
 using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
@@ -10,19 +13,13 @@ using UI.Aggregates.Partners.Events;
 
 namespace UI.Aggregates.Partners;
 
-public interface IPartnerAggregate : IActorGrain, IGrainWithStringKey { }
-
-[Serializable]
-[GenerateSerializer]
-public class GetPartnerDetails : Query<PartnerAggregate, PartnerSnapshot> { }
-
 [MayInterleave(nameof(Interleave))]
 public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 {
     private bool active;
-    private string EmailAddress { get; } = "";
-    private string FirstName { get; } = "";
-    private string LastName { get; } = "";
+    private string EmailAddress { get; set; } = "";
+    private string FirstName { get; set; } = "";
+    private string LastName { get; set; } = "";
     private List<string> skills { get; } = new();
     private List<Guid?> videoConferences { get; } = new();
     private List<Event> events { get; set; } = new();
@@ -35,6 +32,10 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     private void On(PartnerCreatedEvent e)
     {
         active = true;
+        EmailAddress = e.EmailAddress;
+        FirstName = e.FirstName;
+        LastName = e.LastName;
+
         Log.Information("Partner {$PartnerCreatedEvent} created", e);
     }
 

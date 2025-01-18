@@ -7,6 +7,7 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Orleankka.Cluster;
 using Serilog;
 
 internal static class Program
@@ -183,7 +184,23 @@ internal static class Program
 
         //
         // Add Orleans
-        builder.Host.UseOrleans(siloBuilder => { siloBuilder.UseLocalhostClustering(); });
+        builder.Host.UseOrleankka()
+            .UseOrleans(siloBuilder =>
+            {
+                siloBuilder.UseLocalhostClustering().AddMemoryStreams("sms").AddMemoryGrainStorage("sms");
+                siloBuilder.AddMemoryStreams("conferences");
+                siloBuilder.AddMemoryGrainStorage("conferences");
+                siloBuilder.AddMemoryGrainStorage("partner");
+                siloBuilder.AddMemoryGrainStorage("users");
+                /*
+                siloBuilder.AddAdoNetGrainStorage("sms", options =>
+                {
+                    // Configure AdoNetGrainStorageOptions if needed
+                    options.Invariant = "Npgsql"; // Postgresql
+                    options.ConnectionString = builder.Configuration.GetConnectionString("OrleansStorage");
+                });
+                */
+            });
 
 /*
  * builder.Services.AddFastEndpoints(options => { options.Assemblies = [UserAssembly.Get()]; })

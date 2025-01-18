@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "UI": {
+    "EventServer": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

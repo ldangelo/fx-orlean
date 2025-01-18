@@ -1,11 +1,26 @@
-using Frontend.models;
+using common.Queries;
+using org.fortium.fx.Aggregates;
+using org.fortium.fx.common;
+using Orleankka;
+using Orleankka.Client;
 
 namespace Frontend.Services;
 
-public class PartnerService: IPartnerService
+public class PartnerService : IPartnerService
 {
-    public Partner GetPartner(string email)
+    private readonly IClientActorSystem actorSystem;
+
+    public PartnerService(IClientActorSystem actorSystem)
     {
-        return new Partner(null, null, email, null);    
+        this.actorSystem = actorSystem;
+    }
+
+    public async Task<PartnerSnapshot> GetPartner(string email)
+    {
+        var actorRef = actorSystem.ActorOf<IPartnerAggregate>(email);
+
+        var partnerSnapshot = await actorRef.Ask<PartnerSnapshot>(new GetPartnerDetails());
+
+        return partnerSnapshot;
     }
 }

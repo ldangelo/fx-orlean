@@ -10,5 +10,6 @@ public record VideoConferenceAddedToUserEvent : Event
         ConferenceId = conferenceId;
     }
 
+    [Id(0)]
     public Guid? ConferenceId { get; }
 }

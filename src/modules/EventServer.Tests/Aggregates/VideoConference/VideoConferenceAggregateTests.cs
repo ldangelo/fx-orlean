@@ -1,10 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using common.Commands;
+using common.Queries;
 using Microsoft.Extensions.Hosting;
+using org.fortium.fx.common;
 using Orleankka;
-using Orleankka.Cluster;
 using Orleans.Hosting;
-using Serilog;
 using UI.Aggregates.Partners;
 using UI.Aggregates.Partners.Commands;
 using UI.Aggregates.Users;
@@ -32,12 +33,12 @@ public static class TestExtension
 }
 
 [Collection("Fx Collection")]
-public class VideoConferenceAggregateTests: FxTest
+public class VideoConferenceAggregateTests : FxTest
 {
-    private FxTestFixture _testFixture;
+    private readonly FxTestFixture _testFixture;
 
-    public VideoConferenceAggregateTests(FxTestFixture fixture,ITestOutputHelperAccessor accessor): base(accessor)
-
+    public VideoConferenceAggregateTests(FxTestFixture fixture, ITestOutputHelperAccessor accessor)
+        : base(accessor)
     {
         _testFixture = fixture;
     }
@@ -68,8 +69,8 @@ public class VideoConferenceAggregateTests: FxTest
         await conference.Tell(
             new CreateVideoConferenceCommand(
                 conferenceId,
-                DateTime.Now,
-                DateTime.Now,
+                DateTime.Now.AddDays(1).AddHours(11),
+                DateTime.Now.AddDays(1).AddHours(12),
                 "ldangelo@mac.com",
                 "leo.dangelo@fortiumpartners.com"
             )
@@ -98,3 +99,4 @@ public class VideoConferenceAggregateTests: FxTest
         throw new NotImplementedException();
     }
 }
+

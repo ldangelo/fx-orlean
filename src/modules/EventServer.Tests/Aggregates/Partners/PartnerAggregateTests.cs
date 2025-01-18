@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
+using common.Commands;
+using common.Queries;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Hosting;
+using org.fortium.fx.common;
 using Orleankka;
-using Orleans.Hosting;
 using UI.Aggregates.Partners;
 using UI.Aggregates.Partners.Commands;
-using Xunit.Abstractions;
 using Xunit.DependencyInjection;
 
 namespace UI.Tests.Grains.Partners;
@@ -14,7 +14,7 @@ namespace UI.Tests.Grains.Partners;
 [Collection("Fx Collection")]
 public class PartnerAggregateTest : FxTest
 {
-    FxTestFixture fixture;
+    private readonly FxTestFixture fixture;
 
     public PartnerAggregateTest(FxTestFixture _fixture, ITestOutputHelperAccessor accessor)
         : base(accessor)

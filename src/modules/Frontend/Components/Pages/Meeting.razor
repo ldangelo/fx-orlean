@@ -1,0 +1,44 @@
+@page "/Meeting/{id}"
+@using Frontend.Services
+@using org.fortium.fx.common
+@rendermode InteractiveServer
+@inject PartnerService PartnerService;
+
+@code {
+    private PartnerSnapshot snapshot;
+
+    [Parameter] public string id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        snapshot = await PartnerService.GetPartner(id);
+    }
+
+}
+
+<PageTitle>Meeting</PageTitle>
+
+<h1>Meeting</h1>
+
+<table width="80%">
+    <tr>
+        <th colspan="2">@snapshot?.firstName @snapshot?.lastName</th>
+    </tr>
+
+    <tr>
+        <td>First Name:</td>
+        <td>@snapshot?.firstName</td>
+    </tr>
+    <tr>
+        <td>Last Name:</td>
+        <td>@snapshot?.lastName</td>
+    </tr>
+    <tr>
+        <td>Email:</td>
+        <td> @snapshot?.emailAddress</td>
+    </tr>
+    <tr>
+        <td>Phone:</td>
+        <td></td>
+    </tr>
+</table>

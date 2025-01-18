@@ -8,12 +8,19 @@
 
     <ItemGroup>
         <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.6.0"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1"/>
+        <PackageReference Include="Microsoft.Orleans.Client" Version="9.0.1"/>
+        <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.0.1"/>
         <PackageReference Include="Orleankka" Version="8.0.0"/>
         <PackageReference Include="Orleankka.Runtime" Version="8.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Interfaces\" />
+        <Folder Include="Interfaces\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\common\common.csproj"/>
     </ItemGroup>
 
 </Project>

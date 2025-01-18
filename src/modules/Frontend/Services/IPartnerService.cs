@@ -1,8 +1,8 @@
-using Frontend.models;
+using org.fortium.fx.common;
 
 namespace Frontend.Services;
 
 public interface IPartnerService
 {
-    Partner GetPartner(string email);
+    Task<PartnerSnapshot> GetPartner(string email);
 }

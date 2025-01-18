@@ -28,6 +28,7 @@
         <Using Include="Xunit"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\EventServer.UI\EventServer.UI.csproj" />
+        <ProjectReference Include="..\..\common\common.csproj"/>
+        <ProjectReference Include="..\EventServer.UI\EventServer.UI.csproj"/>
     </ItemGroup>
 </Project>
