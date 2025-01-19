@@ -26,7 +26,7 @@ Represents the person(s) who are requesting a video consultation.  It contains u
 
 ** Payment
 
-Represents the payment details.  We will be utilizing Stripe in the beginning and utilizing the authorice/collect workflow.  Now payment information will be stored, we will simple store the Stripe id for the associated payment details.
+Represents the payment details.  We will be utilizing Stripe in the beginning and utilizing the authorize/collect workflow.  No payment information will be stored, we will simple store the Stripe id for the associated payment details.
 
 ** Calendar
 
