@@ -28,6 +28,10 @@ Represents the person(s) who are requesting a video consultation.  It contains u
 
 Represents the payment details.  We will be utilizing Stripe in the beginning and utilizing the authorice/collect workflow.  Now payment information will be stored, we will simple store the Stripe id for the associated payment details.
 
+** Calendar
+
+Represents the calendar contents for a specific partner.  We will utilize Google API's to read/write calendar information on the partners behalf.
+The calendar aggregate will require a one-time authorization by the partner to make API calls on their behalf.
 
 * Dependencies
 
