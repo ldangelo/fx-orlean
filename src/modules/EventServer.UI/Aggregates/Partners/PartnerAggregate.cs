@@ -1,4 +1,5 @@
 using common.Commands;
+using common.PartnerConnect;
 using common.Queries;
 using FluentValidation;
 using org.fortium.fx.Aggregates;
@@ -18,6 +19,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 {
     private bool active;
     private string EmailAddress { get; set; } = "";
+    private string PhoneNumber { get; set; } = "";
     private string FirstName { get; set; } = "";
     private string LastName { get; set; } = "";
     private List<string> skills { get; } = new();
@@ -29,12 +31,16 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         return req.Message() is GetPartnerDetails;
     }
 
-    private void On(PartnerCreatedEvent e)
+    private async void On(PartnerCreatedEvent e)
     {
+        var api = new PartnerConnectApi();
+        var user = await api.GetUser(e.EmailAddress,CancellationToken.None);
+
         active = true;
         EmailAddress = e.EmailAddress;
         FirstName = e.FirstName;
         LastName = e.LastName;
+        PhoneNumber = user?.PrimaryPhone!;
 
         Log.Information("Partner {$PartnerCreatedEvent} created", e);
     }
@@ -87,7 +93,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 
     private PartnerSnapshot Handle(GetPartnerDetails cmd)
     {
-        return new PartnerSnapshot(EmailAddress, FirstName, LastName, skills, videoConferences);
+        return new PartnerSnapshot(EmailAddress, FirstName, LastName, PhoneNumber, skills, videoConferences);
     }
 
     private void CheckIsActive()
