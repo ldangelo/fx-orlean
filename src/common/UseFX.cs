@@ -1,7 +1,12 @@
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using Frontend.Components;
+using FastEndpoints;
+using FastEndpoints.Swagger;
 using Keycloak.AuthServices.Authentication;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
@@ -9,31 +14,64 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Orleankka.Cluster;
-using Serilog;
 
-internal static class Program
+namespace common;
+
+public static class FxHostingExtension
 {
-    internal static IServiceCollection AddFx(this IServiceCollection services, WebApplicationBuilder builder,
-        string assembly = "")
+    public static IHostApplicationBuilder UseFx(this WebApplicationBuilder builder, Assembly? assembly = null)
     {
-        if (!string.IsNullOrWhiteSpace(assembly)) Assembly.Load(assembly);
+        builder.Services.AddKeycloak(builder, assembly);
+        builder.Services.AddOrleankka(builder, assembly);
+        builder.Services.AddOpenTelemetryFx(builder, assembly);
+        builder.Services.AddFastEndpointsFx(builder, assembly);
+        return builder;
+    }
 
-        services.AddOpenTelemetryFx(builder);
-        services.AddFastEndpointsFx(builder);
+    internal static IServiceCollection AddKeycloak(this IServiceCollection services, WebApplicationBuilder builder,
+        Assembly? assembly = null)
+    {
+        services.AddAuthentication();
+        services.AddAuthorization();
+        services.AddKeycloakWebAppAuthentication(builder.Configuration);
+        services.AddKeycloakWebApiAuthentication(builder.Configuration);
         return services;
     }
 
+    internal static IServiceCollection AddOrleankka(this IServiceCollection services, WebApplicationBuilder builder,
+        Assembly? assembly)
+    {
+        builder.Host.UseOrleankka()
+            .UseOrleans(siloBuilder =>
+            {
+                siloBuilder.UseLocalhostClustering().AddMemoryStreams("sms").AddMemoryGrainStorage("sms");
+                siloBuilder.AddMemoryStreams("conferences");
+                siloBuilder.AddMemoryGrainStorage("conferences");
+                siloBuilder.AddMemoryGrainStorage("partner");
+                siloBuilder.AddMemoryGrainStorage("users");
+                /*
+                siloBuilder.AddAdoNetGrainStorage("sms", options =>
+                {
+                    // Configure AdoNetGrainStorageOptions if needed
+                    options.Invariant = "Npgsql"; // Postgresql
+                    options.ConnectionString = builder.Configuration.GetConnectionString("OrleansStorage");
+                });
+                */
+            });
+
+        return services;
+    }
 
     internal static IServiceCollection AddFastEndpointsFx(this IServiceCollection services,
-        WebApplicationBuilder builder)
+        IHostApplicationBuilder builder, Assembly? assembly)
     {
-        //  services.AddFastEndpoints()
-        //       .SwaggerDocument();
+        services.AddFastEndpoints()
+            .SwaggerDocument();
         return services;
     }
 
     internal static IServiceCollection AddOpenTelemetryFx(this IServiceCollection services,
-        WebApplicationBuilder appBuilder)
+        IHostApplicationBuilder appBuilder, Assembly? assembly)
     {
         // Configure OpenTelemetry logging, metrics, & tracing with auto-start using the
         // AddOpenTelemetry extension from OpenTelemetry.Extensions.Hosting.
@@ -50,11 +88,11 @@ internal static class Program
         var histogramAggregation =
             appBuilder.Configuration.GetValue("HistogramAggregation", "explicit")!.ToLowerInvariant();
 
-        appBuilder.Services.AddOpenTelemetry()
+        services.AddOpenTelemetry()
             .ConfigureResource(r => r
                 .AddService(
                     appBuilder.Configuration.GetValue("ServiceName", "otel-test")!,
-                    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
+                    serviceVersion: assembly?.GetName().Version?.ToString() ?? "unknown",
                     serviceInstanceId: Environment.MachineName))
             .WithTracing(builder =>
             {
@@ -66,7 +104,7 @@ internal static class Program
                     .AddAspNetCoreInstrumentation();
 
                 // Use IConfiguration binding for AspNetCore instrumentation options.
-                appBuilder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(
+                services.Configure<AspNetCoreTraceInstrumentationOptions>(
                     appBuilder.Configuration.GetSection("AspNetCoreInstrumentation"));
                 Console.WriteLine("Tracing exporter " + tracingExporter);
                 switch (tracingExporter)
@@ -167,66 +205,5 @@ internal static class Program
             });
 
         return services;
-    }
-
-    private static void Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
-
-        //
-        // clear autogenerated logging providers
-        builder.Logging.ClearProviders();
-
-        //
-        // Add open-telemetry common/ServiceCollectionExtensions.cs
-        builder.Services.AddFx(builder);
-
-        Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
-
-/*
- * builder.Services.AddFastEndpoints(options => { options.Assemblies = [UserAssembly.Get()]; })
-            .SwaggerDocument(o =>
-            {
-                o.AutoTagPathSegmentIndex = 2;
-                o.TagCase = TagCase.TitleCase;
-                o.TagStripSymbols = true; //this option is new
-            });
-
- */
-        // Add services to the container.
-        builder.Services.AddSerilog();
-        builder.Services.AddRazorPages();
-        builder.Services.AddKeycloakWebAppAuthentication(builder.Configuration);
-        //builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration);
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
-        }
-
-        //
-        // Add Swagger Support
-        //  app.UseFastEndpoints().UseSwaggerGen();
-
-        app.UseHttpsRedirection();
-        app.MapStaticAssets();
-        app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode()
-            .AddAdditionalAssemblies(typeof(Frontend._Imports).Assembly);
-
-
-        app.UseRouting();
-
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.MapRazorPages().RequireAuthorization();
-        app.Logger.LogInformation("Starting FX Application");
-        app.Run();
     }
 }

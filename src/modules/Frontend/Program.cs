@@ -2,6 +2,7 @@ using common.Commands;
 using Frontend.Components;
 using Frontend.Services;
 using Keycloak.AuthServices.Authentication;
+using MudBlazor.Services;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Client;
@@ -13,13 +14,14 @@ var builder = CreateBuilder(args);
 builder.WebHost.ConfigureKestrel((context, options) => options.Configure(context.Configuration.GetSection("Kestrel")));
 builder.Services.AddKeycloakWebAppAuthentication(builder.Configuration);
 
+/*
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.Configure<CookiePolicyOptions>(options => { options.Secure = CookieSecurePolicy.Always; });
-
-
+*/
+builder.Services.AddMudServices();
 //
 // connect too EventServer and add a singleton for dependency injection
 var actorSystem = await Connect(3, TimeSpan.FromSeconds(3));
@@ -54,12 +56,10 @@ app.UseAuthorization();
 
 
 app.UseAntiforgery();
-
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-app.Run();
+await app.RunAsync();
 
 
 void OnClusterConnectionLost()

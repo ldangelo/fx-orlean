@@ -1,17 +1,30 @@
 @page "/Meeting/{id}"
-@using Frontend.Services
-@using org.fortium.fx.common
+@using Newtonsoft.Json
+@inject HttpClient Http
 @rendermode InteractiveServer
-@inject PartnerService PartnerService;
 
 @code {
-    private PartnerSnapshot? snapshot;
 
-    [Parameter] public string? id { get; set; }
+    [Parameter] public string id { get; set; }
+
+    private PartnerSnapshot? snapshot;
 
     protected override async Task OnInitializedAsync()
     {
-        snapshot = await PartnerService.GetPartner(id!);
+        var response = await Http.GetAsync("http://localhost:5266/api/partnerinfo");
+
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        snapshot = JsonConvert.DeserializeObject<PartnerSnapshot>(content);
+    }
+
+    public class PartnerSnapshot
+    {
+        public string? firstName;
+        public string? lastName;
+        public string? emailAddress;
+        public string? primaryPhone;
     }
 
 }

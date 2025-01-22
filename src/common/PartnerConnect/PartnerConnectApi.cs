@@ -48,18 +48,23 @@ public class PartnerConnectApi : IPartnerConnectApi
         var baseUrl = Environment.GetEnvironmentVariable("PARTNER_CONNECT_URL");
         var authToken = await Authorize(cancellationToken);
 
-        var restOptions = new RestClientOptions(baseUrl);
-        var restClient = new RestClient(restOptions);
+        if (baseUrl != null)
+        {
+            var restOptions = new RestClientOptions(baseUrl);
+            var restClient = new RestClient(restOptions);
 
-        var request = new RestRequest("/api/Users");
-        request.Method = Method.Get;
-        request.AddHeader("Authorization", $"Bearer {authToken}");
-        request.AddQueryParameter("Active", true);
-        request.AddQueryParameter("PrimaryEmail", primaryEmail);
+            var request = new RestRequest("/api/Users");
+            request.Method = Method.Get;
+            request.AddHeader("Authorization", $"Bearer {authToken}");
+            request.AddQueryParameter("Active", true);
+            request.AddQueryParameter("PrimaryEmail", primaryEmail);
 
-        var user = await restClient.ExecuteAsync<User[]>(request, cancellationToken);
-        if (user.StatusCode != HttpStatusCode.OK) throw new Exception("Failed to get user");
-        return user.Data?[0];
+            var user = await restClient.ExecuteAsync<User[]>(request, cancellationToken);
+            if (user.StatusCode != HttpStatusCode.OK) throw new Exception("Failed to get user");
+            return user.Data?[0];
+        }
+
+        return null;
     }
 
 

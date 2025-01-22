@@ -2,7 +2,7 @@
 
 * Introduction
 
-FX-expert is a WIP.  It's intended to be an application to allow 'users' to schedule video conferences with 'partners' at Fortium Partners. Fortium Partners provices executive level fractional leadership for CIO's, CTO's and CISO's.  I'm a partner within the CTO practice.
+FX-expert is a WIP.  It's intended to be an application to allow 'users' to schedule video conferences with 'partners' at Fortium Partners. Fortium Partners provides executive level fractional leadership for CIO's, CTO's and CISO's.  I'm a partner within the CTO practice.
 
 http://www.fortiumpartners.com/
 
@@ -10,9 +10,9 @@ http://www.fortiumpartners.com/
 
 FX-expert uses DDD and CQRS to isolate Domain logic.
 
-There are a number of Aggregate roots required for this use case:
+The following Aggregate roots are required for this use case:
 
-** VideoConference
+** Video Conference
 
 Represents the VideoConference details, who will participate, the scheduled start/end time, the status (Scheduled, Cancelled, Started, Ended, etc...).
 

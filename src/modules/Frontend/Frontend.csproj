@@ -11,6 +11,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1"/>
         <PackageReference Include="Microsoft.Orleans.Client" Version="9.0.1"/>
         <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.0.1"/>
+        <PackageReference Include="MudBlazor" Version="8.0.0"/>
         <PackageReference Include="Orleankka" Version="8.0.0"/>
         <PackageReference Include="Orleankka.Runtime" Version="8.0.0"/>
     </ItemGroup>
@@ -21,6 +22,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\common\common.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="Layout\MainLayout.razor"/>
+        <_ContentIncludedByDefault Remove="Layout\NavMenu.razor"/>
     </ItemGroup>
 
 </Project>

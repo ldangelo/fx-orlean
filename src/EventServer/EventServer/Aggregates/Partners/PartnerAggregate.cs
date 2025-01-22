@@ -34,7 +34,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     private async void On(PartnerCreatedEvent e)
     {
         var api = new PartnerConnectApi();
-        var user = await api.GetUser(e.EmailAddress,CancellationToken.None);
+        var user = await api.GetUser(e.EmailAddress, CancellationToken.None);
 
         active = true;
         EmailAddress = e.EmailAddress;
@@ -93,7 +93,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 
     private PartnerSnapshot Handle(GetPartnerDetails cmd)
     {
-        return new PartnerSnapshot(EmailAddress, FirstName, LastName, PhoneNumber, skills, videoConferences);
+        return new PartnerSnapshot(EmailAddress, FirstName, LastName, PhoneNumber, "", skills, videoConferences);
     }
 
     private void CheckIsActive()

@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.Tests", "src\mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.UI", "src\modules\EventServer.UI\EventServer.UI.csproj", "{68B33DDE-2317-44FA-B7C2-285E4573413D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer", "src\EventServer\EventServer\EventServer.csproj", "{7266595E-968A-4A8F-85D2-D621796ECD68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.Client", "src\EventServer\EventServer.Client\EventServer.Client.csproj", "{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,5 +74,13 @@ Global
 		{68B33DDE-2317-44FA-B7C2-285E4573413D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68B33DDE-2317-44FA-B7C2-285E4573413D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68B33DDE-2317-44FA-B7C2-285E4573413D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7266595E-968A-4A8F-85D2-D621796ECD68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7266595E-968A-4A8F-85D2-D621796ECD68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7266595E-968A-4A8F-85D2-D621796ECD68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7266595E-968A-4A8F-85D2-D621796ECD68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
