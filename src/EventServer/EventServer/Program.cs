@@ -79,14 +79,18 @@ internal class Program
                 // single-tenant apps, but it requires a custom IssuerValidator as shown
                 // in the comments below.
 
-                oidcOptions.Authority = "https://login.microsoftonline.com/{TENANT ID}/v2.0/";
+                //oidcOptions.Authority = "https://login.microsoftonline.com/{TENANT ID}/v2.0/";
+                oidcOptions.RequireHttpsMetadata = false;
+                oidcOptions.Authority = Environment.GetEnvironmentVariable("KEYCLOAK_URL");
                 // ........................................................................
 
                 // ........................................................................
                 // Set the Client ID for the app. Set the {CLIENT ID} placeholder to
                 // the Client ID.
 
-                oidcOptions.ClientId = "{CLIENT ID}";
+                //oidcOptions.ClientId = "{CLIENT ID}";
+                oidcOptions.ClientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID");
+                oidcOptions.ClientSecret = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_SECRET");
                 // ........................................................................
 
                 // ........................................................................
