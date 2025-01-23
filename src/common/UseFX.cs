@@ -21,7 +21,7 @@ public static class FxHostingExtension
 {
     public static IHostApplicationBuilder UseFx(this WebApplicationBuilder builder, Assembly? assembly = null)
     {
-        builder.Services.AddKeycloak(builder, assembly);
+    //    builder.Services.AddKeycloak(builder, assembly);
         builder.Services.AddOrleankka(builder, assembly);
         builder.Services.AddOpenTelemetryFx(builder, assembly);
         builder.Services.AddFastEndpointsFx(builder, assembly);
