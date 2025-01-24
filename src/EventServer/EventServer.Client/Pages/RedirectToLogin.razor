@@ -1,12 +1,13 @@
 @inject NavigationManager Navigation;
+@using Microsoft.AspNetCore.Authorization
+// allows redirects to occur without authentication
+@attribute [AllowAnonymous]
 
 <h3>RedirectToLogin</h3>
 
 @code {
-
     protected override void OnInitialized()
     {
         Navigation.NavigateTo($"authentication/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}", forceLoad: true);
     }
-
 }

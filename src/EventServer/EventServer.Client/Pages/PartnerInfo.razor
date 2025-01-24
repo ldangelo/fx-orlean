@@ -1,45 +1,39 @@
 @page "/partnerinfo"
 @using System.Security.Claims
 @using EventServer.Client.Models
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
-<AuthorizeView>
-      <Authorized>
-            <PageTitle>Partner Info</PageTitle>
+<PageTitle>Partner Info</PageTitle>
 
-            <table width="80%">
-                  <tr>
-                        <th colspan="2">Leo D'Angelo</th>
-                  </tr>
+<table width="80%">
+      <tr>
+            <th colspan="2">Leo D'Angelo</th>
+      </tr>
 
-                  <tr>
-                        <td>First Name:</td>
-                        <td>@_partner?.FirstName</td>
-                  </tr>
-                  <tr>
-                        <td>Last Name:</td>
-                        <td>@_partner?.LastName</td>
-                  </tr>
-                  <tr>
-                        <td>Email:</td>
-                        <td> @_partner?.EmailAddress</td>
-                  </tr>
-                  <tr>
-                        <td>Phone:</td>
-                        <td>@_partner?.PhoneNumber</td>
-                  </tr>
-                  <tr>
-                        <td>Meeting URL::</td>
-                        <td><a href="@(Navigation.BaseUri + "Meeting/" + _partner?.EmailAddress)">Partner Page</a></td>
-                  </tr>
-            </table>
-      </Authorized>
-      <NotAuthorized>
-            <RedirectToLogin></RedirectToLogin>
-      </NotAuthorized>
-
-</AuthorizeView>
+      <tr>
+            <td>First Name:</td>
+            <td>@_partner?.FirstName</td>
+      </tr>
+      <tr>
+            <td>Last Name:</td>
+            <td>@_partner?.LastName</td>
+      </tr>
+      <tr>
+            <td>Email:</td>
+            <td> @_partner?.EmailAddress</td>
+      </tr>
+      <tr>
+            <td>Phone:</td>
+            <td>@_partner?.PhoneNumber</td>
+      </tr>
+      <tr>
+            <td>Meeting URL::</td>
+            <td><a href="@(Navigation.BaseUri + "Meeting/" + _partner?.EmailAddress)">Partner Page</a></td>
+      </tr>
+</table>
 
 @code {
 
@@ -51,9 +45,9 @@
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             _user = authState.User;
 
-            var firstName = authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname")?.Value;
-            var lastName = _user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname")?.Value;
-            var email = _user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+            var firstName = authState.User.FindFirst("givenname")?.Value;
+            var lastName = _user.FindFirst("familyname")?.Value;
+            var email = _user.FindFirst("email")?.Value;
             _partner = new Partner(firstName, lastName, email, "972 979-0116");
       }
 

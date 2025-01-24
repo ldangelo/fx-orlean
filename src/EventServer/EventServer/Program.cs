@@ -4,6 +4,7 @@ using EventServer.Components;
 using EventServer.Services;
 using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using MudBlazor.Services;
 using static common.FxHostingExtension;
@@ -15,7 +16,9 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddHttpClient();
+        builder.Services.AddHttpClient("WeatherAPI", c =>
+            c.BaseAddress = new Uri("https://localhost:7020/api/weather/")
+        ).AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
         //
         // Add MudBlazor services
@@ -51,7 +54,7 @@ internal class Program
                 // are provided by "Authentication:Schemes:MicrosoftOidc:Scope"
                 // configuration because configuration may overwrite the scopes collection.
 
-                //oidcOptions.Scope.Add(OpenIdConnectScope.OpenIdProfile);
+                oidcOptions.Scope.Add(OpenIdConnectScope.OpenIdProfile);
                 // ........................................................................
 
                 // ........................................................................
@@ -147,7 +150,7 @@ internal class Program
         builder.Services.ConfigureCookieOidcRefresh(CookieAuthenticationDefaults.AuthenticationScheme, MS_OIDC_SCHEME);
 
         builder.Services.AddAuthorization();
-
+        builder.Services.AddAuthentication();
         builder.Services.AddCascadingAuthenticationState();
 
 
