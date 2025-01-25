@@ -8,6 +8,10 @@
 
 <PageTitle>Partner Info</PageTitle>
 
+@if (_partner == null) {
+      <p>Loading Partner Information</p>
+} else
+
 <table width="80%">
       <tr>
             <th colspan="2">Leo D'Angelo</th>
@@ -34,6 +38,7 @@
             <td><a href="@(Navigation.BaseUri + "Meeting/" + _partner?.EmailAddress)">Partner Page</a></td>
       </tr>
 </table>
+}
 
 @code {
 
@@ -45,10 +50,13 @@
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             _user = authState.User;
 
-            var firstName = authState.User.FindFirst("givenname")?.Value;
-            var lastName = _user.FindFirst("familyname")?.Value;
-            var email = _user.FindFirst("email")?.Value;
-            _partner = new Partner(firstName, lastName, email, "972 979-0116");
+            if (authState.User.Identity is not null && authState.User.Identity.IsAuthenticated)
+            {
+                  var firstName = authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname")?.Value;
+                  var lastName = _user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname")?.Value;
+                  var email = _user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+                  _partner = new Partner(firstName, lastName, email, "972 979-0116");
+            }
       }
 
 }

@@ -104,7 +104,7 @@ internal class Program
                 // or ID tokens. The OIDC handler automatically requests the appropriate
                 // tokens using the code returned from the authorization endpoint.
 
-                oidcOptions.ResponseType = OpenIdConnectResponseType.Code;
+                oidcOptions.ResponseType = OpenIdConnectResponseType.CodeIdTokenToken;
                 // ........................................................................
 
                 // ........................................................................
@@ -113,7 +113,7 @@ internal class Program
                 // the SOAP/WS-Fed defaults in ClaimTypes. Adjust these values if your
                 // identity provider uses different claim types.
 
-                oidcOptions.MapInboundClaims = false;
+                oidcOptions.MapInboundClaims = true;
                 oidcOptions.TokenValidationParameters.NameClaimType = "name";
                 oidcOptions.TokenValidationParameters.RoleClaimType = "roles";
                 // ........................................................................

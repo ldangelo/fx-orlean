@@ -9,8 +9,8 @@ builder.Services.AddOidcAuthentication(options =>
 {
     // Configure your authentication provider options here.
     // For more information, see https://aka.ms/blazor-standalone-auth
-    builder.Configuration.Bind("keycloak", options.ProviderOptions);
-    options.ProviderOptions.ResponseType = "id_token toekn";
+    builder.Configuration.Bind("Keycloak", options.ProviderOptions);
+    options.ProviderOptions.ResponseType = "id_token token";
     options.UserOptions.NameClaim = "preferred_username";
     options.UserOptions.RoleClaim = "roles";
     options.UserOptions.ScopeClaim = "scopes";
@@ -18,12 +18,11 @@ builder.Services.AddOidcAuthentication(options =>
 
 //builder.Services.AddCascadingAuthenticationState();
 //builder.Services.AddAuthenticationStateDeserialization();
-
-builder.Services.AddHttpClient();
+builder.Services.AddAuthorizationCore();
+//builder.Services.AddHttpClient();
 RegisterHttpClient(builder, builder.Services);
 
 var app = builder.Build();
-
 await app.RunAsync();
 
 static void RegisterHttpClient(WebAssemblyHostBuilder builder, IServiceCollection services)
@@ -41,4 +40,3 @@ static void RegisterHttpClient(WebAssemblyHostBuilder builder, IServiceCollectio
         sp.GetRequiredService<IHttpClientFactory>().CreateClient(httpClientName)
     );
 }
-
