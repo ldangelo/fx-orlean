@@ -4,39 +4,43 @@
 @using Microsoft.AspNetCore.Authorization
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
 @attribute [Authorize]
 
 <PageTitle>Partner Info</PageTitle>
 
-@if (_partner == null) {
+@if (_partner == null)
+{
       <p>Loading Partner Information</p>
-} else {
-<table width="80%">
-      <tr>
-            <th colspan="2">Leo D'Angelo</th>
-      </tr>
+}
+else
+{
+      <table width="80%">
+            <tr>
+                  <th colspan="2">Leo D'Angelo</th>
+            </tr>
 
-      <tr>
-            <td>First Name:</td>
-            <td>@_partner?.FirstName</td>
-      </tr>
-      <tr>
-            <td>Last Name:</td>
-            <td>@_partner?.LastName</td>
-      </tr>
-      <tr>
-            <td>Email:</td>
-            <td> @_partner?.EmailAddress</td>
-      </tr>
-      <tr>
-            <td>Phone:</td>
-            <td>@_partner?.PhoneNumber</td>
-      </tr>
-      <tr>
-            <td>Meeting URL::</td>
-            <td><a href="@(Navigation.BaseUri + "Meeting/" + _partner?.EmailAddress)">Partner Page</a></td>
-      </tr>
-</table>
+            <tr>
+                  <td>First Name:</td>
+                  <td>@_partner?.FirstName</td>
+            </tr>
+            <tr>
+                  <td>Last Name:</td>
+                  <td>@_partner?.LastName</td>
+            </tr>
+            <tr>
+                  <td>Email:</td>
+                  <td> @_partner?.EmailAddress</td>
+            </tr>
+            <tr>
+                  <td>Phone:</td>
+                  <td>@_partner?.PhoneNumber</td>
+            </tr>
+            <tr>
+                  <td>Meeting URL::</td>
+                  <td><a href="@(Navigation.BaseUri + "Meeting/" + _partner?.EmailAddress)">Partner Page</a></td>
+            </tr>
+      </table>
 }
 
 @code {
@@ -51,9 +55,9 @@
 
             if (authState.User.Identity is not null && authState.User.Identity.IsAuthenticated)
             {
-                  var firstName = authState.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname")?.Value;
-                  var lastName = _user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname")?.Value;
-                  var email = _user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+                  var firstName = authState.User.FindFirst("given_name")?.Value;
+                  var lastName = _user.FindFirst("family_name")?.Value;
+                  var email = _user.FindFirst("email")?.Value;
                   _partner = new Partner(firstName, lastName, email, "972 979-0116");
             }
       }
