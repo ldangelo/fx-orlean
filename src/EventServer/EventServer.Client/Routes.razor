@@ -1,32 +1,11 @@
-﻿@inject AuthenticationStateProvider AuthenticationStateProvider
-
+﻿@using EventServer.Client.Layout
 @code {
-
-    private AuthenticationState state;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    }
 
 }
 
-<CascadingAuthenticationState>
-    <Router AppAssembly="typeof(Program).Assembly">
-        <Found Context="routeData">
-            <AuthorizedRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
-                <FocusOnNavigate RouteData="routeData" Selector="h1"/>
-                <NotAuthorized>
-                    @if (state?.User.Identity is not { IsAuthenticated: true })
-                    {
-                        <RedirectToLogin/>
-                    }
-                    else
-                    {
-                        <p> You are not authorized to access this resource.</p>
-                    }
-                </NotAuthorized>
-            </AuthorizedRouteView>
-        </Found>
-    </Router>
-</CascadingAuthenticationState>
+<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)"/>
+        <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+    </Found>
+</Router>

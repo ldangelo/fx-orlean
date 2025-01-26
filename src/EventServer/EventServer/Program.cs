@@ -1,12 +1,9 @@
-using FluentAssertions;
-using EventServer;
 using EventServer.Client.Services;
 using EventServer.Components;
 using EventServer.Services;
 using FastEndpoints;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using FluentAssertions;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using MudBlazor.Services;
 using static common.FxHostingExtension;
 using _Imports = EventServer.Client._Imports;
@@ -35,42 +32,45 @@ internal class Program
         // BFF backend setup
         builder.Services.AddBff();
 
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = "cookie";
-        options.DefaultChallengeScheme = "oidc";
-        options.DefaultSignOutScheme = "oidc";
-    })
-    .AddCookie("cookie", options =>
-    {
-        options.Cookie.Name = "__Host-blazor";
-        options.Cookie.SameSite = SameSiteMode.Strict;
-    })
-    .AddOpenIdConnect("oidc", options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.Authority = Environment.GetEnvironmentVariable("KEYCLOAK_URL");
+        builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = "cookie";
+                options.DefaultChallengeScheme = "oidc";
+                options.DefaultSignOutScheme = "oidc";
+            })
+            .AddCookie("cookie", options =>
+            {
+                options.Cookie.Name = "__Host-blazor";
+                options.Cookie.SameSite = SameSiteMode.Strict;
+            })
+            .AddOpenIdConnect("oidc", options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.Authority = Environment.GetEnvironmentVariable("KEYCLOAK_URL");
 
-        options.ClientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID");
-        options.ClientSecret = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_SECRET");
+                options.ClientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID");
+                options.ClientSecret = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_SECRET");
 
-        options.Authority.Should().NotBeNullOrEmpty("KEYCLOAK_URL is not set");
-        options.ClientId.Should().NotBeNullOrEmpty("KEYCLOAK_CLIENT_ID is not set");
-        options.ClientSecret.Should().NotBeNullOrEmpty("KEYCLOAK_CLIENT_SECRET is not set");
-        options.ResponseType = "code";
-        options.ResponseMode = "query";
+                options.Authority.Should().NotBeNullOrEmpty("KEYCLOAK_URL is not set");
+                options.ClientId.Should().NotBeNullOrEmpty("KEYCLOAK_CLIENT_ID is not set");
+                options.ClientSecret.Should().NotBeNullOrEmpty("KEYCLOAK_CLIENT_SECRET is not set");
+                options.ResponseType = "code";
+                options.ResponseMode = "query";
 
-        options.Scope.Clear();
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.Scope.Add("api");
-        options.Scope.Add("offline_access");
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("api");
+                options.Scope.Add("offline_access");
 
-        options.MapInboundClaims = false;
-        options.GetClaimsFromUserInfoEndpoint = true;
-        options.SaveTokens = true;
-    });
+                options.MapInboundClaims = false;
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.SaveTokens = true;
+            });
 
+// In Startup.cs (or wherever you configure your asp.net services)
+
+        builder.Services.AddAntiforgery(c => { c.SuppressXFrameOptionsHeader = true; });
 
         // Add Weather Service
         builder.Services.AddScoped<IWeatherService, WeatherService>();
@@ -115,7 +115,7 @@ builder.Services.AddAuthentication(options =>
         app.MapRazorComponents<App>()
             .AddInteractiveWebAssemblyRenderMode()
             .AddAdditionalAssemblies(typeof(_Imports).Assembly);
-        app.MapGroup("/authentication").MapLoginAndLogout();
+//        app.MapGroup("/authentication").MapLoginAndLogout();
         app.Run();
     }
 }
