@@ -17,14 +17,9 @@ namespace UI.Aggregates.Partners;
 [MayInterleave(nameof(Interleave))]
 public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 {
+    private readonly PartnerSnapshot _partnerSnapshot = new();
+
     private bool active;
-    private string EmailAddress { get; set; } = "";
-    private string PhoneNumber { get; set; } = "";
-    private string FirstName { get; set; } = "";
-    private string LastName { get; set; } = "";
-    private List<string> skills { get; } = new();
-    private List<Guid?> videoConferences { get; } = new();
-    private List<Event> events { get; set; } = new();
 
     public static bool Interleave(IInvokable req)
     {
@@ -37,24 +32,24 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         var user = await api.GetUser(e.EmailAddress, CancellationToken.None);
 
         active = true;
-        EmailAddress = e.EmailAddress;
-        FirstName = e.FirstName;
-        LastName = e.LastName;
-        PhoneNumber = user?.PrimaryPhone!;
+        _partnerSnapshot.EmailAddress = e.EmailAddress;
+        _partnerSnapshot.FirstName = e.FirstName;
+        _partnerSnapshot.LastName = e.LastName;
+        _partnerSnapshot.PrimaryPhone = user?.PrimaryPhone!;
 
         Log.Information("Partner {$PartnerCreatedEvent} created", e);
     }
 
     private void On(PartnerSkillAddedEvent e)
     {
-        skills.Add(e.skill);
+        _partnerSnapshot.Skills.Add(e.skill);
         Log.Information("Added skill {PartnerSkillAddedEvent}", e);
     }
 
     private void On(VideoConferenceAddedToPartnerEvent e)
     {
         Log.Information("Video confereince added {@VideoConferenceAddedToPartnerEvent}", e);
-        videoConferences.Add(e.ConferenceId);
+        _partnerSnapshot.VideoConferences.Add(e.ConferenceId);
     }
 
     private IEnumerable<Event> Handle(CreatePartnerCommand cmd)
@@ -93,7 +88,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 
     private PartnerSnapshot Handle(GetPartnerDetails cmd)
     {
-        return new PartnerSnapshot(EmailAddress, FirstName, LastName, PhoneNumber, "", skills, videoConferences);
+        return _partnerSnapshot;
     }
 
     private void CheckIsActive()

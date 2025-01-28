@@ -39,7 +39,7 @@ public class PartnerAggregateTest : FxTest
 
         //
         // The primary phone comes from partner connect
-        Assert.NotNull(partnerSnapshot.primaryPhone);
-        Assert.True(partnerSnapshot.skills.Count == 1);
+        Assert.NotNull(partnerSnapshot.PrimaryPhone);
+        Assert.True(partnerSnapshot.Skills.Count == 1);
     }
 }

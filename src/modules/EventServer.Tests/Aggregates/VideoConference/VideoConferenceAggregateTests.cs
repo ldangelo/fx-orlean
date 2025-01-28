@@ -86,8 +86,8 @@ public class VideoConferenceAggregateTests : FxTest
 
         var result = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
         Assert.NotNull(result);
-        Assert.True(result.skills.Count == 1);
-        Assert.True(result.videoConferences.Count == 1);
+        Assert.True(result.Skills.Count == 1);
+        Assert.True(result.VideoConferences.Count == 1);
 
         var userSnapshot = await user.Ask<UserSnapshot>(new GetUserDetails());
         Assert.NotNull(userSnapshot);
@@ -99,4 +99,3 @@ public class VideoConferenceAggregateTests : FxTest
         throw new NotImplementedException();
     }
 }
-
