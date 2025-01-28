@@ -1,0 +1,26 @@
+@using EventServer.Client.Models
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<MudCard Outlined="true">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">@(_partner.GetFullName())</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.subtitle1">@(_partner.Title)</MudText>
+        <MudText Typo="Typo.subtitle2">Fortium Partners</MudText>
+        <br/>
+        <div MudCardContentstyle="display: flex; flex-direction: row; gap: 10px;">
+            <MudText>@(_partner.EmailAddress)</MudText>
+            <MudText>@(_partner.PhoneNumber)</MudText>
+        </div>
+        <MudText Variant="Variant.Outlined">@_partner.GetLocation()</MudText>
+        <MudText Variant="Variant.Outlined">@_partner.MeetingURL</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public Partner _partner { get; set; } = null!;
+}

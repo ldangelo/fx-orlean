@@ -1,0 +1,23 @@
+@page "/schedulemeeting"
+@using EventServer.Client.Models
+
+@if (_partner != null)
+{
+    <MudCalendar ShowPartnerEvents="true" ShowTodayButton="true" Items="@_items"/>
+}
+
+@code {
+    [Parameter] public Partner? _partner { get; set; }
+    [Parameter] public List<CalendarItem> _items { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _items = new List<CalendarItem>();
+        var item = new CalendarItem();
+        item.Start = DateTime.Now;
+        item.End = DateTime.Now.AddHours(1);
+        item.Text = "Sample meeting";
+        _items.Add(item);
+    }
+
+}

@@ -1,52 +1,57 @@
 @page "/partnerinfo"
 @using System.Security.Claims
 @using EventServer.Client.Models
-@using Microsoft.AspNetCore.Authorization
+@using MudExRichTextEditor
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
-@attribute [Authorize]
-
+@inject IJSRuntime JsRuntime
 <PageTitle>Partner Info</PageTitle>
 
-@if (_partner == null)
-{
-      <p>Loading Partner Information</p>
-}
-else
-{
-      <table width="80%">
-            <tr>
-                  <th colspan="2">Leo D'Angelo</th>
-            </tr>
+<AuthorizeView>
+      <Authorized>
+            @if (_partner == null)
+            {
+                  <p>Loading Partner Information</p>
+            }
+            else
+            {
+                  <PartnerCard _partner="@_partner"/>
+                  <MudButtonGroup>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.ContentCopy"
+                                   OnClick="CopyMeetingUrlToClipboard">Copy Meeting Url
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Schedule"
+                                   OnClick="ShowHideSchedule">Show Schedule
+                        </MudButton>
+                  </MudButtonGroup>
 
-            <tr>
-                  <td>First Name:</td>
-                  <td>@_partner?.FirstName</td>
-            </tr>
-            <tr>
-                  <td>Last Name:</td>
-                  <td>@_partner?.LastName</td>
-            </tr>
-            <tr>
-                  <td>Email:</td>
-                  <td> @_partner?.EmailAddress</td>
-            </tr>
-            <tr>
-                  <td>Phone:</td>
-                  <td>@_partner?.PhoneNumber</td>
-            </tr>
-            <tr>
-                  <td>Meeting URL::</td>
-                  <td><a href="@(Navigation.BaseUri + "Meeting/" + _partner?.EmailAddress)">Partner Page</a></td>
-            </tr>
-      </table>
-}
+                  @if (showScheduleComponent)
+                  {
+                        <ScheduleMeeting _partner="@_partner"/>
+                  }
+                  else
+                  {
+                        
+                        <MudExRichTextEdit @ref="@Editor" @bind-Value="@_partner.Bio"
+                                           Height="444"
+                                           Class="m-2"
+                                           Variant="Variant.Outlined"/>
+                  }
+            }
+      </Authorized>
+      <NotAuthorized>
+            <LoginComponent/>
+      </NotAuthorized>
+</AuthorizeView>
 
 @code {
-
+      MudExRichTextEdit Editor;
+      private bool showScheduleComponent = false;
       private static ClaimsPrincipal? _user;
       private Partner? _partner;
+      private string? _partnerOverview;
 
       protected override async Task OnInitializedAsync()
       {
@@ -58,8 +63,33 @@ else
                   var firstName = authState.User.FindFirst("given_name")?.Value;
                   var lastName = _user.FindFirst("family_name")?.Value;
                   var email = _user.FindFirst("email")?.Value;
-                  _partner = new Partner(firstName, lastName, email, "972 979-0116");
+                  _partner = new Partner(firstName, lastName, email, "972 979-0116", Navigation);
             }
+
+            if (_partner != null)
+            {
+                  _partnerOverview = _partner.Bio;
+            }
+      }
+
+      private async Task CopyMeetingUrlToClipboard()
+      {
+            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _partner.MeetingURL);
+      }
+
+      private void ShowHideSchedule(MouseEventArgs obj)
+      {
+            showScheduleComponent = !showScheduleComponent;
+      }
+
+      private void OnPartnerOverviewChanged(string? value)
+      {
+            if (_partner != null)
+            {
+                  _partner.Bio = value;
+            }
+
+            _partnerOverview = value;
       }
 
 }

@@ -11,14 +11,17 @@
                        OnClick="@(e => DrawerToggle())"/>
         <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
         <MudSpacer/>
-        <AuthorizeView>
-            <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" OnClick="Login"/>
-            </Authorized>
-            <NotAuthorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout"/>
-            </NotAuthorized>
-        </AuthorizeView>
+        <CascadingAuthenticationState>
+            <AuthorizeView>
+                <Authorized>
+                    <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" Href="/bff/login"/>
+                </Authorized>
+                <NotAuthorized>
+                    <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
+                                   Href="@context.User.FindFirst("bff:logout_url")?.Value"/>
+                </NotAuthorized>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End"/>
     </MudAppBar>

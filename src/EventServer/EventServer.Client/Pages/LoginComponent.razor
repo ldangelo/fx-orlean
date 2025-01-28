@@ -1,0 +1,31 @@
+@inject NavigationManager NavigationManager
+
+
+@if (IsAuthenticating)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Style="margin-bottom: 10px;"
+                       Visible="IsAuthenticating"/>
+}
+
+<MudButton Color="Color.Primary" OnClick="StartAuthentication">Login</MudButton>
+
+@code {
+    public bool IsAuthenticating = false;
+
+    private async Task StartAuthentication()
+    {
+        IsAuthenticating = true; // Show the progress bar
+        try
+        {
+            // Simulate authentication or call your actual login/auth process
+            await Task.Delay(2000); // Replace this with your actual login logic
+            // Redirect to the login endpoint or perform post-authentication actions
+            NavigationManager.NavigateTo("bff/login", true);
+        }
+        finally
+        {
+            IsAuthenticating = false; // Hide the progress bar after the operation completes
+        }
+    }
+
+}
