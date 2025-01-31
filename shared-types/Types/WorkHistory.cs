@@ -1,7 +1,6 @@
 namespace org.fortium.fx.common;
 
 [Serializable]
-[GenerateSerializer]
 public record WorkHistory(
     DateOnly startDate,
     DateOnly? endDate,

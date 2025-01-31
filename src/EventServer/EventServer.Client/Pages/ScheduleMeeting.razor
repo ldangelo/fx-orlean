@@ -1,5 +1,5 @@
 @page "/schedulemeeting"
-@using EventServer.Client.Models
+@using org.fortium.fx.common
 
 @if (_partner != null)
 {
@@ -7,7 +7,7 @@
 }
 
 @code {
-    [Parameter] public Partner? _partner { get; set; }
+    [Parameter] public PartnerSnapshot? _partner { get; set; }
     [Parameter] public List<CalendarItem> _items { get; set; }
 
     protected override async Task OnInitializedAsync()

@@ -1,4 +1,4 @@
-@using EventServer.Client.Models
+@using org.fortium.fx.common
 @inject IJSRuntime JsRuntime
 @inject NavigationManager NavigationManager
 
@@ -14,13 +14,20 @@
         <br/>
         <div MudCardContentstyle="display: flex; flex-direction: row; gap: 10px;">
             <MudText>@(_partner.EmailAddress)</MudText>
-            <MudText>@(_partner.PhoneNumber)</MudText>
+            <MudText>@(_partner.PrimaryPhone)</MudText>
         </div>
         <MudText Variant="Variant.Outlined">@_partner.GetLocation()</MudText>
-        <MudText Variant="Variant.Outlined">@_partner.MeetingURL</MudText>
+        <MudText Variant="Variant.Outlined">@_meetingURL</MudText>
     </MudCardContent>
 </MudCard>
 
 @code {
-    [Parameter] public Partner _partner { get; set; } = null!;
+    [Parameter] public PartnerSnapshot? _partner { get; set; } = null!;
+    private string _meetingURL;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _meetingURL = NavigationManager.ToAbsoluteUri("/meeting/" + _partner.EmailAddress).ToString();
+    }
+
 }

@@ -1,3 +1,4 @@
+using Marten;
 using Orleankka;
 using Orleankka.Meta;
 using UI.Aggregates;
@@ -6,14 +7,23 @@ namespace org.fortium.fx.Aggregates;
 
 public abstract class EventSourcedActor : DispatchActorGrain
 {
-    StreamRef<UI.Aggregates.IEventEnvelope?>? stream;
+    StreamRef<IEventEnvelope?>? stream;
+    IDocumentStore eventStore;
 
+    protected EventSourcedActor(IDocumentStore eventStore)
+    {
+        this.eventStore = eventStore;
+    }
+
+    public abstract StreamRef<IEventEnvelope?> GetStream(string id);
+    protected abstract Task SaveState();
     public override Task<object> Receive(object message)
     {
         switch (message)
         {
             case Activate _:
-                stream = System.StreamOf<IEventEnvelope?>("conferences",$"{GetType().Name}-{Id}");
+                stream = this.GetStream($"{GetType().Name}-{Id}");
+                Load();
                 return Result(Done);
 
             case Command cmd:
@@ -43,6 +53,8 @@ public abstract class EventSourcedActor : DispatchActorGrain
     {
         var envelope = Wrap(@event);
 
+        Save(@event);
+
         return stream.Publish(envelope);
     }
 
@@ -50,6 +62,16 @@ public abstract class EventSourcedActor : DispatchActorGrain
     {
         var envelopeType = typeof(EventEnvelope<>).MakeGenericType(@event.GetType());
         return (IEventEnvelope?) Activator.CreateInstance(envelopeType, Id, @event);
+
+    }
+
+    async void Save(Event @event) {
+        await using var session = eventStore.LightweightSession();
+        Marten.Events.StreamAction streamAction = session.Events.Append(this.Id, @event);
+       await session.SaveChangesAsync();
+    }
+
+    void Load() {
 
     }
 }

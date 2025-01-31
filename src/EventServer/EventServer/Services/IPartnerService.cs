@@ -6,5 +6,5 @@ public interface IPartnerService
 {
     //
     // get the partnersnapshot of the currently authenticated partner
-    Task<PartnerSnapshot> GetPartner();
+    Task<PartnerSnapshot> GetPartner(string email);
 }

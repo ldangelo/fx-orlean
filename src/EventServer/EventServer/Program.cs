@@ -89,6 +89,13 @@ internal class Program
         if (app.Environment.IsDevelopment())
         {
             app.UseWebAssemblyDebugging();
+
+            //
+            // Add a partner for testing purposes
+            using (var scope = app.Services.CreateScope())
+            {
+                DevelopmentSeedPartner.Initialize(scope.ServiceProvider);
+            }
         }
         else
         {

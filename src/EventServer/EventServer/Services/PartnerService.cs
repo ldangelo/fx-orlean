@@ -18,14 +18,18 @@ public class PartnerService : IPartnerService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PartnerSnapshot> GetPartner()
+    public async Task<PartnerSnapshot?> GetPartner(string email)
     {
-        var email = GetUserDetails()?.Claims.First(x => x.Type == ClaimTypes.Email).Value;
-        var actorRef = _actorSystem.ActorOf<IPartnerAggregate>(email);
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var actorRef = _actorSystem.ActorOf<IPartnerAggregate>(email);
 
-        var partnerSnapshot = await actorRef.Ask<PartnerSnapshot>(new GetPartnerDetails());
+            var partnerSnapshot = await actorRef.Ask<PartnerSnapshot>(new GetPartnerDetails());
 
-        return partnerSnapshot;
+            return partnerSnapshot;
+        }
+
+        return null;
     }
 
     private ClaimsPrincipal? GetUserDetails()

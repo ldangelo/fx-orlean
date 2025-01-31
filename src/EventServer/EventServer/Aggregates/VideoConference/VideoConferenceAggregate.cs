@@ -1,4 +1,5 @@
 using FluentValidation;
+using Marten;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
@@ -29,6 +30,15 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
     private DateTime _conferenceStartTime;
     private string? _partnerId;
     private string? _userId;
+
+    public VideoConferenceAggregate(IDocumentStore eventStore) : base(eventStore)
+    {
+    }
+
+    public override StreamRef<IEventEnvelope?> GetStream(string id) {
+        var stream = System.StreamOf<IEventEnvelope?>("videoconferences",id);
+        return stream;
+    }
 
     private async void On(VideoConferenceCreatedEvent e)
     {
@@ -67,5 +77,10 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
             command.userId,
             command.partnerId
         );
+    }
+
+    protected override Task SaveState()
+    {
+        throw new NotImplementedException();
     }
 }

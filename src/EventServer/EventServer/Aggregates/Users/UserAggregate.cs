@@ -1,5 +1,5 @@
 using FluentValidation;
-
+using Marten;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
@@ -27,10 +27,20 @@ public class GetUserDetails : Query<UserAggregate, UserSnapshot>
 public class UserAggregate : EventSourcedActor, IUserAggregate
 {
     private bool active;
+
+    public UserAggregate(IDocumentStore eventStore) : base(eventStore)
+    {
+    }
+
     private string FirstName { get; set; } = string.Empty;
     private string LastName { get; set; } = string.Empty;
     private string Email { get; set; } = string.Empty;
     private List<Guid?> VideoConferences { get; } = new();
+
+    public override StreamRef<IEventEnvelope?> GetStream(string id) {
+        var stream = System.StreamOf<IEventEnvelope?>("users",id);
+        return stream;
+    }
 
     public static bool Interleave(IInvokable req)
     {
@@ -76,5 +86,10 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
     private UserSnapshot Handle(GetUserDetails query)
     {
         return new UserSnapshot(Email, FirstName, LastName, VideoConferences);
+    }
+
+    protected override Task SaveState()
+    {
+        throw new NotImplementedException();
     }
 }

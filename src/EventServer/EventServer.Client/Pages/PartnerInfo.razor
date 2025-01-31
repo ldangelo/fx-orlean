@@ -1,10 +1,13 @@
 @page "/partnerinfo"
 @using System.Security.Claims
-@using EventServer.Client.Models
+@using System.Text
 @using MudExRichTextEditor
+@using Newtonsoft.Json
+@using org.fortium.fx.common
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JsRuntime
+@inject HttpClient Http
 <PageTitle>Partner Info</PageTitle>
 
 <AuthorizeView>
@@ -49,8 +52,10 @@
       MudExRichTextEdit Editor;
       private bool showScheduleComponent = false;
       private static ClaimsPrincipal? _user;
-      private Partner? _partner;
+      private PartnerSnapshot? _partner;
       private string? _partnerOverview;
+      private string? _meetingUrl;
+
 
       protected override async Task OnInitializedAsync()
       {
@@ -62,7 +67,15 @@
                   var firstName = authState.User.FindFirst("given_name")?.Value;
                   var lastName = _user.FindFirst("family_name")?.Value;
                   var email = _user.FindFirst("email")?.Value;
-                  _partner = new Partner(firstName, lastName, email, "972 979-0116", Navigation);
+                  var payload = new { Email = email }; // Create a payload object
+                  var jsonPayload = JsonConvert.SerializeObject(payload); // Serialize object to JSON
+
+                  var httpContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json"); // Create HTTP conten
+                  var response = await Http.PostAsync($"{Navigation.BaseUri}api/partnerinfo", httpContent);
+
+                  var content = await response.Content.ReadAsStringAsync();
+                  _partner = JsonConvert.DeserializeObject<PartnerSnapshot>(content);
+                  _meetingUrl = Navigation.BaseUri + "meeting/" + email;
             }
 
             if (_partner != null)
@@ -73,7 +86,7 @@
 
       private async Task CopyMeetingUrlToClipboard()
       {
-            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _partner.MeetingURL);
+            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _meetingUrl);
       }
 
       private void ShowHideSchedule(MouseEventArgs obj)

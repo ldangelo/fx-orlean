@@ -16,7 +16,9 @@ public class FxTestFixture : IDisposable
         _system = actorSystem;
     }
 
-    public void Dispose() { }
+    public void Dispose()
+    {
+    }
 
     public IActorSystem getActorSystem()
     {
@@ -25,5 +27,6 @@ public class FxTestFixture : IDisposable
 }
 
 [CollectionDefinition("Fx Collection")]
-public class FxTestCollection : ICollectionFixture<FxTestFixture> { }
-
+public class FxTestCollection : ICollectionFixture<FxTestFixture>
+{
+}

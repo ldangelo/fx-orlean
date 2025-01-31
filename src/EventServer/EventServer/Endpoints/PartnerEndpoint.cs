@@ -1,10 +1,11 @@
 using EventServer.Client.Services;
 using FastEndpoints;
+using FluentValidation;
 using org.fortium.fx.common;
 
 namespace EventServer.Endpoints;
 
-public class PartnerEndpoint : EndpointWithoutRequest<PartnerSnapshot>
+public class PartnerEndpoint : Endpoint<PartnerInfoRequest, PartnerSnapshot>
 {
     private readonly IPartnerService _partnerService;
 
@@ -15,13 +16,29 @@ public class PartnerEndpoint : EndpointWithoutRequest<PartnerSnapshot>
 
     public override void Configure()
     {
-        Get("/api/partner");
+        Post("/api/partnerinfo");
         AllowAnonymous();
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(PartnerInfoRequest request, CancellationToken ct)
     {
-        var partner = await _partnerService.GetPartner();
+        var partner = await _partnerService.GetPartner(request.Email);
+        if (partner == null)
+            throw new Exception("Partner not found");
+
         await SendAsync(partner, cancellation: ct);
+    }
+}
+
+public class PartnerInfoRequest
+{
+    public string Email { get; set; }
+}
+
+public class PartnerInfoRequestValidator : AbstractValidator<PartnerInfoRequest>
+{
+    public PartnerInfoRequestValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty();
     }
 }

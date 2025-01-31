@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer", "src\EventSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.Client", "src\EventServer\EventServer.Client\EventServer.Client.csproj", "{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "shared-types", "shared-types\shared-types.csproj", "{B5D9EEBE-6212-4329-95EE-AE52782BDB59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,5 +84,9 @@ Global
 		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C394E7F8-83EB-4C7C-830C-F9F8F3AF8925}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5D9EEBE-6212-4329-95EE-AE52782BDB59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5D9EEBE-6212-4329-95EE-AE52782BDB59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5D9EEBE-6212-4329-95EE-AE52782BDB59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5D9EEBE-6212-4329-95EE-AE52782BDB59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

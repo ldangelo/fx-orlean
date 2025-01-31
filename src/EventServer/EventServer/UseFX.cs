@@ -3,6 +3,7 @@ using System.Reflection;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Keycloak.AuthServices.Authentication;
+using Marten;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Orleankka.Cluster;
+using Weasel.Core;
 
 namespace common;
 
@@ -21,11 +23,27 @@ public static class FxHostingExtension
 {
     public static IHostApplicationBuilder UseFx(this WebApplicationBuilder builder, Assembly? assembly = null)
     {
-    //    builder.Services.AddKeycloak(builder, assembly);
+        //    builder.Services.AddKeycloak(builder, assembly);
         builder.Services.AddOrleankka(builder, assembly);
+        builder.Services.AddEventStore(builder, assembly);
         builder.Services.AddOpenTelemetryFx(builder, assembly);
         builder.Services.AddFastEndpointsFx(builder, assembly);
         return builder;
+    }
+
+    internal static IServiceCollection AddEventStore(this IServiceCollection services, WebApplicationBuilder builder,
+        Assembly? assembly = null)
+    {
+        var connString = Environment.GetEnvironmentVariable("EVENTSTORE_CONNECTION_STRING") ??
+                         "Host=localhost;Port=2113;DefaultDatabase=eventstore";
+        services.AddMarten(options =>
+        {
+            options.Connection(connString);
+            options.UseNewtonsoftForSerialization();
+
+            if (builder.Environment.IsDevelopment()) options.AutoCreateSchemaObjects = AutoCreate.All;
+        }).OptimizeArtifactWorkflow();
+        return services;
     }
 
     internal static IServiceCollection AddKeycloak(this IServiceCollection services, WebApplicationBuilder builder,
@@ -44,11 +62,13 @@ public static class FxHostingExtension
         builder.Host.UseOrleankka()
             .UseOrleans(siloBuilder =>
             {
-                siloBuilder.UseLocalhostClustering().AddMemoryStreams("sms").AddMemoryGrainStorage("sms");
-                siloBuilder.AddMemoryStreams("conferences");
-                siloBuilder.AddMemoryGrainStorage("conferences");
-                siloBuilder.AddMemoryGrainStorage("partner");
-                siloBuilder.AddMemoryGrainStorage("users");
+                siloBuilder.UseLocalhostClustering()
+                    .AddMemoryStreams("sms")
+                    .AddMemoryGrainStorage("sms")
+                    .AddMemoryStreams("conferences")
+                    .AddMemoryGrainStorage("conferences")
+                    .AddMemoryGrainStorage("partner")
+                    .AddMemoryGrainStorage("users");
                 /*
                 siloBuilder.AddAdoNetGrainStorage("sms", options =>
                 {
