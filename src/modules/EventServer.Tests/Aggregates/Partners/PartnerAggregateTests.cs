@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using common.Commands;
 using common.Queries;
+using EventServer.Aggregates.Partners;
 using JetBrains.Annotations;
-using org.fortium.fx.common;
 using Orleankka;
 using UI.Aggregates.Partners;
 using UI.Aggregates.Partners.Commands;
@@ -35,7 +35,7 @@ public class PartnerAggregateTest : FxTest
         );
         await partner.Tell(new AddPartnerSkillCommand("AWS"));
 
-        var partnerSnapshot = await partner.Ask<Partner>(new GetPartnerDetails());
+        var partnerSnapshot = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
 
         //
         // The primary phone comes from partner connect

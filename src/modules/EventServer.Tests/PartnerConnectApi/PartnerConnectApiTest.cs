@@ -1,16 +1,17 @@
+using System.Threading;
 using JetBrains.Annotations;
 using UI.Tests;
-using System.Threading;
 using Xunit.DependencyInjection;
 
 namespace EventServer.Tests.PartnerConnectApi;
 
 [TestSubject(typeof(common.PartnerConnect.PartnerConnectApi))]
-public class PartnerConnectApiTest : FxTest
+[Collection("Fx Collection")]
+public class PartnerConnectApiTest : FxTestFixture
 {
     private ITestOutputHelperAccessor output;
 
-    public PartnerConnectApiTest(ITestOutputHelperAccessor accessor) : base(accessor)
+    public PartnerConnectApiTest(ITestOutputHelperAccessor accessor)
     {
         output = accessor;
     }
@@ -21,18 +22,17 @@ public class PartnerConnectApiTest : FxTest
         var api = new common.PartnerConnect.PartnerConnectApi();
 
         var token = await api.Authorize(CancellationToken.None);
-        
+
         Assert.NotNull(token);
     }
 
     [Fact]
     public async void TestGetUser()
-        {
-            var api = new common.PartnerConnect.PartnerConnectApi();
-            var user = await api.GetUser("leo.dangelo@fortiumpartners.com", CancellationToken.None);
+    {
+        var api = new common.PartnerConnect.PartnerConnectApi();
+        var user = await api.GetUser("leo.dangelo@fortiumpartners.com", CancellationToken.None);
 
-            Assert.NotNull(user);
-            Assert.NotNull(user.PrimaryEmail);
-
-        }
+        Assert.NotNull(user);
+        Assert.NotNull(user.PrimaryEmail);
+    }
 }

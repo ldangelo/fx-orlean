@@ -1,6 +1,8 @@
 using Marten;
+using Marten.Events;
 using Orleankka;
 using Orleankka.Meta;
+using Serilog;
 using UI.Aggregates;
 
 namespace org.fortium.fx.Aggregates;
@@ -8,6 +10,8 @@ namespace org.fortium.fx.Aggregates;
 public abstract class EventSourcedActor : DispatchActorGrain
 {
     private readonly IDocumentStore eventStore;
+    private IDocumentSession _eventSession;
+    private StreamAction _eventStream;
     private StreamRef<IEventEnvelope?>? stream;
 
     protected EventSourcedActor(IDocumentStore eventStore)
@@ -23,6 +27,23 @@ public abstract class EventSourcedActor : DispatchActorGrain
         switch (message)
         {
             case Activate _:
+                _eventSession = eventStore.LightweightSession();
+                /*
+                try
+                {
+                    Log.Information("Starting eventstrem for {Type} with {Id}", GetType(), Id);
+                    _eventStream =
+                        _eventSession.Events.StartStream(GetType(), Id, new StreamStartEvent(Id, DateTime.UtcNow));
+                    await _eventSession.SaveChangesAsync();
+                }
+                catch (DocumentAlreadyExistsException)
+                {
+                    Log.Information("Stream already exists for aggregate {Id}", Id);
+                }
+                catch (EventStreamUnexpectedMaxEventIdException)
+                {
+                    Log.Information("Stream already exists for aggregate {Id}", Id);
+                }*/
                 stream = GetStream($"{GetType().Name}-{Id}");
                 Load();
                 return Result(Done);
@@ -67,13 +88,17 @@ public abstract class EventSourcedActor : DispatchActorGrain
 
     private async void Save(Event @event)
     {
-        await using var session = eventStore.LightweightSession();
-
+        Log.Information("Saving event {@event} for aggregate {Id}", @event, Id);
         // append events to this grains event state
-        var streamAction = session.Events.StartStream(this.Id, @event);
-        await session.SaveChangesAsync();
+        _eventSession.Events.Append(Id, @event);
+        await _eventSession.SaveChangesAsync();
     }
 
-    private void Load() { }
-}
+    private void Load()
+    {
+    }
 
+    //
+    // psudoevent to mark the beginning of a event stream
+    public record StreamStartEvent(string aggregateId, DateTime startTime);
+}

@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using EventServer.Aggregates.Partners;
 using Marten;
 using Marten.Events;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +15,7 @@ using Weasel.Core;
 
 namespace UI.Tests;
 
-public class FxTestFixture : IDisposable
+public class FxTestFixture : IAsyncLifetime
 {
     private readonly IHost Host;
 
@@ -50,8 +52,8 @@ public class FxTestFixture : IDisposable
                                 "Host=localhost;Port=5432;Database=fx-expert-test;Username=postgres;Password=itsasecret;"
                             );
                             c.UseNewtonsoftForSerialization();
-                            //        c.Events.DatabaseSchemaName = "events";
-                            c.Schema.For<Partner>();
+                            //                            c.Events.DatabaseSchemaName = "events";
+                            c.Schema.For<PartnerSnapshot>();
                             c.AutoCreateSchemaObjects = AutoCreate.All;
                             c.Events.StreamIdentity = StreamIdentity.AsString;
                         })
@@ -65,9 +67,21 @@ public class FxTestFixture : IDisposable
 
     public void Dispose() { }
 
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     public IActorSystem getActorSystem()
     {
         return Host.Services.GetService<IActorSystem>();
+    }
+
+    public async Task InitializeAsync()
+    {
+        var store = Host.Services.GetRequiredService<IDocumentStore>();
+
+        await store.Advanced.ResetAllData();
     }
 }
 
