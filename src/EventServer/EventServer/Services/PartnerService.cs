@@ -18,13 +18,13 @@ public class PartnerService : IPartnerService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PartnerSnapshot?> GetPartner(string email)
+    public async Task<Partner?> GetPartner(string email)
     {
         if (!string.IsNullOrWhiteSpace(email))
         {
             var actorRef = _actorSystem.ActorOf<IPartnerAggregate>(email);
 
-            var partnerSnapshot = await actorRef.Ask<PartnerSnapshot>(new GetPartnerDetails());
+            var partnerSnapshot = await actorRef.Ask<Partner>(new GetPartnerDetails());
 
             return partnerSnapshot;
         }

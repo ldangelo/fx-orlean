@@ -1,6 +1,7 @@
 using common.Commands;
 using common.PartnerConnect;
 using common.Queries;
+using EventServer.Aggregates.Partners;
 using FluentValidation;
 using Marten;
 using org.fortium.commands;
@@ -19,22 +20,17 @@ namespace UI.Aggregates.Partners;
 [MayInterleave(nameof(Interleave))]
 public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 {
-    private readonly IPersistentState<PartnerSnapshot> _partnerSnapshot;
+    private readonly PartnerSnapshot _partner;
 
     private bool active;
 
-    public PartnerAggregate(
-        [PersistentState("partners", "partners")]
-        IPersistentState<PartnerSnapshot> partnerSnapshot,
-        DocumentStore store) : base(store)
+    public PartnerAggregate(IDocumentStore store)
+        : base(store)
     {
-        _partnerSnapshot = partnerSnapshot;
+        _partner = new PartnerSnapshot();
     }
 
-    protected override async Task SaveState()
-    {
-        await _partnerSnapshot.WriteStateAsync();
-    }
+    protected override async Task SaveState() { }
 
     public override StreamRef<IEventEnvelope?> GetStream(string id)
     {
@@ -53,24 +49,24 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         var user = await api.GetUser(e.EmailAddress, CancellationToken.None);
 
         active = true;
-        _partnerSnapshot.State.EmailAddress = e.EmailAddress;
-        _partnerSnapshot.State.FirstName = e.FirstName;
-        _partnerSnapshot.State.LastName = e.LastName;
-        _partnerSnapshot.State.PrimaryPhone = user?.PrimaryPhone!;
+        _partner.EmailAddress = e.EmailAddress;
+        _partner.FirstName = e.FirstName;
+        _partner.LastName = e.LastName;
+        _partner.PrimaryPhone = user?.PrimaryPhone!;
 
         Log.Information("Partner {$PartnerCreatedEvent} created", e);
     }
 
     private void On(PartnerSkillAddedEvent e)
     {
-        _partnerSnapshot.State.Skills.Add(e.skill);
+        _partner.Skills.Add(e.skill);
         Log.Information("Added skill {PartnerSkillAddedEvent}", e);
     }
 
     private void On(VideoConferenceAddedToPartnerEvent e)
     {
         Log.Information("Video confereince added {@VideoConferenceAddedToPartnerEvent}", e);
-        _partnerSnapshot.State.VideoConferences.Add(e.ConferenceId);
+        _partner.VideoConferences.Add(e.ConferenceId);
     }
 
     private IEnumerable<Event> Handle(CreatePartnerCommand cmd)
@@ -116,7 +112,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 
     private PartnerSnapshot Handle(GetPartnerDetails cmd)
     {
-        return _partnerSnapshot.State;
+        return _partner;
     }
 
     private void CheckIsActive()
@@ -125,3 +121,4 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
             throw new InvalidOperationException(Id + " item is not acctive.");
     }
 }
+

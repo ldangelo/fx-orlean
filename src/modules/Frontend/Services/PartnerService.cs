@@ -15,12 +15,12 @@ public class PartnerService : IPartnerService
         this.actorSystem = actorSystem;
     }
 
-    public async Task<PartnerSnapshot> GetPartner(string email)
+    public async Task<Partner> GetPartner(string email)
     {
         var actorRef = actorSystem.ActorOf<IPartnerAggregate>(email);
 
-        var partnerSnapshot = await actorRef.Ask<PartnerSnapshot>(new GetPartnerDetails());
+        var partner = await actorRef.Ask<Partner>(new GetPartnerDetails());
 
-        return partnerSnapshot;
+        return partner;
     }
 }

@@ -84,7 +84,7 @@ public class VideoConferenceAggregateTests : FxTest
         // This delay allows time for them to be processed so we can confirm they were delivered
         await Task.Delay(1000);
 
-        var result = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
+        var result = await partner.Ask<Partner>(new GetPartnerDetails());
         Assert.NotNull(result);
         Assert.True(result.Skills.Count == 1);
         Assert.True(result.VideoConferences.Count == 1);

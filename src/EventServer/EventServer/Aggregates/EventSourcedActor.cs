@@ -7,8 +7,8 @@ namespace org.fortium.fx.Aggregates;
 
 public abstract class EventSourcedActor : DispatchActorGrain
 {
-    StreamRef<IEventEnvelope?>? stream;
-    IDocumentStore eventStore;
+    private readonly IDocumentStore eventStore;
+    private StreamRef<IEventEnvelope?>? stream;
 
     protected EventSourcedActor(IDocumentStore eventStore)
     {
@@ -17,12 +17,13 @@ public abstract class EventSourcedActor : DispatchActorGrain
 
     public abstract StreamRef<IEventEnvelope?> GetStream(string id);
     protected abstract Task SaveState();
+
     public override Task<object> Receive(object message)
     {
         switch (message)
         {
             case Activate _:
-                stream = this.GetStream($"{GetType().Name}-{Id}");
+                stream = GetStream($"{GetType().Name}-{Id}");
                 Load();
                 return Result(Done);
 
@@ -58,20 +59,21 @@ public abstract class EventSourcedActor : DispatchActorGrain
         return stream.Publish(envelope);
     }
 
-    IEventEnvelope? Wrap(Event @event)
+    private IEventEnvelope? Wrap(Event @event)
     {
         var envelopeType = typeof(EventEnvelope<>).MakeGenericType(@event.GetType());
-        return (IEventEnvelope?) Activator.CreateInstance(envelopeType, Id, @event);
-
+        return (IEventEnvelope?)Activator.CreateInstance(envelopeType, Id, @event);
     }
 
-    async void Save(Event @event) {
+    private async void Save(Event @event)
+    {
         await using var session = eventStore.LightweightSession();
-        Marten.Events.StreamAction streamAction = session.Events.Append(this.Id, @event);
-       await session.SaveChangesAsync();
+
+        // append events to this grains event state
+        var streamAction = session.Events.StartStream(this.Id, @event);
+        await session.SaveChangesAsync();
     }
 
-    void Load() {
-
-    }
+    private void Load() { }
 }
+

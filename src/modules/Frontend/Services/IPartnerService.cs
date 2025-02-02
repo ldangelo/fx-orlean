@@ -4,5 +4,5 @@ namespace Frontend.Services;
 
 public interface IPartnerService
 {
-    Task<PartnerSnapshot> GetPartner(string email);
+    Task<Partner> GetPartner(string email);
 }

@@ -35,7 +35,7 @@ public class PartnerAggregateTest : FxTest
         );
         await partner.Tell(new AddPartnerSkillCommand("AWS"));
 
-        var partnerSnapshot = await partner.Ask<PartnerSnapshot>(new GetPartnerDetails());
+        var partnerSnapshot = await partner.Ask<Partner>(new GetPartnerDetails());
 
         //
         // The primary phone comes from partner connect

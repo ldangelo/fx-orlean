@@ -52,7 +52,7 @@
       MudExRichTextEdit Editor;
       private bool showScheduleComponent = false;
       private static ClaimsPrincipal? _user;
-      private PartnerSnapshot? _partner;
+      private Partner? _partner;
       private string? _partnerOverview;
       private string? _meetingUrl;
 
@@ -74,7 +74,7 @@
                   var response = await Http.PostAsync($"{Navigation.BaseUri}api/partnerinfo", httpContent);
 
                   var content = await response.Content.ReadAsStringAsync();
-                  _partner = JsonConvert.DeserializeObject<PartnerSnapshot>(content);
+                  _partner = JsonConvert.DeserializeObject<Partner>(content);
                   _meetingUrl = Navigation.BaseUri + "meeting/" + email;
             }
 

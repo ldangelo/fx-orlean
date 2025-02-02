@@ -1,7 +1,7 @@
 using JetBrains.Annotations;
 using UI.Tests;
-using Xunit.DependencyInjection;
 using System.Threading;
+using Xunit.DependencyInjection;
 
 namespace EventServer.Tests.PartnerConnectApi;
 

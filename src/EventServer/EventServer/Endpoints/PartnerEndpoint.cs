@@ -5,7 +5,7 @@ using org.fortium.fx.common;
 
 namespace EventServer.Endpoints;
 
-public class PartnerEndpoint : Endpoint<PartnerInfoRequest, PartnerSnapshot>
+public class PartnerEndpoint : Endpoint<PartnerInfoRequest, Partner>
 {
     private readonly IPartnerService _partnerService;
 
