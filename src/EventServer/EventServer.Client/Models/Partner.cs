@@ -4,7 +4,7 @@ namespace EventServer.Client.Models;
 
 public class Partner
 {
-    private readonly NavigationManager Navigation;
+    private readonly NavigationManager? Navigation;
     public string? MeetingURL;
 
     public Partner(string? firstName, string? lastName, string? email, string? phone, NavigationManager navigation)

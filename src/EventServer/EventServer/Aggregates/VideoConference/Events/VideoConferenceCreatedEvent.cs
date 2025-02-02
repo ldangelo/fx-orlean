@@ -1,6 +1,6 @@
 using Orleankka.Meta;
 
-namespace UI.Aggregates.VideoConference.Events;
+namespace EventServer.Aggregates.VideoConference.Events;
 
 [Serializable, GenerateSerializer]
 public class VideoConferenceCreatedEvent : Event

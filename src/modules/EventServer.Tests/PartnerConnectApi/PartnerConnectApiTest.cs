@@ -1,6 +1,6 @@
 using System.Threading;
+using EventServer.Tests;
 using JetBrains.Annotations;
-using UI.Tests;
 using Xunit.DependencyInjection;
 
 namespace EventServer.Tests.PartnerConnectApi;
@@ -36,3 +36,4 @@ public class PartnerConnectApiTest : FxTestFixture
         Assert.NotNull(user.PrimaryEmail);
     }
 }
+

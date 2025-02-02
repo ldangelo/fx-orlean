@@ -13,7 +13,7 @@ using Orleans.Serialization;
 using Serilog;
 using Weasel.Core;
 
-namespace UI.Tests;
+namespace EventServer.Tests;
 
 public class FxTestFixture : IAsyncLifetime
 {
@@ -87,4 +87,3 @@ public class FxTestFixture : IAsyncLifetime
 
 [CollectionDefinition("Fx Collection")]
 public class FxTestCollection : ICollectionFixture<FxTestFixture> { }
-

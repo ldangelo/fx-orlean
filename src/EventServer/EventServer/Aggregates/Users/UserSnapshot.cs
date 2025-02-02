@@ -1,5 +1,10 @@
-namespace UI.Aggregates.Users;
+namespace EventServer.Aggregates.Users;
 
 [Serializable]
 [GenerateSerializer]
-public record UserSnapshot(string EmailAddress, string FirstName, string LastName, List<Guid?> VideoConferences);
+public record UserSnapshot(
+    string EmailAddress,
+    string FirstName,
+    string LastName,
+    List<Guid?> VideoConferences
+);

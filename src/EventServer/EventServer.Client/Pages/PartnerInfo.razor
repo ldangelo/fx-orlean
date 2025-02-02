@@ -18,7 +18,7 @@
             }
             else
             {
-                  <PartnerCard _partner="@_partner"/>
+                  <PartnerCard Partner="@_partner"/>
                   <MudButtonGroup>
                         <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
                                    StartIcon="@Icons.Material.Filled.ContentCopy"
@@ -30,9 +30,9 @@
                         </MudButton>
                   </MudButtonGroup>
 
-                  @if (showScheduleComponent)
+                  @if (_showScheduleComponent)
                   {
-                        <ScheduleMeeting _partner="@_partner"/>
+                        <ScheduleMeeting Partner="@_partner"/>
                   }
                   else
                   {
@@ -49,8 +49,8 @@
 </AuthorizeView>
 
 @code {
-      MudExRichTextEdit Editor;
-      private bool showScheduleComponent = false;
+      MudExRichTextEdit? Editor;
+      private bool _showScheduleComponent = false;
       private static ClaimsPrincipal? _user;
       private Partner? _partner;
       private string? _partnerOverview;
@@ -91,7 +91,7 @@
 
       private void ShowHideSchedule(MouseEventArgs obj)
       {
-            showScheduleComponent = !showScheduleComponent;
+            _showScheduleComponent = !_showScheduleComponent;
       }
 
       private void OnPartnerOverviewChanged(string? value)

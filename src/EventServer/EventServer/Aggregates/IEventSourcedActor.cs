@@ -1,5 +1,3 @@
-namespace UI.Aggregates;
+namespace EventServer.Aggregates;
 
-public interface IEventSourcedActor
-{
-}
+public interface IEventSourcedActor { }

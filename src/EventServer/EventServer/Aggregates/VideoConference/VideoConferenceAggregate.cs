@@ -1,3 +1,9 @@
+using EventServer.Aggregates.Partners;
+using EventServer.Aggregates.Partners.Commands;
+using EventServer.Aggregates.Users;
+using EventServer.Aggregates.Users.Commands;
+using EventServer.Aggregates.VideoConference.Commands;
+using EventServer.Aggregates.VideoConference.Events;
 using FluentValidation;
 using Marten;
 using org.fortium.fx.Aggregates;
@@ -5,14 +11,8 @@ using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
-using UI.Aggregates.Partners;
-using UI.Aggregates.Partners.Commands;
-using UI.Aggregates.Users;
-using UI.Aggregates.Users.Commands;
-using UI.Aggregates.VideoConference.Commands;
-using UI.Aggregates.VideoConference.Events;
 
-namespace UI.Aggregates.VideoConference;
+namespace EventServer.Aggregates.VideoConference;
 
 [Alias("UI.Aggregates.VideoConference.IVideoConferenceAggregate")]
 public interface IVideoConferenceAggregate : IActorGrain, IGrainWithStringKey { }
@@ -31,12 +31,12 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
     private string? _partnerId;
     private string? _userId;
 
-    public VideoConferenceAggregate(IDocumentStore eventStore) : base(eventStore)
-    {
-    }
+    public VideoConferenceAggregate(IDocumentStore eventStore)
+        : base(eventStore) { }
 
-    public override StreamRef<IEventEnvelope?> GetStream(string id) {
-        var stream = System.StreamOf<IEventEnvelope?>("videoconferences",id);
+    public override StreamRef<IEventEnvelope?> GetStream(string id)
+    {
+        var stream = System.StreamOf<IEventEnvelope?>("videoconferences", id);
         return stream;
     }
 

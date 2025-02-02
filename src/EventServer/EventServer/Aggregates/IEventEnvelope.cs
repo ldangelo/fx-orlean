@@ -1,11 +1,12 @@
 using Orleankka.Meta;
 
-namespace UI.Aggregates;
+namespace EventServer.Aggregates;
 
-public interface IEventEnvelope {}
+public interface IEventEnvelope { }
 
 [Serializable, GenerateSerializer]
-public class EventEnvelope<T>: IEventEnvelope where T: Event
+public class EventEnvelope<T> : IEventEnvelope
+    where T : Event
 {
     [Id(0)]
     public string Stream { get; }

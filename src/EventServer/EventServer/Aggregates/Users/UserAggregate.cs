@@ -1,15 +1,14 @@
+using EventServer.Aggregates.Users.Commands;
+using EventServer.Aggregates.Users.Events;
 using FluentValidation;
 using Marten;
-using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
 using Serilog;
-using UI.Aggregates.Users.Commands;
-using UI.Aggregates.Users.Events;
 
-namespace UI.Aggregates.Users;
+namespace EventServer.Aggregates.Users;
 
 public interface IUserAggregate : IActorGrain, IGrainWithStringKey
 {
@@ -26,9 +25,8 @@ public class GetUserDetails : Query<UserAggregate, UserSnapshot>
 [MayInterleave(nameof(Interleave))]
 public class UserAggregate : EventSourcedActor, IUserAggregate
 {
-    private bool active;
-
-    public UserAggregate(IDocumentStore eventStore) : base(eventStore)
+    public UserAggregate(IDocumentStore eventStore)
+        : base(eventStore)
     {
     }
 
@@ -37,8 +35,9 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
     private string Email { get; set; } = string.Empty;
     private List<Guid?> VideoConferences { get; } = new();
 
-    public override StreamRef<IEventEnvelope?> GetStream(string id) {
-        var stream = System.StreamOf<IEventEnvelope?>("users",id);
+    public override StreamRef<IEventEnvelope?> GetStream(string id)
+    {
+        var stream = System.StreamOf<IEventEnvelope?>("users", id);
         return stream;
     }
 
@@ -49,38 +48,44 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
 
     private void On(UserCreatedEvent e)
     {
-        active = true;
         FirstName = e.FirstName;
         LastName = e.LastName;
         Email = e.EmailAddress;
-        Log.Information("User {@UserCreatedEvent} created.",e);
+        Log.Information("User {@UserCreatedEvent} created.", e);
     }
 
     private void On(VideoConferenceAddedToUserEvent e)
     {
-        Log.Information("video conference: {@VideoConferenceAddedToUserEvent} added to user {Id}",e,Id);
-        VideoConferences.Add(e.ConferenceId);
+        Log.Information(
+            "video conference: {@VideoConferenceAddedToUserEvent} added to user {Id}",
+            e,
+            Id
+        );
+        VideoConferences.Add(e.conferenceId);
     }
 
     private IEnumerable<Event> Handle(CreateUserCommand cmd)
     {
-        Log.Information("Creating user {$cmd}",cmd);
+        Log.Information("Creating user {$cmd}", cmd);
         var validator = new CreateUserCommandValdiator();
 
         validator.ValidateAndThrow(cmd);
 
-        yield return new UserCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
+        yield return new UserCreatedEvent(Id, cmd.FirstName, cmd.LastName, cmd.EmailAddress);
     }
-
 
     private IEnumerable<Event> Handle(AddVideoConferenceToUserCommand cmd)
     {
-        Log.Information("Adding video conference {@AddVideoConferenceToUserCommand} to user {Id}",cmd,Id);
+        Log.Information(
+            "Adding video conference {@AddVideoConferenceToUserCommand} to user {Id}",
+            cmd,
+            Id
+        );
 
         var validator = new AddVideoConferenceToUserCommandValidator();
         validator.ValidateAndThrow(cmd);
 
-        yield return new VideoConferenceAddedToUserEvent(cmd.ConferenceId);
+        yield return new VideoConferenceAddedToUserEvent(Id, cmd.ConferenceId);
     }
 
     private UserSnapshot Handle(GetUserDetails query)

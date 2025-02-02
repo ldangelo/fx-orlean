@@ -1,21 +1,19 @@
 using common.Commands;
 using common.PartnerConnect;
 using common.Queries;
-using EventServer.Aggregates.Partners;
+using EventServer.Aggregates.Partners.Commands;
+using EventServer.Aggregates.Partners.Events;
 using FluentValidation;
 using Marten;
 using org.fortium.commands;
 using org.fortium.fx.Aggregates;
-using org.fortium.fx.common;
 using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
 using Serilog;
-using UI.Aggregates.Partners.Commands;
-using UI.Aggregates.Partners.Events;
 
-namespace UI.Aggregates.Partners;
+namespace EventServer.Aggregates.Partners;
 
 [MayInterleave(nameof(Interleave))]
 public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
@@ -30,7 +28,10 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         _partner = new PartnerSnapshot();
     }
 
-    protected override async Task SaveState() { }
+    protected override Task SaveState()
+    {
+        return Task.CompletedTask;
+    }
 
     public override StreamRef<IEventEnvelope?> GetStream(string id)
     {
@@ -46,12 +47,12 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     private async void On(PartnerCreatedEvent e)
     {
         var api = new PartnerConnectApi();
-        var user = await api.GetUser(e.EmailAddress, CancellationToken.None);
+        var user = await api.GetUser(e.emailAddress, CancellationToken.None);
 
         active = true;
-        _partner.EmailAddress = e.EmailAddress;
-        _partner.FirstName = e.FirstName;
-        _partner.LastName = e.LastName;
+        _partner.EmailAddress = e.emailAddress;
+        _partner.FirstName = e.firstName;
+        _partner.LastName = e.lastName;
         _partner.PrimaryPhone = user?.PrimaryPhone!;
 
         Log.Information("Partner {$PartnerCreatedEvent} created", e);
@@ -66,7 +67,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
     private void On(VideoConferenceAddedToPartnerEvent e)
     {
         Log.Information("Video confereince added {@VideoConferenceAddedToPartnerEvent}", e);
-        _partner.VideoConferences.Add(e.ConferenceId);
+        _partner.VideoConferences.Add(e.conferenceId);
     }
 
     private IEnumerable<Event> Handle(CreatePartnerCommand cmd)
@@ -81,7 +82,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
         else
         {
             Log.Information("Creating partner {$CreatePartnerCommand} ", cmd);
-            yield return new PartnerCreatedEvent(cmd.FirstName, cmd.LastName, cmd.EmailAddress);
+            yield return new PartnerCreatedEvent(Id, cmd.FirstName, cmd.LastName, cmd.EmailAddress);
         }
     }
 
@@ -91,7 +92,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
             throw new ArgumentException("Conference Id must be set.");
 
         Log.Information("Add conference {@AddVideoConferenceToPartnerCommand}", cmd);
-        yield return new VideoConferenceAddedToPartnerEvent(cmd.conferenceId);
+        yield return new VideoConferenceAddedToPartnerEvent(Id, cmd.conferenceId);
     }
 
     private IEnumerable<Event> Handle(AddPartnerSkillCommand cmd)
@@ -100,7 +101,7 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
             throw new ArgumentException("Skill must be set.");
 
         Log.Information("Adding {@AddPartnerSkillCommand} to {Id}", cmd, Id);
-        yield return new PartnerSkillAddedEvent(cmd.skill);
+        yield return new PartnerSkillAddedEvent(Id, cmd.skill);
     }
 
     private IEnumerable<Event> Handle(AddPartnerWorkExperienceCommand cmd)
@@ -121,4 +122,3 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
             throw new InvalidOperationException(Id + " item is not acctive.");
     }
 }
-

@@ -5,9 +5,9 @@
 
 @code {
 
-    [Parameter] public string id { get; set; }
+    [Parameter] public string? Id { get; set; }
 
-    private PartnerSnapshot? snapshot;
+    private PartnerSnapshot? _snapshot;
 
     protected override async Task OnInitializedAsync()
     {
@@ -16,15 +16,23 @@
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        snapshot = JsonConvert.DeserializeObject<PartnerSnapshot>(content);
+        _snapshot = JsonConvert.DeserializeObject<PartnerSnapshot>(content);
     }
 
     public class PartnerSnapshot
     {
-        public string? firstName;
-        public string? lastName;
-        public string? emailAddress;
-        public string? primaryPhone;
+        public readonly string? FirstName;
+        public readonly string? LastName;
+        public readonly string? EmailAddress;
+        public readonly string? PrimaryPhone;
+
+        public PartnerSnapshot(string? firstName, string? lastName, string? emailAddress, string? primaryPhone)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+            EmailAddress = emailAddress;
+            PrimaryPhone = primaryPhone;
+        }
     }
 
 }
@@ -35,23 +43,23 @@
 
 <table width="80%">
     <tr>
-        <th colspan="2">@snapshot?.firstName @snapshot?.lastName</th>
+        <th colspan="2">@_snapshot?.FirstName @_snapshot?.LastName</th>
     </tr>
 
     <tr>
         <td>First Name:</td>
-        <td>@snapshot?.firstName</td>
+        <td>@_snapshot?.FirstName</td>
     </tr>
     <tr>
         <td>Last Name:</td>
-        <td>@snapshot?.lastName</td>
+        <td>@_snapshot?.LastName</td>
     </tr>
     <tr>
         <td>Email:</td>
-        <td> @snapshot?.emailAddress</td>
+        <td> @_snapshot?.EmailAddress</td>
     </tr>
     <tr>
         <td>Phone:</td>
-        <td>@snapshot?.primaryPhone</td>
+        <td>@_snapshot?.PrimaryPhone</td>
     </tr>
 </table>

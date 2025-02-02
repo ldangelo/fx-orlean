@@ -1,15 +1,15 @@
 using System.Threading.Tasks;
+using EventServer.Aggregates.Users;
+using EventServer.Aggregates.Users.Commands;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Hosting;
 using Orleankka;
 using Orleankka.Cluster;
 using Orleans.Hosting;
 using Serilog;
-using UI.Aggregates.Users;
-using UI.Aggregates.Users.Commands;
 using Xunit.DependencyInjection;
 
-namespace UI.Tests.Aggregates.Users;
+namespace EventServer.Tests.Aggregates.Users;
 
 public static class TestExtension
 {
@@ -29,11 +29,12 @@ public static class TestExtension
 
 [TestSubject(typeof(UserAggregate))]
 [Collection("Fx Collection")]
-public class UserAggregateTests: FxTest
+public class UserAggregateTests : FxTest
 {
     private FxTestFixture _testFixture;
 
-    public UserAggregateTests(FxTestFixture fixture,ITestOutputHelperAccessor accessor): base(accessor)
+    public UserAggregateTests(FxTestFixture fixture, ITestOutputHelperAccessor accessor)
+        : base(accessor)
     {
         _testFixture = fixture;
     }

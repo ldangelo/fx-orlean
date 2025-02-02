@@ -18,7 +18,7 @@ public class Partner
         string lastName,
         string primaryPhone,
         string photoUrl,
-        string bio,
+        string? bio,
         List<WorkHistory> workHistories,
         List<string> skills,
         List<Guid?> videoConferences
@@ -48,7 +48,7 @@ public class Partner
 
     [Id(5)] public string PhotoUrl { get; init; } = "";
 
-    [Id(6)] public string Bio { get; set; } = "";
+    [Id(6)] public string? Bio { get; set; } = "";
 
     [Id(7)] public List<WorkHistory> WorkHistories { get; init; } = new();
 

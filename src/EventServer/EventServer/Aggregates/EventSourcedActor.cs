@@ -1,22 +1,19 @@
 using Marten;
-using Marten.Events;
 using Orleankka;
 using Orleankka.Meta;
 using Serilog;
-using UI.Aggregates;
 
-namespace org.fortium.fx.Aggregates;
+namespace EventServer.Aggregates;
 
 public abstract class EventSourcedActor : DispatchActorGrain
 {
-    private readonly IDocumentStore eventStore;
-    private IDocumentSession _eventSession;
-    private StreamAction _eventStream;
-    private StreamRef<IEventEnvelope?>? stream;
+    private readonly IDocumentStore _eventStore;
+    private IDocumentSession? _eventSession;
+    private StreamRef<IEventEnvelope?>? _stream;
 
     protected EventSourcedActor(IDocumentStore eventStore)
     {
-        this.eventStore = eventStore;
+        _eventStore = eventStore;
     }
 
     public abstract StreamRef<IEventEnvelope?> GetStream(string id);
@@ -27,7 +24,7 @@ public abstract class EventSourcedActor : DispatchActorGrain
         switch (message)
         {
             case Activate _:
-                _eventSession = eventStore.LightweightSession();
+                _eventSession = _eventStore.LightweightSession();
                 /*
                 try
                 {
@@ -44,7 +41,7 @@ public abstract class EventSourcedActor : DispatchActorGrain
                 {
                     Log.Information("Stream already exists for aggregate {Id}", Id);
                 }*/
-                stream = GetStream($"{GetType().Name}-{Id}");
+                _stream = GetStream($"{GetType().Name}-{Id}");
                 Load();
                 return Result(Done);
 
@@ -77,7 +74,7 @@ public abstract class EventSourcedActor : DispatchActorGrain
 
         Save(@event);
 
-        return stream.Publish(envelope);
+        return _stream.Publish(envelope);
     }
 
     private IEventEnvelope? Wrap(Event @event)
@@ -90,12 +87,21 @@ public abstract class EventSourcedActor : DispatchActorGrain
     {
         Log.Information("Saving event {@event} for aggregate {Id}", @event, Id);
         // append events to this grains event state
-        _eventSession.Events.Append(Id, @event);
-        await _eventSession.SaveChangesAsync();
+        _eventSession?.Events.Append(Id, @event);
+        await _eventSession?.SaveChangesAsync()!;
     }
 
-    private void Load()
+    private async void Load()
     {
+        //
+        // need to read the events from the event store
+        // and apply them too this aggregate
+        var events = await _eventSession?.Events.FetchStreamAsync(Id)!;
+        foreach (var e in events)
+        {
+            Log.Information("Applying event {e} to aggregate {id}", e, Id);
+            await base.Receive(e);
+        }
     }
 
     //

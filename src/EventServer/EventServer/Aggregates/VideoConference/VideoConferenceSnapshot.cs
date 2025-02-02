@@ -1,4 +1,4 @@
-namespace UI.Aggregates.VideoConference;
+namespace EventServer.Aggregates.VideoConference;
 
 public sealed record class VideoConferenceSnapshot
 {

@@ -1,14 +1,13 @@
+using EventServer.Aggregates;
+using EventServer.Aggregates.Partners.Events;
+using EventServer.Aggregates.VideoConference.Events;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleans.Streams;
-using UI.Aggregates.Partners.Events;
-using UI.Aggregates.VideoConference.Events;
 
-namespace UI.Aggregates;
+namespace EventServer.Aggregates;
 
-public interface IPartnerDispatcher : IActorGrain, IGrainWithStringKey
-{
-}
+public interface IPartnerDispatcher : IActorGrain, IGrainWithStringKey { }
 
 [ImplicitStreamSubscription("")]
 public class PartnerDispatcher : DispatchActorGrain, IPartnerDispatcher, IGrainWithStringKey
@@ -24,7 +23,9 @@ public class PartnerDispatcher : DispatchActorGrain, IPartnerDispatcher, IGrainW
 
     private async Task On(EventEnvelope<VideoConferenceCreatedEvent> e)
     {
-        await System.ActorOf<IPartnerAggregate>(e.Event.PartnerId)
-            .Tell(new VideoConferenceAddedToPartnerEvent(e.Event.ConferenceId));
+        await System
+            .ActorOf<IPartnerAggregate>(e.Event.PartnerId)
+            .Tell(new VideoConferenceAddedToPartnerEvent(Id, e.Event.ConferenceId));
     }
 }
+

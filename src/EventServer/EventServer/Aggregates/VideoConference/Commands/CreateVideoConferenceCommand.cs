@@ -1,7 +1,7 @@
 using FluentValidation;
 using Orleankka.Meta;
 
-namespace UI.Aggregates.VideoConference.Commands;
+namespace EventServer.Aggregates.VideoConference.Commands;
 
 [Serializable]
 [GenerateSerializer]

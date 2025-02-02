@@ -3,18 +3,17 @@ using System.Threading.Tasks;
 using common.Commands;
 using common.Queries;
 using EventServer.Aggregates.Partners;
+using EventServer.Aggregates.Partners.Commands;
+using EventServer.Aggregates.Users;
+using EventServer.Aggregates.Users.Commands;
+using EventServer.Aggregates.VideoConference;
+using EventServer.Aggregates.VideoConference.Commands;
 using Microsoft.Extensions.Hosting;
 using Orleankka;
 using Orleans.Hosting;
-using UI.Aggregates.Partners;
-using UI.Aggregates.Partners.Commands;
-using UI.Aggregates.Users;
-using UI.Aggregates.Users.Commands;
-using UI.Aggregates.VideoConference;
-using UI.Aggregates.VideoConference.Commands;
 using Xunit.DependencyInjection;
 
-namespace UI.Tests.Aggregates.VideoConference;
+namespace EventServer.Tests.Aggregates.VideoConference;
 
 public static class TestExtension
 {

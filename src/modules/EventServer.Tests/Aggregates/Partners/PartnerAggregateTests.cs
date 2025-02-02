@@ -2,30 +2,29 @@ using System.Threading.Tasks;
 using common.Commands;
 using common.Queries;
 using EventServer.Aggregates.Partners;
+using EventServer.Aggregates.Partners.Commands;
 using JetBrains.Annotations;
 using Orleankka;
-using UI.Aggregates.Partners;
-using UI.Aggregates.Partners.Commands;
 using Xunit.DependencyInjection;
 
-namespace UI.Tests.Grains.Partners;
+namespace EventServer.Tests.Aggregates.Partners;
 
 [TestSubject(typeof(PartnerAggregate))]
 [Collection("Fx Collection")]
 public class PartnerAggregateTest : FxTest
 {
-    private readonly FxTestFixture fixture;
+    private readonly FxTestFixture _fixture;
 
-    public PartnerAggregateTest(FxTestFixture _fixture, ITestOutputHelperAccessor accessor)
+    public PartnerAggregateTest(FxTestFixture fixture, ITestOutputHelperAccessor accessor)
         : base(accessor)
     {
-        fixture = _fixture;
+        _fixture = fixture;
     }
 
     [Fact]
     public async Task PartnerDetailsTest()
     {
-        var partner = fixture
+        var partner = _fixture
             .getActorSystem()
             .ActorOf<PartnerAggregate>("leo.dangelo@FortiumPartners.com");
         Assert.NotNull(partner);

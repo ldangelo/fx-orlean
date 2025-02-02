@@ -1,8 +1,9 @@
+using EventServer.Tests.Aggregates.Partners;
 using Serilog;
-using UI.Tests.Grains.Partners;
+using Serilog.Events;
 using Xunit.DependencyInjection;
 
-namespace UI.Tests;
+namespace EventServer.Tests;
 
 public class FxTest
 {
@@ -11,7 +12,7 @@ public class FxTest
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console()
-            .WriteTo.TestOutput(accessor.Output, Serilog.Events.LogEventLevel.Debug)
+            .WriteTo.TestOutput(accessor.Output, LogEventLevel.Debug)
             .CreateLogger()
             .ForContext<PartnerAggregateTest>();
     }

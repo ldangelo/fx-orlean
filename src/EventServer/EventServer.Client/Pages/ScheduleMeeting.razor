@@ -1,23 +1,24 @@
 @page "/schedulemeeting"
 @using org.fortium.fx.common
 
-@if (_partner != null)
+@if (Partner != null)
 {
-    <MudCalendar ShowPartnerEvents="true" ShowTodayButton="true" Items="@_items"/>
+    <MudCalendar ShowPartnerEvents="true" ShowTodayButton="true" Items="@Items"/>
 }
 
 @code {
-    [Parameter] public Partner? _partner { get; set; }
-    [Parameter] public List<CalendarItem> _items { get; set; }
+    [Parameter] public Partner? Partner { get; set; }
+    [Parameter] public List<CalendarItem>? Items { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
-        _items = new List<CalendarItem>();
+        Items = new List<CalendarItem>();
         var item = new CalendarItem();
         item.Start = DateTime.Now;
         item.End = DateTime.Now.AddHours(1);
         item.Text = "Sample meeting";
-        _items.Add(item);
+        Items.Add(item);
+        return Task.CompletedTask;
     }
 
 }

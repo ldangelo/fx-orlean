@@ -1,6 +1,6 @@
 using common.Commands;
+using EventServer.Aggregates.Partners;
 using Orleankka;
-using UI.Aggregates.Partners;
 
 public static class DevelopmentSeedPartner
 {
@@ -8,6 +8,9 @@ public static class DevelopmentSeedPartner
     {
         var system = serviceprovider.GetRequiredService<IActorSystem>();
         var partner = system.ActorOf<PartnerAggregate>("leo.dangelo@fortiumpartners.com");
-        partner.Tell(new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com"));
+        partner.Tell(
+            new CreatePartnerCommand("Leo", "D'Angelo", "leo.dangelo@fortiumpartners.com")
+        );
     }
 }
+

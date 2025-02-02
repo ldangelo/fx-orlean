@@ -22,7 +22,7 @@ public class PartnerEndpoint : Endpoint<PartnerInfoRequest, Partner>
 
     public override async Task HandleAsync(PartnerInfoRequest request, CancellationToken ct)
     {
-        var partner = await _partnerService.GetPartner(request.Email);
+        var partner = await _partnerService.GetPartner(email: request.Email!);
         if (partner == null)
             throw new Exception("Partner not found");
 
@@ -32,7 +32,7 @@ public class PartnerEndpoint : Endpoint<PartnerInfoRequest, Partner>
 
 public class PartnerInfoRequest
 {
-    public string Email { get; set; }
+    public string? Email { get; set; }
 }
 
 public class PartnerInfoRequestValidator : AbstractValidator<PartnerInfoRequest>
@@ -42,3 +42,4 @@ public class PartnerInfoRequestValidator : AbstractValidator<PartnerInfoRequest>
         RuleFor(x => x.Email).NotEmpty();
     }
 }
+
