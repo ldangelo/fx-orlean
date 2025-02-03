@@ -1,5 +1,4 @@
 using System.Net;
-using FluentAssertions;
 using RestSharp;
 
 namespace common.PartnerConnect;
@@ -13,10 +12,10 @@ public class PartnerConnectApi : IPartnerConnectApi
         var clientSecret = Environment.GetEnvironmentVariable("PARTNER_CONNECT_CLIENT_SECRET");
         var apiKey = Environment.GetEnvironmentVariable("PARTNER_CONNECT_API_KEY");
 
-        authBaseUrl.Should().NotBeNullOrEmpty();
-        clientId.Should().NotBeNullOrEmpty();
-        clientSecret.Should().NotBeNullOrEmpty();
-        apiKey.Should().NotBeNullOrEmpty();
+        if (string.IsNullOrEmpty(authBaseUrl)) throw new Exception("Partner Connect Auth URL is not set");
+        if (string.IsNullOrEmpty(clientId)) throw new Exception("Partner Connect Client ID is not set");
+        if (string.IsNullOrEmpty(clientSecret)) throw new Exception("Partner Connect Client Secret is not set");
+        if (string.IsNullOrEmpty(apiKey)) throw new Exception("Partner Connect API Key is not set");
 
         var restOptions = new RestClientOptions(authBaseUrl);
         var restClient = new RestClient(restOptions);

@@ -96,6 +96,7 @@ public abstract class EventSourcedActor : DispatchActorGrain
         //
         // need to read the events from the event store
         // and apply them too this aggregate
+        Log.Information("Loading events for aggregate {Id}", Id);
         var events = await _eventSession?.Events.FetchStreamAsync(Id)!;
         foreach (var e in events)
         {

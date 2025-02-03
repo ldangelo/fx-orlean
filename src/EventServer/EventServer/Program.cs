@@ -2,9 +2,9 @@ using EventServer.Client.Services;
 using EventServer.Components;
 using EventServer.Services;
 using FastEndpoints;
-using FluentAssertions;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using MudBlazor.Services;
+using Nextended.Core.Extensions;
 using static common.FxHostingExtension;
 using _Imports = EventServer.Client._Imports;
 
@@ -51,9 +51,15 @@ internal class Program
                 options.ClientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID");
                 options.ClientSecret = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_SECRET");
 
-                options.Authority.Should().NotBeNullOrEmpty("KEYCLOAK_URL is not set");
-                options.ClientId.Should().NotBeNullOrEmpty("KEYCLOAK_CLIENT_ID is not set");
-                options.ClientSecret.Should().NotBeNullOrEmpty("KEYCLOAK_CLIENT_SECRET is not set");
+                if (options.Authority.IsNullOrEmpty())
+                    throw new Exception("KEYCLOAK_URL is not set");
+
+                if (options.ClientId.IsNullOrEmpty())
+                    throw new Exception("KEYCLOAK_CLIENT_ID is not set");
+
+                if (options.ClientSecret.IsNullOrEmpty())
+                    throw new Exception("KEYCLOAK_CLIENT_SECRET is not set");
+
                 options.ResponseType = "code";
                 options.ResponseMode = "query";
 

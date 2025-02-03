@@ -1,26 +1,26 @@
-using EventServer.Aggregates.Partners;
-using EventServer.Aggregates.Partners.Commands;
-using EventServer.Aggregates.Users;
-using EventServer.Aggregates.Users.Commands;
 using EventServer.Aggregates.VideoConference.Commands;
 using EventServer.Aggregates.VideoConference.Events;
 using FluentValidation;
 using Marten;
-using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
 using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
+using Serilog;
 
 namespace EventServer.Aggregates.VideoConference;
 
 [Alias("UI.Aggregates.VideoConference.IVideoConferenceAggregate")]
-public interface IVideoConferenceAggregate : IActorGrain, IGrainWithStringKey { }
+public interface IVideoConferenceAggregate : IActorGrain, IGrainWithStringKey
+{
+}
 
 [Serializable]
 [GenerateSerializer]
 public class GetVideoConferenceDetails
-    : Query<VideoConferenceAggregate, VideoConferenceSnapshot> { }
+    : Query<VideoConferenceAggregate, VideoConferenceSnapshot>
+{
+}
 
 [MayInterleave(nameof(Interleave))]
 public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggregate
@@ -32,7 +32,9 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
     private string? _userId;
 
     public VideoConferenceAggregate(IDocumentStore eventStore)
-        : base(eventStore) { }
+        : base(eventStore)
+    {
+    }
 
     public override StreamRef<IEventEnvelope?> GetStream(string id)
     {
@@ -48,6 +50,8 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
         _userId = e.UserId;
         _partnerId = e.PartnerId;
 
+        /*
+         This does not work.  It causes an eventstream error with MartinDB (LAD)
         //
         // Tell the User too add the Conference
         var user = this.System.ActorOf<IUserAggregate>(e.UserId);
@@ -57,6 +61,7 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
         // Tell the partner too add the Conference
         var partner = this.System.ActorOf<IPartnerAggregate>(e.PartnerId);
         await partner.Tell(new AddVideoConferenceToPartnerCommand(e.ConferenceId));
+        */
     }
 
     public static bool Interleave(IInvokable req)
@@ -66,7 +71,7 @@ public class VideoConferenceAggregate : EventSourcedActor, IVideoConferenceAggre
 
     private IEnumerable<Event> Handle(CreateVideoConferenceCommand command)
     {
-        Serilog.Log.Information("Creating VideoConference: " + command.conferenceId);
+        Log.Information("Creating VideoConference: " + command.conferenceId);
         var validator = new CreateVideoConferenceCommandValidator();
         validator.ValidateAndThrow(command);
 

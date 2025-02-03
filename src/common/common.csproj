@@ -9,7 +9,6 @@
         <PackageReference Include="FastEndpoints" Version="5.33.0"/>
         <PackageReference Include="FastEndpoints.OpenTelemetry" Version="2.3.0"/>
         <PackageReference Include="FastEndpoints.Swagger" Version="5.32.0"/>
-        <PackageReference Include="FluentAssertions" Version="8.0.0"/>
         <PackageReference Include="Google.Apis.Calendar.v3" Version="1.68.0.3592"/>
         <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.6.0"/>
         <PackageReference Include="Marten" Version="7.37.0"/>
