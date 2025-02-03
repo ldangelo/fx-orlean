@@ -10,25 +10,18 @@ using Serilog;
 
 namespace EventServer.Aggregates.Users;
 
-public interface IUserAggregate : IActorGrain, IGrainWithStringKey
-{
-}
+public interface IUserAggregate : IActorGrain, IGrainWithStringKey { }
 
 [Serializable]
 [GenerateSerializer]
-public class GetUserDetails : Query<UserAggregate, UserSnapshot>
-{
-}
+public class GetUserDetails : Query<UserAggregate, UserSnapshot> { }
 
 [GenerateSerializer]
 [Alias(nameof(UserAggregate))]
-[MayInterleave(nameof(Interleave))]
 public class UserAggregate : EventSourcedActor, IUserAggregate
 {
     public UserAggregate(IDocumentStore eventStore)
-        : base(eventStore)
-    {
-    }
+        : base(eventStore) { }
 
     private string FirstName { get; set; } = string.Empty;
     private string LastName { get; set; } = string.Empty;
@@ -98,3 +91,4 @@ public class UserAggregate : EventSourcedActor, IUserAggregate
         throw new NotImplementedException();
     }
 }
+

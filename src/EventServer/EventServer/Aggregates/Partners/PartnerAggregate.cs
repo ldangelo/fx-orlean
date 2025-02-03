@@ -9,13 +9,11 @@ using org.fortium.commands;
 using org.fortium.fx.Aggregates;
 using Orleankka;
 using Orleankka.Meta;
-using Orleans.Concurrency;
 using Orleans.Serialization.Invocation;
 using Serilog;
 
 namespace EventServer.Aggregates.Partners;
 
-[MayInterleave(nameof(Interleave))]
 public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
 {
     private readonly PartnerSnapshot _partner;
@@ -122,3 +120,4 @@ public class PartnerAggregate : EventSourcedActor, IPartnerAggregate
             throw new InvalidOperationException(Id + " item is not acctive.");
     }
 }
+

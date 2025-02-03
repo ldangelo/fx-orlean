@@ -98,3 +98,4 @@ public class VideoConferenceAggregateTests : FxTest
         throw new NotImplementedException();
     }
 }
+
