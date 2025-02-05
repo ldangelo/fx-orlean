@@ -7,7 +7,6 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Duende.BFF" Version="3.0.0-preview.3"/>
-        <PackageReference Include="FluentValidation" Version="11.11.0"/>
         <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.6.0"/>
         <PackageReference Include="Marten.AspNetCore" Version="7.37.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.1"/>
@@ -23,13 +22,16 @@
         <PackageReference Include="Serilog" Version="4.2.0"/>
         <PackageReference Include="Shouldly" Version="4.3.0"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
-        <PackageReference Include="WolverineFx" Version="3.8.0" />
+        <PackageReference Include="WolverineFx" Version="3.8.0"/>
         <PackageReference Include="WolverineFx.Http" Version="3.8.0"/>
         <PackageReference Include="WolverineFx.Marten" Version="3.8.0"/>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.*"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\..\shared-types\shared-types.csproj"/>
-        <ProjectReference Include="..\FxExpert.Client\FxExpert.Client.csproj" />
+        <ProjectReference Include="..\FxExpert.Client\FxExpert.Client.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Endpoints\"/>
     </ItemGroup>
 </Project>

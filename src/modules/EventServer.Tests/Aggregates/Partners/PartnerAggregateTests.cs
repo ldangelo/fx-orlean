@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using FxExpert.Aggregates.Partners;
+using EventServer.Aggregates.Partners;
 using JetBrains.Annotations;
 using Xunit.DependencyInjection;
 

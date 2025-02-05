@@ -1,16 +1,6 @@
-using EventServer.Aggregates.Partners;
-using EventServer.Aggregates.Users;
-using EventServer.Client.Services;
 using FxExpert.Components;
-using Marten;
-using Marten.Events.Daemon.Resiliency;
-using Marten.Events.Projections;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using MudBlazor.Services;
 using Nextended.Core.Extensions;
-using Wolverine;
-using Wolverine.Http;
-using Wolverine.Marten;
 
 public class Program
 {
@@ -18,28 +8,9 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder
-            .Services.AddHttpClient(
-                "WeatherAPI",
-                c => c.BaseAddress = new Uri("https://localhost:7020/api/weather/")
-            )
-            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
         //
         // Add MudBlazor services
         builder.Services.AddMudServices();
-
-        // add wolverine/marten
-        builder.Services.AddWolverine(opts => { opts.Policies.AutoApplyTransactions(); });
-        builder
-            .Services.AddMarten(opts =>
-            {
-                opts.Connection("");
-                opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
-                opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
-            })
-            .IntegrateWithWolverine()
-            .AddAsyncDaemon(DaemonMode.HotCold);
 
         // BFF backend setup
         builder.Services.AddBff();
@@ -99,13 +70,6 @@ public class Program
 
         builder.Services.AddAntiforgery(c => { c.SuppressXFrameOptionsHeader = true; });
 
-        // Add Weather Service
-        builder.Services.AddScoped<IPartnerService, PartnerService>();
-
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-        builder.Services.AddWolverineHttp();
-
         // Add services to the container.
         builder
             .Services.AddRazorComponents()
@@ -118,8 +82,6 @@ public class Program
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
             app.UseWebAssemblyDebugging();
 
             //

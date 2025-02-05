@@ -30,8 +30,6 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\common\common.csproj"/>
-        <ProjectReference Include="..\..\EventServer\FxExpert\FxExpert.csproj"/>
-        <ProjectReference Include="..\..\FxExpert\FxExpert.Client\FxExpert.Client.csproj"/>
-        <ProjectReference Include="..\..\FxExpert\FxExpert\FxExpert.csproj"/>
+        <ProjectReference Include="..\..\EventServer\EventServer.csproj"/>
     </ItemGroup>
 </Project>

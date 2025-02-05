@@ -2,7 +2,7 @@ using org.fortium.fx.common;
 
 namespace EventServer.Aggregates.Partners.Events;
 
-public interface IPartnerEvent ;
+public interface IPartnerEvent;
 
 [Serializable]
 public record PartnerLoggedInEvent(string partnerId, DateTime loginTime);
@@ -31,3 +31,4 @@ public record PartnerSkillAddedEvent(string partnerId, string skill) : IPartnerE
 
 [Serializable]
 public record PartnerBioUpdatedEvent(string partnerId, string bio) : IPartnerEvent;
+

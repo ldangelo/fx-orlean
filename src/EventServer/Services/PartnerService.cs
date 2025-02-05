@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using FxExpert.Aggregates.Partners;
+using EventServer.Aggregates.Partners;
 
-namespace EventServer.Client.Services;
+namespace EventServer.Services;
 
 public class PartnerService : IPartnerService
 {
@@ -12,7 +12,7 @@ public class PartnerService : IPartnerService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PartnerAggregate?> GetPartner(string email)
+    public async Task<Partner?> GetPartner(string email)
     {
         return null;
     }

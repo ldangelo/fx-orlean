@@ -5,6 +5,12 @@ public interface IPartnerCommand
 }
 
 [Serializable]
+public record PartnerLoggedInCommand(string Id, DateTime LoginTime) : IPartnerCommand;
+
+[Serializable]
+public record PartnerLoggedOutCommand(string Id, DateTime LogoutTime) : IPartnerCommand;
+
+[Serializable]
 public record GetPartnerCommand(string Id) : IPartnerCommand;
 
 [Serializable]
