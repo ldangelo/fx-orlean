@@ -81,7 +81,13 @@ public class Partner
 
     public void Apply(PartnerLoggedInEvent evnt)
     {
-        Log.Information("Applying login event to {EmailAddress}", evnt.partnerId);
+        Log.Information("Partner: Applying login event to {EmailAddress}", evnt.partnerId);
         LastLogin = evnt.loginTime;
+    }
+
+    public void Apply(PartnerLoggedOutEvent evnt)
+    {
+        Log.Information("Partner: Applying logout event to {EmailAddress}", evnt.partnerId);
+        LastLogin = evnt.logoutTime;
     }
 }

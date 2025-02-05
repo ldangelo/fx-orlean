@@ -8,7 +8,7 @@ public interface IPartnerEvent;
 public record PartnerLoggedInEvent(string partnerId, DateTime loginTime);
 
 [Serializable]
-public record PartnerLoggedOutEvent(string partnerId, DateTime loginTime);
+public record PartnerLoggedOutEvent(string partnerId, DateTime logoutTime);
 
 [Serializable]
 public record PartnerCreatedEvent(

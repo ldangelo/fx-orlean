@@ -23,13 +23,9 @@ public class Program
         builder.Host.UseSerilog();
 
         builder.Services.AddControllers();
+        //
         // add wolverine/marten
-        builder.Services.AddWolverine(opts =>
-        {
-            opts.ApplicationAssembly = typeof(Program).Assembly;
-            opts.Policies.AutoApplyTransactions();
-        });
-        builder
+       builder
             .Services.AddMarten(opts =>
             {
                 opts.Connection(builder.Configuration.GetConnectionString("EventStore")!);
@@ -39,9 +35,17 @@ public class Program
 
                 //                opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Async);
             })
+           .OptimizeArtifactWorkflow()
             .UseLightweightSessions()
             .IntegrateWithWolverine()
             .AddAsyncDaemon(DaemonMode.HotCold);
+
+
+        builder.Host.UseWolverine(opts =>
+        {
+            opts.ApplicationAssembly = typeof(Program).Assembly;
+            opts.Policies.AutoApplyTransactions();
+        });
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -54,12 +58,17 @@ public class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+
+            var store = app.Services.GetRequiredService<IDocumentStore>();
+            store.Advanced.Clean.DeleteAllDocuments();
+            store.Advanced.Clean.DeleteAllEventData();
         }
 
         app.UseHttpsRedirection();
 
         app.MapControllers();
         app.MapWolverineEndpoints();
+
 
         app.Run();
     }

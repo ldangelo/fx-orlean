@@ -1,6 +1,23 @@
-@EventServer_HostAddress = http://localhost:5032
+:EventServer_HostAddress = http://localhost:5032
+:currentTime := (format-time-string "%Y-%m-%dT%H:%M:%S.%3NZ" (current-time))
 
-GET {{EventServer_HostAddress}}/weatherforecast/
+GET :EventServer_HostAddress/weatherforecast/
 Accept: application/json
 
 ###
+POST :EventServer_HostAddress/partners/loggedin
+Accept: application/json
+
+{
+    "id": "leo.dangelo@fortiumpartners.com",
+    "loginTime": ":currentTime"
+}
+### Logout
+#
+POST :EventServer_HostAddress/partners/loggedout
+Accept: application/json
+
+{
+    "id": "leo.dangelo@fortiumpartners.com",
+    "loginTime": ":currentTime"
+}
