@@ -5,6 +5,9 @@ public interface IPartnerCommand
 }
 
 [Serializable]
+public record CreatePartnerCommand(string Id, String FirstName, String LastName, String EmailAddress) : IPartnerCommand;
+
+[Serializable]
 public record PartnerLoggedInCommand(string Id, DateTime LoginTime) : IPartnerCommand;
 
 [Serializable]

@@ -1,6 +1,7 @@
+using EventServer.Aggregates.Partners;
 using Marten;
 using Marten.Events;
-using Marten.Events.Daemon.Resiliency;
+using Marten.Events.Projections;
 using Serilog;
 using Weasel.Core;
 using Wolverine;
@@ -25,27 +26,25 @@ public class Program
         builder.Services.AddControllers();
         //
         // add wolverine/marten
-       builder
+        builder
             .Services.AddMarten(opts =>
             {
                 opts.Connection(builder.Configuration.GetConnectionString("EventStore")!);
                 opts.AutoCreateSchemaObjects = AutoCreate.All;
                 opts.UseNewtonsoftForSerialization();
                 opts.Events.StreamIdentity = StreamIdentity.AsString;
+                opts.Projections.UseIdentityMapForAggregates = true;
 
-                //                opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Async);
+                opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Async);
             })
-           .OptimizeArtifactWorkflow()
+            .OptimizeArtifactWorkflow()
             .UseLightweightSessions()
-            .IntegrateWithWolverine()
-            .AddAsyncDaemon(DaemonMode.HotCold);
+            .IntegrateWithWolverine() // forward martin events too wolverine outbox
+            .EventForwardingToWolverine()
+            .AddAsyncDaemon(Marten.Events.Daemon.Resiliency.DaemonMode.HotCold);
 
 
-        builder.Host.UseWolverine(opts =>
-        {
-            opts.ApplicationAssembly = typeof(Program).Assembly;
-            opts.Policies.AutoApplyTransactions();
-        });
+        builder.Host.UseWolverine(opts => { opts.Policies.AutoApplyTransactions(); });
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -58,6 +57,7 @@ public class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.MapOpenApi();
 
             var store = app.Services.GetRequiredService<IDocumentStore>();
             store.Advanced.Clean.DeleteAllDocuments();
@@ -73,4 +73,3 @@ public class Program
         app.Run();
     }
 }
-

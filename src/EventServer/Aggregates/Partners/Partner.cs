@@ -1,12 +1,16 @@
+using System.Diagnostics;
 using EventServer.Aggregates.Partners.Events;
+using Marten.Schema;
 using org.fortium.fx.common;
 using Serilog;
 
 namespace EventServer.Aggregates.Partners;
 
 [Serializable]
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class Partner
 {
+
     // Parameterless constructor
     public Partner()
     {
@@ -25,7 +29,6 @@ public class Partner
         List<Guid?> videoConferences
     )
     {
-        Id = emailAddress;
         EmailAddress = emailAddress;
         FirstName = firstName;
         LastName = lastName;
@@ -38,11 +41,15 @@ public class Partner
     }
 
     public bool Active { get; set; }
+    public bool LoggedIn { get; set; } = false;
     public DateTime LastLogin { get; set; }
     public DateTime LastLogout { get; set; }
+    public DateTime CreateDate { get; set; }
+    public DateTime UpdateDate { get; set; }
 
-    public string Id { get; set; } = "";
+//    public String Id { get; set; } = "";
 
+    [Identity]
     public string EmailAddress { get; set; } = "";
 
     public string FirstName { get; set; } = "";
@@ -81,13 +88,43 @@ public class Partner
 
     public void Apply(PartnerLoggedInEvent evnt)
     {
-        Log.Information("Partner: Applying login event to {EmailAddress}", evnt.partnerId);
+        Log.Information("Partner: Applying login event to {EmailAddress} at {login}", evnt.partnerId, evnt.loginTime);
         LastLogin = evnt.loginTime;
+        LoggedIn = true;
+        UpdateDate = DateTime.Now;
     }
 
     public void Apply(PartnerLoggedOutEvent evnt)
     {
         Log.Information("Partner: Applying logout event to {EmailAddress}", evnt.partnerId);
         LastLogin = evnt.logoutTime;
+        LoggedIn = false;
+        UpdateDate = DateTime.Now;
     }
+
+    public void Apply(PartnerCreatedEvent evnt)
+        {
+            Log.Information("Partner: Applying create event to {EmailAddress}", evnt.ToString());
+            FirstName = evnt.firstName;
+            LastName = evnt.lastName;
+            EmailAddress = evnt.emailAddress;
+            LoggedIn = false;
+            CreateDate = DateTime.Now;
+        }
+
+    internal bool IsLoggedIn()
+    {
+        return LoggedIn == true ;
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+
+    public override string ToString()
+    {
+        return $"EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}";
+    }
+
 }

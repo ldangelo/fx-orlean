@@ -12,7 +12,7 @@ public class PartnerService : IPartnerService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Partner?> GetPartner(string email)
+    public Task<Partner?>? GetPartner(string email)
     {
         return null;
     }
