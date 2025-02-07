@@ -6,7 +6,7 @@ Accept: application/json
 
 ###
 # Log Partner In
-POST :EventServer_HostAddress/partners/loggedin
+POST :EventServer_HostAddress/partners/loggedin/leo.dangelo@fortiumpartners.com
 Accept: application/json
 
 {
@@ -15,7 +15,7 @@ Accept: application/json
 }
 ### Logout
 #  Log Partner Out
-POST :EventServer_HostAddress/partners/loggedout
+POST :EventServer_HostAddress/partners/loggedout/leo.dangelo@fortiumpartners.com
 Accept: application/json
 
 {

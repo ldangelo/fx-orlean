@@ -1,33 +1,35 @@
+<?xml version="1.0"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="FluentValidation" Version="11.11.0"/>
-        <PackageReference Include="Serilog" Version="4.2.0"/>
-        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
-        <PackageReference Include="Serilog.Enrichers.ClassName" Version="0.3.0" />
-        <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1"/>
-        <PackageReference Include="Marten.AspNetCore" Version="7.37.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
-        <PackageReference Include="WolverineFx" Version="3.8.0"/>
-        <PackageReference Include="WolverineFx.Http" Version="3.8.0"/>
-        <PackageReference Include="WolverineFx.Marten" Version="3.8.0"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Content Include="..\..\.dockerignore">
-            <Link>.dockerignore</Link>
-        </Content>
-    </ItemGroup>
-    <ItemGroup>
-        <_ContentIncludedByDefault Remove="FxExpert\obj\FxExpert.csproj.nuget.dgspec.json"/>
-        <_ContentIncludedByDefault Remove="FxExpert\obj\project.assets.json"/>
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\..\shared-types\shared-types.csproj"/>
-    </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.11.0"/>
+    <PackageReference Include="Serilog" Version="4.2.0"/>
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
+    <PackageReference Include="Serilog.Enrichers.ClassName" Version="0.3.0"/>
+    <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1"/>
+    <PackageReference Include="Marten.AspNetCore" Version="7.37.0"/>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
+    <PackageReference Include="WolverineFx" Version="3.8.1"/>
+    <PackageReference Include="WolverineFx.Http" Version="3.8.1"/>
+    <PackageReference Include="WolverineFx.Http.Marten" Version="3.8.1"/>
+    <PackageReference Include="WolverineFx.Marten" Version="3.8.1"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="FxExpert\obj\FxExpert.csproj.nuget.dgspec.json"/>
+    <_ContentIncludedByDefault Remove="FxExpert\obj\project.assets.json"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared-types\shared-types.csproj"/>
+  </ItemGroup>
 </Project>

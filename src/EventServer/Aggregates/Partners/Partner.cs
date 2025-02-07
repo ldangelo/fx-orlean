@@ -68,13 +68,13 @@ public class Partner
 
     public List<Guid?> VideoConferences { get; init; } = new();
 
-    public string Title { get; set; } = "Chief Technology Officer";
+    public string Title { get; set; } = "";
 
-    public string City { get; set; } = "Prosper";
+    public string City { get; set; } = "";
 
-    public string State { get; set; } = "Tx";
+    public string State { get; set; } = "";
 
-    public string Country { get; set; } = "United States";
+    public string Country { get; set; } = "";
 
     public string GetFullName()
     {
@@ -110,6 +110,7 @@ public class Partner
             EmailAddress = evnt.emailAddress;
             LoggedIn = false;
             CreateDate = DateTime.Now;
+            Log.Information("Partner: Applied create event to {EmailAddress}", this.ToString());
         }
 
     internal bool IsLoggedIn()
@@ -124,7 +125,6 @@ public class Partner
 
     public override string ToString()
     {
-        return $"EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}";
+        return $"EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
     }
-
 }

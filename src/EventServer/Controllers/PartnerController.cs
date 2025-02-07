@@ -8,6 +8,7 @@ using Serilog;
 using Wolverine;
 using Wolverine.Attributes;
 using Wolverine.Http;
+using Wolverine.Http.Marten;
 using Wolverine.Marten;
 
 namespace EventServer.Controllers;
@@ -40,92 +41,57 @@ public class PartnerAggregateHandler
 public class PartnerController: ControllerBase
 {
 
-    [WolverinePost("/partners/loggedin")]
-    [ProducesResponseType(200, Type = typeof(Partner))]
-    public async Task<Partner?> GetPartners(
-        [FromBody] PartnerLoggedInCommand command,
-        [FromServices] IDocumentSession session
-    )
-    {
-        Log.Information("Logging partner {Id} in at {time}.", command.Id, command.LoginTime);
-
-        var stream = await session.Events.FetchForWriting<Partner>(command.Id);
-
-        var partner = stream.Aggregate;
-
-        //
-        // create a new partner if needed
-        if (partner == null) return null;
-
-        partner.LoggedIn = true;
-
-        session.Events.Append(command.Id,new PartnerLoggedInEvent(command.Id, command.LoginTime));
-        session.Store<Partner>(partner);
+       [WolverineGet("/partners/{emailAddress}")]
+    public Partner GetPartner( [Document("emailAddress")] Partner partner) {
+        Log.Information("Getting partner {emailAddress}.", partner.EmailAddress);
 
 
-        await session.SaveChangesAsync();
         return partner;
     }
 
-    [WolverineGet("/partners/{emailAddress}")]
-    public async Task<Partner> GetPartner( string emailAddress,[FromServices] IDocumentSession session) {
-        Log.Information("Getting partner {emailAddress}.", emailAddress);
 
-        var stream = await session.Events.FetchForWriting<Partner>(emailAddress);
-
-        return stream.Aggregate;
-    }
 
     [WolverinePost("/partners")]
-    [ProducesResponseType(200, Type = typeof(Partner))]
-    public async Task<Partner> CreatePartners(
-        [FromBody] CreatePartnerCommand command,
-        [FromServices] IDocumentSession session
+    public static (CreationResponse, IStartStream) CreatePartners(
+        CreatePartnerCommand command,
+        IDocumentSession session
     )
     {
         Log.Information("Creating partner {Id}.", command.EmailAddress);
 
 
-        var stream = await session.Events.FetchForWriting<Partner>(command.EmailAddress);
+        var startStream = MartenOps.StartStream<Partner>(command.EmailAddress,new PartnerCreatedEvent(command.Id, command.FirstName, command.LastName,command.EmailAddress));
 
-        var partner = stream.Aggregate;
-
-        if (partner != null) {
-            Log.Information($"Partner {command.EmailAddress} already exists.");
-            throw new InvalidOperationException($"Partner {command.EmailAddress} already exists.");
-        } else {
-            partner = new Partner();
-        }
-
-        partner.FirstName = command.FirstName;
-        partner.LastName = command.LastName;
-        partner.EmailAddress = command.EmailAddress;
-
-        Log.Information("Saving partner: {partner}",partner.ToString());
-        session.Store<Partner>(partner);
-
-        session.Events.Append(partner.EmailAddress,new PartnerCreatedEvent(command.Id, command.FirstName, command.LastName,command.EmailAddress));
-        await session.SaveChangesAsync();
-        return partner;
+        return (
+            new CreationResponse(Url: $"/partners/{command.EmailAddress}"),
+            startStream
+        );
     }
 
-    [WolverinePost("/partners/loggedout")]
-    public async Task<Partner> LogOutPartners(
+    [WolverinePost("/partners/loggedin/{partnerId}"), EmptyResponse]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(200)]
+    public static PartnerLoggedInEvent GetPartners(
+        [FromBody] PartnerLoggedInCommand command,
+        [Aggregate] Partner partner
+    )
+    {
+        Log.Information("Logging partner {Id} in at {time}.", command.Id, command.LoginTime);
+
+        return new PartnerLoggedInEvent(command.Id, command.LoginTime);
+
+    }
+
+    [WolverinePost("/partners/loggedout/{partnerId}"), EmptyResponse]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(200)]
+    public static PartnerLoggedOutEvent LogOutPartners(
         [FromBody] PartnerLoggedOutCommand command,
-        [FromServices] IDocumentSession session
+        [Aggregate] Partner partner
     )
     {
         Log.Information("Logging partner {Id} out.", command.Id);
 
-        var stream = await session.Events.FetchForWriting<Partner>(command.Id);
-
-        var partner = stream.Aggregate;
-        partner.LoggedIn = false;
-
-        session.Store<Partner>(partner);
-        session.Events.Append(command.Id,new PartnerLoggedOutEvent(command.Id, DateTime.Now));
-
-        await session.SaveChangesAsync();
-        return partner;
+        return new PartnerLoggedOutEvent(command.Id, command.LogoutTime);
     }
 }

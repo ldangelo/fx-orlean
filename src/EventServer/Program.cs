@@ -10,6 +10,7 @@ using Wolverine.Marten;
 
 public class Program
 {
+    [Obsolete]
     private static void Main(string[] args)
     {
         IConfiguration configuration = new ConfigurationBuilder()
@@ -32,7 +33,11 @@ public class Program
                 opts.Connection(builder.Configuration.GetConnectionString("EventStore")!);
                 opts.AutoCreateSchemaObjects = AutoCreate.All;
                 opts.UseNewtonsoftForSerialization();
+
+
                 opts.Events.StreamIdentity = StreamIdentity.AsString;
+                opts.Events.AppendMode = EventAppendMode.Quick;
+
                 opts.Projections.UseIdentityMapForAggregates = true;
 
                 opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Async);
@@ -44,7 +49,10 @@ public class Program
             .AddAsyncDaemon(Marten.Events.Daemon.Resiliency.DaemonMode.HotCold);
 
 
-        builder.Host.UseWolverine(opts => { opts.Policies.AutoApplyTransactions(); });
+        builder.Host.UseWolverine(opts => {
+            opts.Policies.AutoApplyTransactions();
+            opts.OptimizeArtifactWorkflow();
+        }).StartAsync();
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
