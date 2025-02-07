@@ -41,7 +41,7 @@ public class PartnerAggregateHandler
 public class PartnerController: ControllerBase
 {
 
-       [WolverineGet("/partners/{emailAddress}")]
+    [WolverineGet("/partners/{emailAddress}")]
     public Partner GetPartner( [Document("emailAddress")] Partner partner) {
         Log.Information("Getting partner {emailAddress}.", partner.EmailAddress);
 
@@ -69,8 +69,6 @@ public class PartnerController: ControllerBase
     }
 
     [WolverinePost("/partners/loggedin/{partnerId}"), EmptyResponse]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(200)]
     public static PartnerLoggedInEvent GetPartners(
         [FromBody] PartnerLoggedInCommand command,
         [Aggregate] Partner partner
@@ -79,12 +77,9 @@ public class PartnerController: ControllerBase
         Log.Information("Logging partner {Id} in at {time}.", command.Id, command.LoginTime);
 
         return new PartnerLoggedInEvent(command.Id, command.LoginTime);
-
     }
 
     [WolverinePost("/partners/loggedout/{partnerId}"), EmptyResponse]
-    [ProducesResponseType(404)]
-    [ProducesResponseType(200)]
     public static PartnerLoggedOutEvent LogOutPartners(
         [FromBody] PartnerLoggedOutCommand command,
         [Aggregate] Partner partner
