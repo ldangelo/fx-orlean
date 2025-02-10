@@ -1,16 +1,13 @@
 using System.Diagnostics;
-using EventServer.Aggregates.Partners.Events;
 using Marten.Schema;
 using org.fortium.fx.common;
-using Serilog;
 
-namespace EventServer.Aggregates.Partners;
+namespace Fortium.Types;
 
 [Serializable]
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class Partner
 {
-
     // Parameterless constructor
     public Partner()
     {
@@ -49,8 +46,7 @@ public class Partner
 
 //    public String Id { get; set; } = "";
 
-    [Identity]
-    public string EmailAddress { get; set; } = "";
+    [Identity] public string EmailAddress { get; set; } = "";
 
     public string FirstName { get; set; } = "";
 
@@ -86,36 +82,9 @@ public class Partner
         return City + ", " + State + ", " + Country;
     }
 
-    public void Apply(PartnerLoggedInEvent evnt)
+   public bool IsLoggedIn()
     {
-        Log.Information("Partner: Applying login event to {EmailAddress} at {login}", evnt.partnerId, evnt.loginTime);
-        LastLogin = evnt.loginTime;
-        LoggedIn = true;
-        UpdateDate = DateTime.Now;
-    }
-
-    public void Apply(PartnerLoggedOutEvent evnt)
-    {
-        Log.Information("Partner: Applying logout event to {EmailAddress}", evnt.partnerId);
-        LastLogin = evnt.logoutTime;
-        LoggedIn = false;
-        UpdateDate = DateTime.Now;
-    }
-
-    public void Apply(PartnerCreatedEvent evnt)
-        {
-            Log.Information("Partner: Applying create event to {EmailAddress}", evnt.ToString());
-            FirstName = evnt.firstName;
-            LastName = evnt.lastName;
-            EmailAddress = evnt.emailAddress;
-            LoggedIn = false;
-            CreateDate = DateTime.Now;
-            Log.Information("Partner: Applied create event to {EmailAddress}", this.ToString());
-        }
-
-    internal bool IsLoggedIn()
-    {
-        return LoggedIn == true ;
+        return LoggedIn;
     }
 
     private string GetDebuggerDisplay()
@@ -125,6 +94,7 @@ public class Partner
 
     public override string ToString()
     {
-        return $"EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
+        return
+            $"EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
     }
 }

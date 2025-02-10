@@ -5,16 +5,14 @@ using Xunit.DependencyInjection;
 
 namespace EventServer.Tests.Aggregates.Partners;
 
-[TestSubject(typeof(PartnerAggregate))]
+[TestSubject(typeof(Partner))]
 [Collection("Fx Collection")]
 public class PartnerAggregateTest : FxTest
 {
-    public PartnerAggregateTest(ITestOutputHelperAccessor accessor) : base(accessor)
-    {
-    }
+    public PartnerAggregateTest(ITestOutputHelperAccessor accessor)
+        : base(accessor) { }
 
     [Fact]
-    public async Task PartnerDetailsTest()
-    {
-    }
+    public async Task PartnerDetailsTest() { }
 }
+

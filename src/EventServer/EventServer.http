@@ -20,7 +20,7 @@ Accept: application/json
 
 {
     "id": "leo.dangelo@fortiumpartners.com",
-    "loginTime": ":currentTime"
+    "logoutTime": ":currentTime"
 }
 
 

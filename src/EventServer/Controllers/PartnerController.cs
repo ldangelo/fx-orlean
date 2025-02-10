@@ -10,6 +10,8 @@ using Wolverine.Attributes;
 using Wolverine.Http;
 using Wolverine.Http.Marten;
 using Wolverine.Marten;
+using Fortium.Types;
+
 
 namespace EventServer.Controllers;
 
@@ -60,7 +62,7 @@ public class PartnerController: ControllerBase
         Log.Information("Creating partner {Id}.", command.EmailAddress);
 
 
-        var startStream = MartenOps.StartStream<Partner>(command.EmailAddress,new PartnerCreatedEvent(command.Id, command.FirstName, command.LastName,command.EmailAddress));
+        var startStream = MartenOps.StartStream<Partner>(command.EmailAddress,new PartnerCreatedEvent(command.FirstName, command.LastName,command.EmailAddress));
 
         return (
             new CreationResponse(Url: $"/partners/{command.EmailAddress}"),

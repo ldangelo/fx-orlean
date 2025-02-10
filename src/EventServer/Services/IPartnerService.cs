@@ -1,5 +1,6 @@
 using EventServer.Aggregates.Partners;
-using org.fortium.fx.common;
+using Fortium.Types;
+
 
 namespace EventServer.Services;
 

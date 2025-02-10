@@ -5,30 +5,28 @@ namespace EventServer.Aggregates.Partners.Events;
 public interface IPartnerEvent;
 
 [Serializable]
-public record PartnerLoggedInEvent(string partnerId, DateTime loginTime);
+public record PartnerLoggedInEvent(string EmailAddress,DateTime LoginTime);
 
 [Serializable]
-public record PartnerLoggedOutEvent(string partnerId, DateTime logoutTime);
+public record PartnerLoggedOutEvent(string EmailAddress,DateTime LogoutTime);
 
 [Serializable]
 public record PartnerCreatedEvent(
-    string partnerId,
-    string firstName,
-    string lastName,
-    string emailAddress
+    string FirstName,
+    string LastName,
+    string EmailAddress
 ) : IPartnerEvent;
 
 [Serializable]
-public record PartnerWorkExperienceAddedEvent(string partnerId, WorkHistory workHistory)
+public record PartnerWorkExperienceAddedEvent(string EmailAddress,WorkHistory WorkHistory)
     : IPartnerEvent;
 
 [Serializable]
-public record VideoConferenceAddedToPartnerEvent(string partnerId, Guid? conferenceId)
+public record VideoConferenceAddedToPartnerEvent(string EmailAddress,Guid? ConferenceId)
     : IPartnerEvent;
 
 [Serializable]
-public record PartnerSkillAddedEvent(string partnerId, string skill) : IPartnerEvent;
+public record PartnerSkillAddedEvent(string EmailAddress,string Skill) : IPartnerEvent;
 
 [Serializable]
-public record PartnerBioUpdatedEvent(string partnerId, string bio) : IPartnerEvent;
-
+public record PartnerBioUpdatedEvent(string EmailAddress,string Bio) : IPartnerEvent;

@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using EventServer.Aggregates.Partners;
+using Fortium.Types;
 
 namespace EventServer.Services;
 

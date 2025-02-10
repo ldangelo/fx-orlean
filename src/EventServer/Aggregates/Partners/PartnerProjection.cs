@@ -4,35 +4,37 @@ using Marten.Events.Aggregation;
 using org.fortium.fx.common;
 using Serilog;
 using Wolverine.Attributes;
+using Fortium.Types;
+
 
 namespace EventServer.Aggregates.Partners;
 
 public class PartnerProjection : SingleStreamProjection<Partner>
 {
     public static Partner Apply(PartnerCreatedEvent @event, Partner partner) {
-        Log.Information("PartnerProjection: Applying {type} to {EmailAddress}", typeof(PartnerCreatedEvent),@event.partnerId);
+        Log.Information("PartnerProjection: Applying {type} to {EmailAddress}", typeof(PartnerCreatedEvent),@event.EmailAddress);
 
-        partner.FirstName = @event.firstName;
-        partner.LastName = @event.lastName;
-        partner.EmailAddress = @event.emailAddress;
+        partner.FirstName = @event.FirstName;
+        partner.LastName = @event.LastName;
+        partner.EmailAddress = @event.EmailAddress;
         partner.CreateDate = DateTime.Now;
         return partner;
     }
     public static Partner Apply(PartnerLoggedInEvent loggedInEvent, Partner partner)
     {
-        Log.Information("PartnerProjection: Applying login event to {EmailAddress}", loggedInEvent.partnerId);
+        Log.Information("PartnerProjection: Applying login event to {EmailAddress}", loggedInEvent.EmailAddress);
         partner.Active = true;
         partner.LoggedIn = true;
         partner.UpdateDate = DateTime.Now;
-        partner.LastLogin = loggedInEvent.loginTime;
+        partner.LastLogin = loggedInEvent.LoginTime;
         return partner;
     }
 
     public static Partner Apply(PartnerLoggedOutEvent @event, Partner partner)
     {
-        Log.Information("PartnerProjection: Applying login event to {EmailAddress}", @event.partnerId);
+        Log.Information("PartnerProjection: Applying login event to {EmailAddress}", @event.EmailAddress);
         partner.LoggedIn = false;
-        partner.LastLogin = @event.logoutTime;
+        partner.LastLogout = @event.LogoutTime;
         partner.UpdateDate = DateTime.Now;
 
         return partner;
