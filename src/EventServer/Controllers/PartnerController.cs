@@ -40,11 +40,11 @@ public class PartnerAggregateHandler
 
 }
 
-public class PartnerController: ControllerBase
+public static class PartnerController
 {
 
     [WolverineGet("/partners/{emailAddress}")]
-    public Partner GetPartner( [Document("emailAddress")] Partner partner) {
+    public static Partner GetPartner( [Document("emailAddress")] Partner partner) {
         Log.Information("Getting partner {emailAddress}.", partner.EmailAddress);
 
 
