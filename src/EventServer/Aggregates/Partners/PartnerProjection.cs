@@ -1,7 +1,6 @@
 using EventServer.Aggregates.Partners.Events;
 using Marten.Events;
 using Marten.Events.Aggregation;
-using org.fortium.fx.common;
 using Serilog;
 using Wolverine.Attributes;
 using Fortium.Types;

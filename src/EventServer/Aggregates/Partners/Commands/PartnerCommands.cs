@@ -1,3 +1,5 @@
+using Marten.Schema;
+
 namespace EventServer.Aggregates.Partners.Commands;
 
 public interface IPartnerCommand
@@ -5,22 +7,22 @@ public interface IPartnerCommand
 }
 
 [Serializable]
-public record CreatePartnerCommand(string Id, String FirstName, String LastName, String EmailAddress) : IPartnerCommand;
+public record CreatePartnerCommand(String FirstName, String LastName, String EmailAddress) : IPartnerCommand;
 
 [Serializable]
-public record PartnerLoggedInCommand(string Id, DateTime LoginTime) : IPartnerCommand;
+public record PartnerLoggedInCommand([property: Identity]  string EmailAddress,DateTime LoginTime) : IPartnerCommand;
 
 [Serializable]
-public record PartnerLoggedOutCommand(string Id, DateTime LogoutTime) : IPartnerCommand;
+public record PartnerLoggedOutCommand(string EmailAddress, DateTime LogoutTime) : IPartnerCommand;
 
 [Serializable]
-public record GetPartnerCommand(string Id) : IPartnerCommand;
+public record GetPartnerCommand(string EmailAddress) : IPartnerCommand;
 
 [Serializable]
-public record AddPartnerSkillCommand(string skill) : IPartnerCommand;
+public record AddPartnerSkillCommand(string EmailAddress,string Skill) : IPartnerCommand;
 
 [Serializable]
-public record SetPartnerDetalsCommand(string emailAddress, string firstName, string lastName) : IPartnerCommand;
+public record SetPartnerDetalsCommand(string EmailAddress, string FirstName, string LastName) : IPartnerCommand;
 
 [Serializable]
-public record AddVideoConferenceToPartnerCommand(Guid? conferenceId) : IPartnerCommand;
+public record AddVideoConferenceToPartnerCommand(string EmailAddress,Guid? ConferenceId) : IPartnerCommand;

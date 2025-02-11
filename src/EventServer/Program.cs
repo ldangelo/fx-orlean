@@ -1,12 +1,15 @@
 using EventServer.Aggregates.Partners;
 using Marten;
 using Marten.Events;
+using Marten.Events.Daemon.Resiliency;
 using Marten.Events.Projections;
 using Serilog;
 using Weasel.Core;
 using Wolverine;
 using Wolverine.Http;
 using Wolverine.Marten;
+
+namespace EventServer;
 
 public class Program
 {
@@ -46,10 +49,11 @@ public class Program
             .UseLightweightSessions()
             .IntegrateWithWolverine() // forward martin events too wolverine outbox
             .EventForwardingToWolverine()
-            .AddAsyncDaemon(Marten.Events.Daemon.Resiliency.DaemonMode.HotCold);
+            .AddAsyncDaemon(DaemonMode.HotCold);
 
 
-        builder.Host.UseWolverine(opts => {
+        builder.Host.UseWolverine(opts =>
+        {
             opts.Policies.AutoApplyTransactions();
             opts.OptimizeArtifactWorkflow();
         }).StartAsync();

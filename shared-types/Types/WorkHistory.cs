@@ -1,4 +1,4 @@
-namespace org.fortium.fx.common;
+namespace Fortium.Types;
 
 [Serializable]
 public record WorkHistory(

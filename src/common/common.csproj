@@ -1,42 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="FastEndpoints" Version="5.33.0"/>
-        <PackageReference Include="FastEndpoints.OpenTelemetry" Version="2.3.0"/>
-        <PackageReference Include="FastEndpoints.Swagger" Version="5.32.0"/>
-        <PackageReference Include="Google.Apis.Calendar.v3" Version="1.68.0.3592"/>
-        <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.6.0"/>
-        <PackageReference Include="Marten" Version="7.37.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Orleans.EventSourcing" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Orleans.Server" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.0.1"/>
-        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.10.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.6.0-rc.1"/>
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.11.0-beta.1"/>
-        <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.11.0"/>
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.10.1"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.10.0"/>
-        <PackageReference Include="Orleankka" Version="8.0.0"/>
-        <PackageReference Include="Orleankka.Runtime" Version="8.0.0"/>
-        <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="112.1.0"/>
-        <PackageReference Include="System.Text.Json" Version="9.0.1"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="Events\"/>
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\..\shared-types\shared-types.csproj"/>
-    </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.68.0.3592"/>
+    <PackageReference Include="Keycloak.AuthServices.Authentication" Version="2.6.0"/>
+    <PackageReference Include="Marten" Version="7.37.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.1"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.1"/>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1"/>
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.10.0"/>
+    <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.6.0-rc.1"/>
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.0"/>
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.11.0-beta.1"/>
+    <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.11.0"/>
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.10.1"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.10.0"/>
+    <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="112.1.0"/>
+    <PackageReference Include="System.Text.Json" Version="9.0.1"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Events\"/>
+    <Folder Include="Types\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared-types\shared-types.csproj"/>
+  </ItemGroup>
 </Project>

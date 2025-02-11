@@ -21,21 +21,21 @@ public class PartnerAggregateHandler
 {
     public static void Handle(PartnerLoggedInCommand command,IEventStream<Partner> stream)
     {
-        Log.Information("PartnerLoggedInEventHandler: Applying login event to {EmailAddress}", command.Id);
+        Log.Information("PartnerLoggedInEventHandler: Applying login event to {EmailAddress}", command.EmailAddress);
         var partner = stream.Aggregate;
 
         if(partner.IsLoggedIn()) {
-            Log.Debug($"Partner {command.Id} is already logged in.");
-            throw new InvalidOperationException($"Partner {command.Id} is already logged in.");
+            Log.Debug($"Partner {command.EmailAddress} is already logged in.");
+            throw new InvalidOperationException($"Partner {command.EmailAddress} is already logged in.");
         } else {
-            stream.AppendOne(new PartnerLoggedInEvent(command.Id, command.LoginTime));
+            stream.AppendOne(new PartnerLoggedInEvent(command.EmailAddress, command.LoginTime));
         }
     }
 
     public static PartnerLoggedOutEvent Handler(PartnerLoggedOutCommand command, IDocumentSession session, IMessageBus bus)
     {
-        Log.Information("PartnerLoggedInEventHandler: Applying login event to {EmailAddress}", command.Id);
-        return new PartnerLoggedOutEvent(command.Id, command.LogoutTime);
+        Log.Information("PartnerLoggedInEventHandler: Applying login event to {EmailAddress}", command.EmailAddress);
+        return new PartnerLoggedOutEvent(command.EmailAddress, command.LogoutTime);
     }
 
 }
@@ -76,9 +76,9 @@ public static class PartnerController
         [Aggregate] Partner partner
     )
     {
-        Log.Information("Logging partner {Id} in at {time}.", command.Id, command.LoginTime);
+        Log.Information("Logging partner {Id} in at {time}.", command.EmailAddress, command.LoginTime);
 
-        return new PartnerLoggedInEvent(command.Id, command.LoginTime);
+        return new PartnerLoggedInEvent(command.EmailAddress, command.LoginTime);
     }
 
     [WolverinePost("/partners/loggedout/{partnerId}"), EmptyResponse]
@@ -87,8 +87,8 @@ public static class PartnerController
         [Aggregate] Partner partner
     )
     {
-        Log.Information("Logging partner {Id} out.", command.Id);
+        Log.Information("Logging partner {Id} out.", command.EmailAddress);
 
-        return new PartnerLoggedOutEvent(command.Id, command.LogoutTime);
+        return new PartnerLoggedOutEvent(command.EmailAddress, command.LogoutTime);
     }
 }

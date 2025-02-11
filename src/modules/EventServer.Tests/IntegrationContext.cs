@@ -8,7 +8,7 @@ using Wolverine;
 using Wolverine.Runtime;
 using Wolverine.Tracking;
 
-namespace IncidentService.Tests;
+namespace EventServer.Tests;
 
 #region sample_AppFixture_in_incident_service_testing
 
@@ -63,7 +63,6 @@ public abstract class IntegrationContext : IAsyncLifetime
     public IAlbaHost Host => _fixture.Host!;
     public IDocumentStore Store => _fixture.Host!.Services.GetRequiredService<IDocumentStore>();
 
-
     async Task IAsyncLifetime.InitializeAsync()
     {
         // Using Marten, wipe out all data and reset the state
@@ -89,7 +88,9 @@ public abstract class IntegrationContext : IAsyncLifetime
     // for message tracking to both record outgoing messages and to ensure
     // that any cascaded work spawned by the initial command is completed
     // before passing control back to the calling test
-    protected async Task<(ITrackedSession, IScenarioResult)> TrackedHttpCall(Action<Scenario> configuration)
+    protected async Task<(ITrackedSession, IScenarioResult)> TrackedHttpCall(
+        Action<Scenario> configuration
+    )
     {
         IScenarioResult result = null!;
 

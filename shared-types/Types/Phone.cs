@@ -1,5 +1,5 @@
 
-namespace org.fortium.fx.common;
+namespace Fortium.Types;
 
 public enum PhoneType { Home, Work, Other }
 

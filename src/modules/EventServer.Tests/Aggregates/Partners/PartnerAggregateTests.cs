@@ -1,18 +1,29 @@
 using System.Threading.Tasks;
-using EventServer.Aggregates.Partners;
-using JetBrains.Annotations;
-using Xunit.DependencyInjection;
+using EventServer.Aggregates.Partners.Commands;
 
 namespace EventServer.Tests.Aggregates.Partners;
 
-[TestSubject(typeof(Partner))]
-[Collection("Fx Collection")]
-public class PartnerAggregateTest : FxTest
+public class PartnerAggregateTest : IntegrationContext
 {
-    public PartnerAggregateTest(ITestOutputHelperAccessor accessor)
-        : base(accessor) { }
+    public PartnerAggregateTest(AppFixture fixture)
+        : base(fixture) { }
 
     [Fact]
-    public async Task PartnerDetailsTest() { }
-}
+    public Task CreatePartner()
+    {
+        CreatePartnerCommand command = new CreatePartnerCommand(
+            "Leo",
+            "D'Angelo",
+            "leo.dangelo@fortiumpartners.com"
+        );
 
+        Assert.True(true);
+        return Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task PartnerDetailsTest()
+    {
+        Assert.True(true);
+    }
+}

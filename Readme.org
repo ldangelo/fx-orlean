@@ -37,13 +37,6 @@ The calendar aggregate will require a one-time authorization by the partner to m
 
 FX-expert is built using .Net Core (9.0).  It currently uses the following critical dependencies.
 
-** Orleans: https://learn.microsoft.com/en-us/dotnet/orleans/overview
-
-Orleans is utilized as an 'Agent' framework.
-
-** Orleankka: https://github.com/OrleansContrib/Orleankka
-
-Orleankka provides a CQRS implementation on top of Orleans.
 
 ** Marten: https://martendb.io
 

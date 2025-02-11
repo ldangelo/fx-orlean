@@ -1,4 +1,4 @@
-using org.fortium.fx.common;
+using Fortium.Types;
 
 namespace EventServer.Aggregates.Partners.Events;
 
