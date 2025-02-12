@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "common", "src\common\common.csproj", "{53789BCC-CC8F-4EBF-BFA2-6C3D176D938F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.Tests", "src\modules\EventServer.Tests\EventServer.Tests.csproj", "{2243D43A-EBD0-4432-ADEB-9597B02DA743}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "shared-types", "shared-types\shared-types.csproj", "{B5D9EEBE-6212-4329-95EE-AE52782BDB59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert", "src\FxExpert\FxExpert\FxExpert.csproj", "{C4627111-ED3A-41EA-8963-F1A591FBACD9}"
@@ -14,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert.Client", "src\FxExpert\FxExpert.Client\FxExpert.Client.csproj", "{8E1A2F96-CBAF-44D4-A723-E74ECB264126}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer", "src\EventServer\EventServer.csproj", "{3343A3AF-C7D8-44F6-8781-7734150E4F85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.Tests", "src\EventServer.Tests\EventServer.Tests.csproj", "{C9FAC095-30B0-427B-AC32-41B6C9788D74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,10 +64,6 @@ Global
 		{C7BBE5CC-7593-40AA-86EF-CE17846968F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7BBE5CC-7593-40AA-86EF-CE17846968F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7BBE5CC-7593-40AA-86EF-CE17846968F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2243D43A-EBD0-4432-ADEB-9597B02DA743}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2243D43A-EBD0-4432-ADEB-9597B02DA743}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2243D43A-EBD0-4432-ADEB-9597B02DA743}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2243D43A-EBD0-4432-ADEB-9597B02DA743}.Release|Any CPU.Build.0 = Release|Any CPU
 		{68B33DDE-2317-44FA-B7C2-285E4573413D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{68B33DDE-2317-44FA-B7C2-285E4573413D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68B33DDE-2317-44FA-B7C2-285E4573413D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -88,5 +84,9 @@ Global
 		{3343A3AF-C7D8-44F6-8781-7734150E4F85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3343A3AF-C7D8-44F6-8781-7734150E4F85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3343A3AF-C7D8-44F6-8781-7734150E4F85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9FAC095-30B0-427B-AC32-41B6C9788D74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9FAC095-30B0-427B-AC32-41B6C9788D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9FAC095-30B0-427B-AC32-41B6C9788D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9FAC095-30B0-427B-AC32-41B6C9788D74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
