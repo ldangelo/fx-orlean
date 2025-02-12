@@ -2,9 +2,13 @@ using Alba;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Oakton;
+using Serilog;
+using Xunit;
+using Xunit.Abstractions;
 using Wolverine;
 using Wolverine.Runtime;
 using Wolverine.Tracking;
+using Serilog.Events;
 
 namespace EventServer.Tests;
 
@@ -50,10 +54,12 @@ public class IntegrationCollection : ICollectionFixture<AppFixture>;
 public abstract class IntegrationContext : IAsyncLifetime
 {
     private readonly AppFixture _fixture;
+    private readonly ITestOutputHelper _output;
 
-    protected IntegrationContext(AppFixture fixture)
+    protected IntegrationContext(AppFixture fixture,ITestOutputHelper output)
     {
         _fixture = fixture;
+        _output = output;
         Runtime = (WolverineRuntime)fixture.Host!.Services.GetRequiredService<IWolverineRuntime>();
     }
 
@@ -64,7 +70,12 @@ public abstract class IntegrationContext : IAsyncLifetime
 
     async Task IAsyncLifetime.InitializeAsync()
     {
-        // Using Marten, wipe out all data and reset the state
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.TestOutput(_output, LogEventLevel.Debug)
+            .CreateLogger();
+         // Using Marten, wipe out all data and reset the state
         // back to exactly what we described in InitialAccountData
         await Store.Advanced.ResetAllData();
     }
