@@ -43,13 +43,13 @@ public class Program
 
                 opts.Projections.UseIdentityMapForAggregates = true;
 
-                opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Async);
+                opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
             })
             .OptimizeArtifactWorkflow()
             .UseLightweightSessions()
             .IntegrateWithWolverine() // forward martin events too wolverine outbox
-            .EventForwardingToWolverine()
-            .AddAsyncDaemon(DaemonMode.HotCold);
+            .EventForwardingToWolverine();
+//            .AddAsyncDaemon(DaemonMode.HotCold);
 
 
         builder.Host.UseWolverine(opts =>

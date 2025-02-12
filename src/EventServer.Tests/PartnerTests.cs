@@ -62,7 +62,6 @@ public class PartnerTests : IntegrationContext
             x.StatusCodeShouldBe(204);
         });
 
-        Thread.Sleep(2000);
         var partner = Scenario(x =>
         {
             x.Get.Url("/partners/test");
@@ -95,13 +94,13 @@ public class PartnerTests : IntegrationContext
         });
 
         var logout = new PartnerLoggedOutCommand("test", DateTime.UtcNow);
+
         var logoutResponse = await Scenario(x =>
         {
             x.Post.Json(logout).ToUrl("/partners/loggedout/test");
             x.StatusCodeShouldBe(204);
         });
 
-        Thread.Sleep(2000);
         var partner = Scenario(x =>
         {
             x.Get.Url("/partners/test");
