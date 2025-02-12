@@ -94,6 +94,6 @@ public class Partner
     public override string ToString()
     {
         return
-            $"EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
+            $"IsActive: {Active}, EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
     }
 }

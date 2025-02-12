@@ -10,6 +10,7 @@ public class PartnerHandler
     public static void Handle(PartnerLoggedInEvent evnt, Partner p)
     {
         Log.Information("PartnerHandler: Applying login event to {EmailAddress}", evnt.EmailAddress);
+        p.Active = true;
         p.LastLogin = evnt.LoginTime;
         p.LoggedIn = true;
     }
