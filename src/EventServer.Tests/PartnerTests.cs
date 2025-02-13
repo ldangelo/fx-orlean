@@ -225,4 +225,20 @@ public class PartnerTests : IntegrationContext
         Log.Information("Partner: {p}",partner.ToString());
         partner.PhotoUrl.ShouldNotBeEmpty();
         }
+
+    [Fact]
+    public async Task PartnerWorkHistoryTest()
+    {
+        var command = new CreatePartnerCommand("test", "test", "test@fortiumpartners.com");
+        //        var (response, stream) = PartnerController.CreatePartners(command);
+
+        var initial = await Scenario(x =>
+        {
+            x.Post.Json(command).ToUrl("/partners");
+            x.StatusCodeShouldBe(201);
+        });
+
+        var workHostory = new SetPartnerWorkExperienceCommand("test@fortiumpartners.com", [ new WorkHistory(new DateOnly(),null,"The Widget Factory","CTO","Lead technolgy group to greatness.") ]);
+
+    }
 }

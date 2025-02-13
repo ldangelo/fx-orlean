@@ -36,7 +36,7 @@ public record SetPartnerPhotoUrlCommand(string EmailAddress,string PhotoUrl): IP
 public record SetPartnerPrimaryPhoneCommand(string EmailAddress,string PrimaryPhone): IPartnerCommand;
 
 [Serializable]
-public record SetPartnerWorkExperienceCommand(string EmailAddress, WorkHistory WorkHistory) : IPartnerCommand;
+public record SetPartnerWorkExperienceCommand(string EmailAddress, WorkHistory[] WorkHistory) : IPartnerCommand;
 
 public class CreatePartnerCommandValidator: AbstractValidator<CreatePartnerCommand>
 {
@@ -249,5 +249,42 @@ public class SetPartnerWorkExperienceCommandValidator: AbstractValidator<SetPart
             .NotEmpty()
             .WithMessage("WorkHistory needs to be valid.");
 
+        RuleForEach(command => command.WorkHistory)
+            .SetValidator(new WorkHistoryValidator())
+            .WithMessage("WorkHistory needs to be valid.");
+
+    }
+}
+
+public class WorkHistoryValidator: AbstractValidator<WorkHistory>
+{
+    private bool BeValidStartEnd(DateOnly? end, DateOnly start) {
+        if (!end.HasValue) return true;
+        if (end > start) return true;
+        return false;
+    }
+    public WorkHistoryValidator()
+    {
+        RuleFor(wh => wh.startDate)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("WorkHistory startDate can not be null or empty.");
+        RuleFor(wh => wh.endDate)
+            .Must((model, end) => BeValidStartEnd(end, model.startDate))
+            .WithMessage("WorkHistory endDate can not be less than start date.");
+
+        RuleFor(wh => wh.title)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("WorkHistory title can not be null or empty");
+
+        RuleFor(wh => wh.companyName)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("WorkHistory companyName can not be null or empty");
+        RuleFor(wh => wh.description)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("WorkHistory description can not be null or empty");
     }
 }
