@@ -21,7 +21,7 @@ public class Partner
         string photoUrl,
         string? bio,
         List<WorkHistory> workHistories,
-        List<string> skills,
+        List<PartnerSkill> skills,
         List<Guid?> videoConferences
     )
     {
@@ -59,7 +59,7 @@ public class Partner
 
     public List<WorkHistory> WorkHistories { get; init; } = new();
 
-    public List<string> Skills { get; init; } = new();
+    public List<PartnerSkill> Skills { get; init; } = new();
 
     public List<Guid?> VideoConferences { get; init; } = new();
 

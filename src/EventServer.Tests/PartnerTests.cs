@@ -146,7 +146,7 @@ public class PartnerTests : IntegrationContext
             x.StatusCodeShouldBe(201);
         });
 
-        var update = new AddPartnerSkillCommand("test@fortiumpartners.com", [ "C#", "AWS" ]);
+        var update = new AddPartnerSkillCommand("test@fortiumpartners.com", [ new PartnerSkill("C#",10,ExperienceLevel.Proficient), new PartnerSkill("AWS",15,ExperienceLevel.Expert) ]);
 
         var bio = await Scenario(x => {
             x.Post.Json(update).ToUrl("/partners/skills/test@fortiumpartners.com");
@@ -161,7 +161,9 @@ public class PartnerTests : IntegrationContext
             .Result.ReadAsJson<Partner>();
 
         Log.Information("Partner: {p}",partner.ToString());
-        partner.Skills.ShouldContain<String>("AWS");
+        Assert.NotNull(partner.Skills.Find(x => x.Skill.Equals("AWS")));
+        Assert.NotNull(partner.Skills.Find(x => x.Skill.Equals("C#")));
+        Assert.Null(partner.Skills.Find(x => x.Skill.Equals("F#")));
         }
 
     [Fact]
