@@ -8,11 +8,11 @@ public interface IVideoConferenceCommand
 
 [Serializable]
 public record CreateVideoConferenceCommand(
-    Guid conferenceId,
-    DateTime startTime,
-    DateTime endTime,
-    string userId,
-    string partnerId
+    Guid ConferenceId,
+    DateTime StartTime,
+    DateTime EndTime,
+    string UserId,
+    string PartnerId
 ) : IVideoConferenceCommand
 {
 }
@@ -21,25 +21,23 @@ public class CreateVideoConferenceCommandValidator : AbstractValidator<CreateVid
 {
     public CreateVideoConferenceCommandValidator()
     {
-        RuleFor(command => command.conferenceId)
+        RuleFor(command => command.ConferenceId)
             .NotEqual(Guid.Empty)
             .WithMessage("ConferenceId is required");
-        RuleFor(command => command.startTime)
+        RuleFor(command => command.StartTime)
             .NotEqual(default(DateTime))
             .WithMessage("StartTime is required")
-            .LessThan(command => command.endTime)
-            .WithMessage("StartTime must be before EndTime")
-            .GreaterThanOrEqualTo(DateTime.Now)
-            .WithMessage("StartTime must be after the current date");
-        RuleFor(command => command.endTime)
+            .LessThan(command => command.EndTime)
+            .WithMessage("StartTime must be before EndTime");
+        RuleFor(command => command.EndTime)
             .NotEqual(default(DateTime))
             .WithMessage("EndTime is required")
-            .GreaterThan(command => command.startTime)
+            .GreaterThan(command => command.StartTime)
             .WithMessage("EndTime must be after StartTime");
-        RuleFor(command => command.userId)
+        RuleFor(command => command.UserId)
             .NotEqual(default(string))
             .WithMessage("UserId is required");
-        RuleFor(command => command.partnerId)
+        RuleFor(command => command.PartnerId)
             .NotEqual(default(string))
             .WithMessage("PartnerId is required");
     }

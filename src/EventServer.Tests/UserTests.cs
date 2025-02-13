@@ -46,7 +46,7 @@ public class UserTests : IntegrationContext
     }
 
     [Fact]
-    public async Task UserLogoutTest()
+    public async Task UserLogoutnTest()
     {
         var command = new CreateUserCommand("test","test","test@gmail.com");
 
