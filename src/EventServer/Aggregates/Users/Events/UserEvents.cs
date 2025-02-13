@@ -8,25 +8,10 @@ public interface IUserEvent;
 public record UserCreatedEvent(string FirstName, string LastName, string EmailAddress) : IUserEvent;
 
 [Serializable]
-public record VideoConferenceAddedToUserEvent(string userId, Guid? conferenceId) : IUserEvent;
+public record VideoConferenceAddedToUserEvent(string EmailAddress, Guid? conferenceId) : IUserEvent;
 
-public class UserCreatedEventValidator: AbstractValidator<UserCreatedEvent>
-{
+[Serializable]
+public record UserLoggedInEvent(string EmailAddress, DateTime LoginTime): IUserEvent;
 
-    public UserCreatedEventValidator()
-    {
-        RuleFor(x => x.FirstName)
-            .NotNull()
-            .NotEmpty()
-            .WithMessage("First Name is Required");
-        RuleFor(x => x.LastName)
-            .NotNull()
-            .NotEmpty()
-            .WithMessage("Last Name is Required");
-        RuleFor(x => x.EmailAddress)
-            .NotNull()
-            .NotEmpty()
-            .EmailAddress()
-            .WithMessage("Email address is required and must be valid.");
-    }
-}
+[Serializable]
+public record UserLoggedOutEvent(string EmailAddress, DateTime LogoutTime): IUserEvent;

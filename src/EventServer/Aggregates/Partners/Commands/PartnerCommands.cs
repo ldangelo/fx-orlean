@@ -202,7 +202,7 @@ public class SetPartnerPhotoUrlCommandValidator: AbstractValidator<SetPartnerPho
         RuleFor(command => command.PhotoUrl)
             .NotNull()
             .NotEmpty()
-            .Matches("\"#$%&'()*+,-./@:;<=>[\\]^_`{|}~")
+            .Matches(@"^(http|https|ftp|)\://|[a-zA-Z0-9\-\.]+\.[a-zA-Z](:[a-zA-Z0-9]*)?/?([a-zA-Z0-9\-\._\?\,\'/\\\+&amp;%\$#\=~])*[^\.\,\)\(\s]$")
             .WithMessage("PhotoUrl must be valid.");
     }
 }
@@ -224,7 +224,7 @@ public class SetPartnerPrimaryPhoneCommandValidator: AbstractValidator<SetPartne
         RuleFor(command => command.PrimaryPhone)
             .NotNull()
             .NotEmpty()
-            .Matches("^(+d{1,2}s)?(?d{3})?[s.-]d{3}[s.-]d{4}$")
+            .Matches(@"\(?\d{3}\)?-? *\d{3}-? *-?\d{4}")
             .WithMessage("Primary Phone must be a valid phone number.");
     }
 }
@@ -265,24 +265,24 @@ public class WorkHistoryValidator: AbstractValidator<WorkHistory>
     }
     public WorkHistoryValidator()
     {
-        RuleFor(wh => wh.startDate)
+        RuleFor(wh => wh.StartDate)
             .NotNull()
             .NotEmpty()
             .WithMessage("WorkHistory startDate can not be null or empty.");
-        RuleFor(wh => wh.endDate)
-            .Must((model, end) => BeValidStartEnd(end, model.startDate))
+        RuleFor(wh => wh.EndDate)
+            .Must((model, end) => BeValidStartEnd(end, model.StartDate))
             .WithMessage("WorkHistory endDate can not be less than start date.");
 
-        RuleFor(wh => wh.title)
+        RuleFor(wh => wh.Title)
             .NotNull()
             .NotEmpty()
             .WithMessage("WorkHistory title can not be null or empty");
 
-        RuleFor(wh => wh.companyName)
+        RuleFor(wh => wh.CompanyName)
             .NotNull()
             .NotEmpty()
             .WithMessage("WorkHistory companyName can not be null or empty");
-        RuleFor(wh => wh.description)
+        RuleFor(wh => wh.Description)
             .NotNull()
             .NotEmpty()
             .WithMessage("WorkHistory description can not be null or empty");

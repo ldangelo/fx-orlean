@@ -20,4 +20,10 @@ public class UserHandler {
         user.EmailAddress = @event.EmailAddress;
         user.CreateDate = DateTime.Now;
     }
+
+    public static void Handle(VideoConferenceAddedToUserEvent @event, User user) {
+        Log.Information("UserHandler: Applying {type} to {EmailAddress}", typeof(VideoConferenceAddedToUserEvent), @event.EmailAddress);
+        user.VideoConferences.AddRange<Guid?>(@event.conferenceId);
+        user.UpdateDate = DateTime.Now;
+    }
 }

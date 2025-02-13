@@ -18,7 +18,7 @@ public class User
     public DateTime? LogoffDate { get; set; }
     public bool LoggedIn { get; set; }
     public bool Active { get; set; }
-
+    public List<Guid?> VideoConferences { get; set; } = new ();
    public bool IsLoggedIn()
     {
         return LoggedIn;

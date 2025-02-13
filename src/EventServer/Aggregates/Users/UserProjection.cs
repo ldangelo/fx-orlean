@@ -19,4 +19,34 @@ public class UserProjection : SingleStreamProjection<User>
 
         return user;
     }
+
+    public static User Apply(VideoConferenceAddedToUserEvent @event, User user)
+    {
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserCreatedEvent),@event.EmailAddress);
+        user.VideoConferences.AddRange(@event.conferenceId);
+        user.UpdateDate = DateTime.Now;
+        user.Active = false;
+
+        return user;
+    }
+
+    public static User Apply(UserLoggedInEvent @event, User user)
+    {
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserCreatedEvent),@event.EmailAddress);
+        user.Active = true;
+        user.LoggedIn = true;
+        user.LoginDate = @event.LoginTime;
+        user.UpdateDate = DateTime.Now;
+
+        return user;
+    }
+
+    public static User Apply(UserLoggedOutEvent @event, User user)
+    {
+        user.LoggedIn = false;
+        user.LogoffDate = @event.LogoutTime;
+        user.UpdateDate = DateTime.Now;
+
+        return user;
+    }
 }
