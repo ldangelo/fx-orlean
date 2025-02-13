@@ -53,7 +53,7 @@ public class Partner
 
     public string PrimaryPhone { get; set; } = "";
 
-    public string PhotoUrl { get; init; } = "";
+    public string PhotoUrl { get; set; } = "";
 
     public string? Bio { get; set; } = "";
 
@@ -94,6 +94,6 @@ public class Partner
     public override string ToString()
     {
         return
-            $"IsActive: {Active}, EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills}, VideoConferences: {VideoConferences}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
+            $"IsActive: {Active}, EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills.Count}, VideoConferences: {VideoConferences.Count}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
     }
 }

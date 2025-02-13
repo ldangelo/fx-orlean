@@ -38,4 +38,37 @@ public class PartnerProjection : SingleStreamProjection<Partner>
 
         return partner;
     }
+
+    public static Partner Apply(PartnerSkillAddedEvent @event, Partner partner)
+    {
+        Log.Information("PartnerProjection: Applying skill added event to {EmailAddress}", @event.EmailAddress);
+        partner.Skills.AddRange(@event.Skills);
+        partner.UpdateDate = DateTime.Now;
+
+        return partner;
+    }
+
+    public static Partner Apply(PartnerBioUpdatedEvent @event, Partner partner) {
+       Log.Information("PartnerProjection: Applying bio updated event to {EmailAddress}", @event.EmailAddress);
+       partner.Bio = @event.Bio;
+       partner.UpdateDate = DateTime.Now;
+
+       return partner;
+    }
+
+    public static Partner Apply(SetPartnerPrimaryPhoneEvent @event, Partner partner) {
+        Log.Information("PartnerProjection: Applying primary phone updated event to {EmailAddress}", @event.EmailAddress);
+        partner.PrimaryPhone = @event.PrimaryPhone;
+        partner.UpdateDate = DateTime.Now;
+
+        return partner;
+    }
+
+    public static Partner Apply(SetPartnerPhotoUrlEvent @event, Partner partner) {
+        Log.Information("PartnerProjection: Applying photo url updated event to {EmailAddress}", @event.EmailAddress);
+        partner.PhotoUrl = @event.PhotoUrl;
+        partner.UpdateDate = DateTime.Now;
+
+        return partner;
+    }
 }

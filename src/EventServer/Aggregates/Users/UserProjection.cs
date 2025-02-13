@@ -1,22 +1,21 @@
 using EventServer.Aggregates.Users.Events;
+using Fortium.Types;
 using Marten;
 using Marten.Events.Aggregation;
+using Serilog;
 
 namespace EventServer.Aggregates.Users;
 
-[Serializable]
-public class UserProjection : SingleStreamProjection<UserAggregate>
+public class UserProjection : SingleStreamProjection<User>
 {
-    public async Task<UserAggregate> Create(UserCreatedEvent e, IQuerySession session)
+    public static User Apply(UserCreatedEvent @event, User user)
     {
-        var user = await session.LoadAsync<UserAggregate>(e.userId);
-        if (user == null)
-        {
-            user = new UserAggregate(session.DocumentStore);
-            user.FirstName = e.FirstName;
-            user.LastName = e.LastName;
-            user.EmailAddress = e.EmailAddress;
-        }
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserCreatedEvent),@event.EmailAddress);
+        user.FirstName = @event.FirstName;
+        user.LastName = @event.LastName;
+        user.EmailAddress = @event.EmailAddress;
+        user.CreateDate = DateTime.Now;
+        user.Active = false;
 
         return user;
     }

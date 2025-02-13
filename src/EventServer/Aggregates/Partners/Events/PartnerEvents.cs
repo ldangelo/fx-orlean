@@ -26,7 +26,13 @@ public record VideoConferenceAddedToPartnerEvent(string EmailAddress,Guid? Confe
     : IPartnerEvent;
 
 [Serializable]
-public record PartnerSkillAddedEvent(string EmailAddress,string Skill) : IPartnerEvent;
+public record PartnerSkillAddedEvent(string EmailAddress,string[] Skills) : IPartnerEvent;
 
 [Serializable]
 public record PartnerBioUpdatedEvent(string EmailAddress,string Bio) : IPartnerEvent;
+
+[Serializable]
+public record SetPartnerPhotoUrlEvent(string EmailAddress,string PhotoUrl);
+
+[Serializable]
+public record SetPartnerPrimaryPhoneEvent(string EmailAddress,string PrimaryPhone);

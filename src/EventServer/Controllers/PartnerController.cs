@@ -99,4 +99,52 @@ public static class PartnerController
 
         return new PartnerLoggedOutEvent(command.EmailAddress, command.LogoutTime);
     }
+
+    [WolverinePost("/partners/bio/{partnerId}")]
+    [EmptyResponse]
+    public static PartnerBioUpdatedEvent UpdatePartnerBio(
+        [FromBody] SetPartnerBioCommand command,
+        [Aggregate] Partner partner
+    )
+    {
+        Log.Information("Updating partner {Id} bio {bio}", command.EmailAddress, command.Bio);
+
+        return new PartnerBioUpdatedEvent(command.EmailAddress, command.Bio);
+    }
+
+    [WolverinePost("/partners/skills/{partnerId}")]
+    [EmptyResponse]
+    public static PartnerSkillAddedEvent UpdatePartnerSkills(
+        [FromBody] AddPartnerSkillCommand command,
+        [Aggregate] Partner partner
+    )
+    {
+        Log.Information("Updating partner {Id} skills {skills}", command.EmailAddress, command.Skills);
+
+        return new PartnerSkillAddedEvent(command.EmailAddress, command.Skills);
+    }
+
+    [WolverinePost("/partners/primaryphone/{partnerId}")]
+    [EmptyResponse]
+    public static SetPartnerPrimaryPhoneEvent UpdatePartnerPrimaryPhone(
+        [FromBody] SetPartnerPrimaryPhoneCommand command,
+        [Aggregate] Partner partner
+    )
+    {
+        Log.Information("Updating partner {Id} skills {phone}", command.EmailAddress, command.PrimaryPhone);
+
+        return new SetPartnerPrimaryPhoneEvent(command.EmailAddress,command.PrimaryPhone);
+    }
+
+    [WolverinePost("/partners/photourl/{partnerId}")]
+    [EmptyResponse]
+    public static SetPartnerPhotoUrlEvent UpdatePartnerPrimaryPhone(
+        [FromBody] SetPartnerPhotoUrlCommand command,
+        [Aggregate] Partner partner
+    )
+    {
+        Log.Information("Updating partner {Id} url {url}", command.EmailAddress, command.PhotoUrl);
+
+        return new SetPartnerPhotoUrlEvent(command.EmailAddress,command.PhotoUrl);
+    }
 }

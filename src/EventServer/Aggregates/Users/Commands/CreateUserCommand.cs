@@ -1,4 +1,6 @@
+
 using FluentValidation;
+using Marten.Schema;
 
 namespace EventServer.Aggregates.Users.Commands;
 
@@ -6,30 +8,12 @@ public interface IUserCommand
 {
 }
 
-public class CreateUserCommand : IUserCommand
+[Serializable]
+public record CreateUserCommand(string FirstName, string LastName, string EmailAddress) : IUserCommand {}
+
+public class CreateUserCommandValdator : AbstractValidator<CreateUserCommand>
 {
-    public readonly string EmailAddress;
-
-    public readonly string FirstName;
-
-    public readonly string LastName;
-
-    public CreateUserCommand(string FirstName, string LastName, string EmailAddress)
-    {
-        this.FirstName = FirstName;
-        this.LastName = LastName;
-        this.EmailAddress = EmailAddress;
-    }
-
-    public override string ToString()
-    {
-        return "FirstName: " + FirstName + " LastName: " + LastName + " Email: " + EmailAddress;
-    }
-}
-
-public class CreateUserCommandValdiator : AbstractValidator<CreateUserCommand>
-{
-    public CreateUserCommandValdiator()
+    public CreateUserCommandValdator()
     {
         RuleFor(command => command.FirstName)
             .NotNull()

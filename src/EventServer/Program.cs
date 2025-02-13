@@ -8,6 +8,10 @@ using Weasel.Core;
 using Wolverine;
 using Wolverine.Http;
 using Wolverine.Marten;
+using Wolverine.FluentValidation;
+using EventServer.Aggregates.Users;
+using Wolverine.Http.FluentValidation;
+
 
 namespace EventServer;
 
@@ -44,6 +48,7 @@ public class Program
                 opts.Projections.UseIdentityMapForAggregates = true;
 
                 opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
+                opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
             })
             .OptimizeArtifactWorkflow()
             .UseLightweightSessions()
@@ -54,6 +59,7 @@ public class Program
 
         builder.Host.UseWolverine(opts =>
         {
+            opts.UseFluentValidation();
             opts.Policies.AutoApplyTransactions();
             opts.OptimizeArtifactWorkflow();
         }).StartAsync();
@@ -79,7 +85,12 @@ public class Program
         app.UseHttpsRedirection();
 
         app.MapControllers();
-        app.MapWolverineEndpoints();
+        app.MapWolverineEndpoints(opts => {
+            opts.ConfigureEndpoints(httpChain => {
+//                httpChain.WithMetadata(new CustomMetadata());
+                });
+            opts.UseFluentValidationProblemDetailMiddleware();
+            });
 
 
         app.Run();
