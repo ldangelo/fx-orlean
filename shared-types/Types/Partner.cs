@@ -8,33 +8,7 @@ namespace Fortium.Types;
 public class Partner
 {
     // Parameterless constructor
-    public Partner()
-    {
-    }
-
-    // Optional: Constructor with parameters
-    public Partner(
-        string emailAddress,
-        string firstName,
-        string lastName,
-        string primaryPhone,
-        string photoUrl,
-        string? bio,
-        List<WorkHistory> workHistories,
-        List<PartnerSkill> skills,
-        List<Guid?> videoConferences
-    )
-    {
-        EmailAddress = emailAddress;
-        FirstName = firstName;
-        LastName = lastName;
-        PrimaryPhone = primaryPhone;
-        PhotoUrl = photoUrl;
-        Bio = bio;
-        WorkHistories = workHistories;
-        Skills = skills;
-        VideoConferences = videoConferences;
-    }
+    public Partner() { }
 
     public bool Active { get; set; }
     public bool LoggedIn { get; set; } = false;
@@ -43,9 +17,10 @@ public class Partner
     public DateTime CreateDate { get; set; }
     public DateTime UpdateDate { get; set; }
 
-//    public String Id { get; set; } = "";
+    //    public String Id { get; set; } = "";
 
-    [Identity] public string EmailAddress { get; set; } = "";
+    [Identity]
+    public string EmailAddress { get; set; } = "";
 
     public string FirstName { get; set; } = "";
 
@@ -55,6 +30,7 @@ public class Partner
 
     public string PhotoUrl { get; set; } = "";
 
+    public DollarAmount Rate { get; set; } = 1000.00;
     public string? Bio { get; set; } = "";
 
     public List<WorkHistory> WorkHistories { get; init; } = new();
@@ -81,7 +57,7 @@ public class Partner
         return City + ", " + State + ", " + Country;
     }
 
-   public bool IsLoggedIn()
+    public bool IsLoggedIn()
     {
         return LoggedIn;
     }
@@ -93,7 +69,6 @@ public class Partner
 
     public override string ToString()
     {
-        return
-            $"IsActive: {Active}, EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills.Count}, VideoConferences: {VideoConferences.Count}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
+        return $"IsActive: {Active}, EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills.Count}, VideoConferences: {VideoConferences.Count}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
     }
 }

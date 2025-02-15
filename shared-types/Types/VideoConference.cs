@@ -1,4 +1,3 @@
-
 using System.Diagnostics;
 using Marten.Schema;
 
@@ -12,19 +11,20 @@ public class VideoConference
     public DateTime EndDate { get; set; }
     public DateTime CreateDate { get; set; }
     public DateTime UpdateDate { get; set; }
-    public bool     Started { get; set; } = false;
-    public bool     Ended { get; set; } = false;
-    [Identity] public Guid     ConferenceId { get; set; }
-    public string PartnerId { get; set; }
-    public string UserId { get; set; }
+    public bool Started { get; set; } = false;
+    public bool Ended { get; set; } = false;
 
+    [Identity]
+    public Guid ConferenceId { get; set; }
+    public string? PartnerId { get; set; }
+    public string? UserId { get; set; }
 
     private string GetDebuggerDisplay()
     {
         return ToString();
     }
 
-    public string ToString()
+    public override string ToString()
     {
         return $"Started: {Started}, Ended: {Ended}, StartDate: {StartDate}, EndDate: {EndDate}, ConferenceId: {ConferenceId}, PartnerId: {PartnerId}, UserId: {UserId}";
     }

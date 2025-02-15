@@ -12,7 +12,7 @@ public class UserTests : IntegrationContext
     [Fact]
     public async Task CreateUserTest()
     {
-        var command = new CreateUserCommand("test","test","test@gmail.com");
+        var command = new CreateUserCommand("test", "test", "test@gmail.com");
 
         var initial = await Scenario(x =>
         {
@@ -30,7 +30,7 @@ public class UserTests : IntegrationContext
     [Fact]
     public async Task UserLoginTest()
     {
-        var command = new CreateUserCommand("test","test","test@gmail.com");
+        var command = new CreateUserCommand("test", "test", "test@gmail.com");
 
         var initial = await Scenario(x =>
         {
@@ -40,7 +40,8 @@ public class UserTests : IntegrationContext
 
         var login = await Scenario(x =>
         {
-            x.Post.Json(new UserLoggedInCommand("test@gmail.com", DateTime.Now)).ToUrl("/users/login/test@gmail.com");
+            x.Post.Json(new UserLoggedInCommand("test@gmail.com", DateTime.Now))
+                .ToUrl("/users/login/test@gmail.com");
             x.StatusCodeShouldBe(204);
         });
     }
@@ -48,7 +49,7 @@ public class UserTests : IntegrationContext
     [Fact]
     public async Task UserLogoutnTest()
     {
-        var command = new CreateUserCommand("test","test","test@gmail.com");
+        var command = new CreateUserCommand("test", "test", "test@gmail.com");
 
         var initial = await Scenario(x =>
         {
@@ -58,21 +59,23 @@ public class UserTests : IntegrationContext
 
         var login = await Scenario(x =>
         {
-            x.Post.Json(new UserLoggedInCommand("test@gmail.com", DateTime.Now)).ToUrl("/users/login/test@gmail.com");
+            x.Post.Json(new UserLoggedInCommand("test@gmail.com", DateTime.Now))
+                .ToUrl("/users/login/test@gmail.com");
             x.StatusCodeShouldBe(204);
         });
 
         var logoff = await Scenario(x =>
         {
-            x.Post.Json(new UserLoggedOutCommand("test@gmail.com", DateTime.Now)).ToUrl("/users/logout/test@gmail.com");
+            x.Post.Json(new UserLoggedOutCommand("test@gmail.com", DateTime.Now))
+                .ToUrl("/users/logout/test@gmail.com");
             x.StatusCodeShouldBe(204);
         });
-     }
+    }
 
     [Fact]
     public async Task AddVideoToUserTest()
     {
-        var command = new CreateUserCommand("test","test","test@gmail.com");
+        var command = new CreateUserCommand("test", "test", "test@gmail.com");
 
         var initial = await Scenario(x =>
         {
@@ -80,17 +83,20 @@ public class UserTests : IntegrationContext
             x.StatusCodeShouldBe(201);
         });
 
-        var addconference = await Scenario(x => {
-           x.Post.Json(new AddVideoConferenceToUserCommand("test@gmail.com", Guid.NewGuid())).ToUrl("/users/video/test@gmail.com");
-           x.StatusCodeShouldBe(204);
-            });
+        var addconference = await Scenario(x =>
+        {
+            x.Post.Json(new AddVideoConferenceToUserCommand("test@gmail.com", Guid.NewGuid()))
+                .ToUrl("/users/video/test@gmail.com");
+            x.StatusCodeShouldBe(204);
+        });
 
-        var getuser = Scenario(x =>
+        var getuser = await Scenario(x =>
         {
             x.Get.Url("/users/test@gmail.com");
             x.StatusCodeShouldBe(200);
-        }).Result.ReadAsJson<User>();
+        });
 
-        Assert.True(getuser.VideoConferences.Count > 0);
-     }
+        var user = getuser.ReadAsJson<User>();
+        Assert.True(user.VideoConferences.Count > 0);
+    }
 }
