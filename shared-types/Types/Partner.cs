@@ -20,13 +20,13 @@ public class Partner
     //    public String Id { get; set; } = "";
 
     [Identity]
-    public string EmailAddress { get; set; } = "";
+    public Email EmailAddress { get; set; } = "";
 
     public string FirstName { get; set; } = "";
 
     public string LastName { get; set; } = "";
 
-    public string PrimaryPhone { get; set; } = "";
+    public Phone PrimaryPhone { get; set; } = "";
 
     public string PhotoUrl { get; set; } = "";
 

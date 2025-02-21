@@ -1,6 +1,5 @@
 namespace Fortium.Types;
 
-[Serializable]
 public class DollarAmount
 {
     public double Amount { get; set; }
