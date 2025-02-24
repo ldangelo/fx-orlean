@@ -1,4 +1,5 @@
 using EventServer.Aggregates.Partners;
+using EventServer.Aggregates.Users;
 using Marten;
 using Marten.Events;
 using Marten.Events.Daemon.Resiliency;
@@ -6,12 +7,10 @@ using Marten.Events.Projections;
 using Serilog;
 using Weasel.Core;
 using Wolverine;
-using Wolverine.Http;
-using Wolverine.Marten;
 using Wolverine.FluentValidation;
-using EventServer.Aggregates.Users;
+using Wolverine.Http;
 using Wolverine.Http.FluentValidation;
-
+using Wolverine.Marten;
 
 namespace EventServer;
 
@@ -41,7 +40,6 @@ public class Program
                 opts.AutoCreateSchemaObjects = AutoCreate.All;
                 opts.UseNewtonsoftForSerialization();
 
-
                 opts.Events.StreamIdentity = StreamIdentity.AsString;
                 opts.Events.AppendMode = EventAppendMode.Quick;
 
@@ -54,15 +52,17 @@ public class Program
             .UseLightweightSessions()
             .IntegrateWithWolverine() // forward martin events too wolverine outbox
             .EventForwardingToWolverine();
-//            .AddAsyncDaemon(DaemonMode.HotCold);
+        //            .AddAsyncDaemon(DaemonMode.HotCold);
 
 
-        builder.Host.UseWolverine(opts =>
-        {
-            opts.UseFluentValidation();
-            opts.Policies.AutoApplyTransactions();
-            opts.OptimizeArtifactWorkflow();
-        }).StartAsync();
+        builder
+            .Host.UseWolverine(opts =>
+            {
+                opts.UseFluentValidation();
+                opts.Policies.AutoApplyTransactions();
+                opts.OptimizeArtifactWorkflow();
+            })
+            .StartAsync();
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -85,13 +85,14 @@ public class Program
         app.UseHttpsRedirection();
 
         app.MapControllers();
-        app.MapWolverineEndpoints(opts => {
-            opts.ConfigureEndpoints(httpChain => {
-//                httpChain.WithMetadata(new CustomMetadata());
-                });
-            opts.UseFluentValidationProblemDetailMiddleware();
+        app.MapWolverineEndpoints(opts =>
+        {
+            opts.ConfigureEndpoints(httpChain =>
+            {
+                //                httpChain.WithMetadata(new CustomMetadata());
             });
-
+            opts.UseFluentValidationProblemDetailMiddleware();
+        });
 
         app.Run();
     }

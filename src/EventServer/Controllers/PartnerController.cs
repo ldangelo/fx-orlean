@@ -119,7 +119,11 @@ public static class PartnerController
         [Aggregate] Partner partner
     )
     {
-        Log.Information("Updating partner {Id} skills {skills}", command.EmailAddress, command.Skills);
+        Log.Information(
+            "Updating partner {Id} skills {skills}",
+            command.EmailAddress,
+            command.Skills
+        );
 
         return new PartnerSkillAddedEvent(command.EmailAddress, command.Skills);
     }
@@ -131,9 +135,13 @@ public static class PartnerController
         [Aggregate] Partner partner
     )
     {
-        Log.Information("Updating partner {Id} skills {phone}", command.EmailAddress, command.PrimaryPhone);
+        Log.Information(
+            "Updating partner {Id} phone {phone}",
+            command.EmailAddress,
+            command.PrimaryPhone
+        );
 
-        return new SetPartnerPrimaryPhoneEvent(command.EmailAddress,command.PrimaryPhone);
+        return new SetPartnerPrimaryPhoneEvent(command.EmailAddress, command.PrimaryPhone);
     }
 
     [WolverinePost("/partners/photourl/{partnerId}")]
@@ -145,6 +153,6 @@ public static class PartnerController
     {
         Log.Information("Updating partner {Id} url {url}", command.EmailAddress, command.PhotoUrl);
 
-        return new SetPartnerPhotoUrlEvent(command.EmailAddress,command.PhotoUrl);
+        return new SetPartnerPhotoUrlEvent(command.EmailAddress, command.PhotoUrl);
     }
 }
