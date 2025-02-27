@@ -1,5 +1,6 @@
-using EventServer.Services;
+using EventServer.Aggregates.Payments.Commands;
 using Microsoft.AspNetCore.Mvc;
+using Wolverine;
 
 namespace EventServer.Controllers;
 
@@ -7,24 +8,24 @@ namespace EventServer.Controllers;
 [Route("api/[controller]")]
 public class PaymentController : ControllerBase
 {
-    private readonly IPaymentService _paymentService;
+    private readonly IMessageBus _bus;
 
-    public PaymentController(IPaymentService paymentService)
+    public PaymentController(IMessageBus bus)
     {
-        _paymentService = paymentService;
+        _bus = bus;
     }
 
     [HttpPost("authorize")]
-    public async Task<IActionResult> AuthorizePayment(decimal amount, string currency, string paymentMethodId)
+    public async Task<IActionResult> AuthorizePayment([FromBody] AuthorizePaymentCommand command)
     {
-        var paymentIntentId = await _paymentService.AuthorizePaymentAsync(amount, currency, paymentMethodId);
+        var paymentIntentId = await _bus.InvokeAsync<string>(command);
         return Ok(new { PaymentIntentId = paymentIntentId });
     }
 
     [HttpPost("capture")]
-    public async Task<IActionResult> CapturePayment(string paymentIntentId)
+    public async Task<IActionResult> CapturePayment([FromBody] CapturePaymentCommand command)
     {
-        await _paymentService.CapturePaymentAsync(paymentIntentId);
+        await _bus.InvokeAsync(command);
         return Ok();
     }
 }
