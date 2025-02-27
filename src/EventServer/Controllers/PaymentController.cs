@@ -1,31 +1,27 @@
 using EventServer.Aggregates.Payments.Commands;
-using Microsoft.AspNetCore.Mvc;
+using EventServer.Aggregates.Payments.Commands;
+using EventServer.Aggregates.Payments.Events;
 using Wolverine;
+using Wolverine.Http;
+using Wolverine.Http.Marten;
 
 namespace EventServer.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class PaymentController : ControllerBase
+public static class PaymentController
 {
-    private readonly IMessageBus _bus;
-
-    public PaymentController(IMessageBus bus)
+    [WolverinePost("/payments/authorize")]
+    public static (PaymentAuthorizedEvent, IStartStream) AuthorizePayment(AuthorizePaymentCommand command)
     {
-        _bus = bus;
+        var paymentAuthorizedEvent = new PaymentAuthorizedEvent(command.PaymentMethodId, command.Amount, command.Currency);
+        var startStream = MartenOps.StartStream<Payment>(command.PaymentMethodId, paymentAuthorizedEvent);
+
+        return (paymentAuthorizedEvent, startStream);
     }
 
-    [HttpPost("authorize")]
-    public async Task<IActionResult> AuthorizePayment([FromBody] AuthorizePaymentCommand command)
+    [WolverinePost("/payments/capture")]
+    [EmptyResponse]
+    public static PaymentCapturedEvent CapturePayment(CapturePaymentCommand command, [Aggregate] Payment payment)
     {
-        var paymentIntentId = await _bus.InvokeAsync<string>(command);
-        return Ok(new { PaymentIntentId = paymentIntentId });
-    }
-
-    [HttpPost("capture")]
-    public async Task<IActionResult> CapturePayment([FromBody] CapturePaymentCommand command)
-    {
-        await _bus.InvokeAsync(command);
-        return Ok();
+        return new PaymentCapturedEvent(command.PaymentIntentId);
     }
 }
