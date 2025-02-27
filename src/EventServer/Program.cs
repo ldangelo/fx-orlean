@@ -1,4 +1,5 @@
 using EventServer.Aggregates.Partners;
+using EventServer.Aggregates.Payments;
 using EventServer.Aggregates.Users;
 using Marten;
 using Marten.Events;
@@ -47,6 +48,7 @@ public class Program
 
                 opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
+                opts.Projections.Add<PaymentProjection>(ProjectionLifecycle.Inline);
             })
             .OptimizeArtifactWorkflow()
             .UseLightweightSessions()

@@ -31,6 +31,7 @@ public class Partner
     public string PhotoUrl { get; set; } = "";
 
     public DollarAmount Rate { get; set; } = 1000.00;
+    public Double PartnerPercentage { get; set; } = 0.80;
     public string? Bio { get; set; } = "";
 
     public List<WorkHistory> WorkHistories { get; init; } = new();

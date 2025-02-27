@@ -1,4 +1,6 @@
 using EventServer.Aggregates.Payments.Events;
+using Fortium.Types;
+using Marten.Events.Aggregation;
 using Serilog;
 using Wolverine.Attributes;
 
@@ -11,10 +13,10 @@ public class PaymentProjection : SingleStreamProjection<Payment>
         Log.Information(
             "PaymentProjection: Applying {type} to {PaymentIntentId}",
             typeof(PaymentAuthorizedEvent),
-            @event.PaymentIntentId
+            @event.PaymentId
         );
 
-        payment.PaymentIntentId = @event.PaymentIntentId;
+        payment.PaymentId = @event.PaymentId;
         payment.Amount = @event.Amount;
         payment.Currency = @event.Currency;
         payment.Status = "Authorized";
@@ -27,7 +29,7 @@ public class PaymentProjection : SingleStreamProjection<Payment>
         Log.Information(
             "PaymentProjection: Applying {type} to {PaymentIntentId}",
             typeof(PaymentCapturedEvent),
-            @event.PaymentIntentId
+            @event.PaymentId
         );
 
         payment.Status = "Captured";
