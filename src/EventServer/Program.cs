@@ -29,6 +29,9 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
+        // Configure GoogleApiSettings
+        builder.Services.Configure<GoogleApiSettings>(builder.Configuration.GetSection("GoogleApi"));
+
         builder.Host.UseSerilog();
 
         builder.Services.AddControllers();
