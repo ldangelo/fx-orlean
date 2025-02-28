@@ -4,29 +4,20 @@ using Google.Apis.Calendar.v3.Data;
 
 namespace EventServer.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class CalendarController : ControllerBase
+    public static class CalendarController
     {
-        private readonly CalendarService _calendarService;
-
-        public CalendarController(CalendarService calendarService)
+        [WolverineGet("/api/calendar/{calendarId}/events")]
+        public static IActionResult GetEvents([FromServices] CalendarService calendarService, string calendarId)
         {
-            _calendarService = calendarService;
+            var events = calendarService.GetCalendarEvents(calendarId);
+            return new OkObjectResult(events);
         }
 
-        [HttpGet("{calendarId}/events")]
-        public IActionResult GetEvents(string calendarId)
+        [WolverinePost("/api/calendar/{calendarId}/events")]
+        public static IActionResult CreateEvent([FromServices] CalendarService calendarService, string calendarId, [FromBody] Event newEvent)
         {
-            var events = _calendarService.GetCalendarEvents(calendarId);
-            return Ok(events);
-        }
-
-        [HttpPost("{calendarId}/events")]
-        public IActionResult CreateEvent(string calendarId, [FromBody] Event newEvent)
-        {
-            var createdEvent = _calendarService.CreateEvent(calendarId, newEvent);
-            return CreatedAtAction(nameof(GetEvents), new { calendarId = calendarId }, createdEvent);
+            var createdEvent = calendarService.CreateEvent(calendarId, newEvent);
+            return new CreatedAtActionResult(nameof(GetEvents), "Calendar", new { calendarId = calendarId }, createdEvent);
         }
     }
 }
