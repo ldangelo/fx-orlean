@@ -18,6 +18,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="CalendarControllerTests.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Using Include="Xunit"/>
     </ItemGroup>
 
