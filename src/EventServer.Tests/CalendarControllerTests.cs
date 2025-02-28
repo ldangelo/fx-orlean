@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using EventServer.Services;
+using EventServer.Models; // Assuming Event is in this namespace
 using Fortium.Types;
 using Xunit;
 using Xunit.Abstractions;
