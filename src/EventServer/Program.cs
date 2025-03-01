@@ -3,7 +3,6 @@ using EventServer.Aggregates.Payments;
 using EventServer.Aggregates.Users;
 using Marten;
 using Marten.Events;
-using Marten.Events.Daemon.Resiliency;
 using Marten.Events.Projections;
 using Serilog;
 using Weasel.Core;
@@ -23,14 +22,13 @@ public class Program
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false, true)
             .AddJsonFile("appsettings.Development.json", true, true)
+            .AddUserSecrets<Program>()
             .AddEnvironmentVariables()
             .Build();
+
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
 
         var builder = WebApplication.CreateBuilder(args);
-
-        // Configure GoogleApiSettings
-        builder.Services.Configure<GoogleApiSettings>(builder.Configuration.GetSection("GoogleApi"));
 
         builder.Host.UseSerilog();
 

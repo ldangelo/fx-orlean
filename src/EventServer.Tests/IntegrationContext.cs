@@ -3,12 +3,12 @@ using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Oakton;
 using Serilog;
-using Xunit;
-using Xunit.Abstractions;
+using Serilog.Events;
 using Wolverine;
 using Wolverine.Runtime;
 using Wolverine.Tracking;
-using Serilog.Events;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace EventServer.Tests;
 
@@ -28,12 +28,14 @@ public class AppFixture : IAsyncLifetime
         {
             // Just showing that you *can* override service
             // registrations for testing if that's useful
-            x.ConfigureServices(services =>
-            {
-                // If wolverine were using Rabbit MQ / SQS / Azure Service Bus,
-                // turn that off for now
-                services.DisableAllExternalWolverineTransports();
-            });
+            x.ConfigureServices(
+                (context, services) =>
+                {
+                    // If wolverine were using Rabbit MQ / SQS / Azure Service Bus,
+                    // turn that off for now
+                    services.DisableAllExternalWolverineTransports();
+                }
+            );
         });
     }
 
@@ -56,7 +58,7 @@ public abstract class IntegrationContext : IAsyncLifetime
     private readonly AppFixture _fixture;
     private readonly ITestOutputHelper _output;
 
-    protected IntegrationContext(AppFixture fixture,ITestOutputHelper output)
+    protected IntegrationContext(AppFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _output = output;
@@ -75,7 +77,7 @@ public abstract class IntegrationContext : IAsyncLifetime
             .WriteTo.Console()
             .WriteTo.TestOutput(_output, LogEventLevel.Debug)
             .CreateLogger();
-         // Using Marten, wipe out all data and reset the state
+        // Using Marten, wipe out all data and reset the state
         // back to exactly what we described in InitialAccountData
         await Store.Advanced.ResetAllData();
     }

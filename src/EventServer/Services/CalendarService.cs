@@ -3,51 +3,61 @@ using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using System.Threading;
+using Serilog;
 
-namespace EventServer.Services
+namespace EventServer.Services;
+
+public class GoogleCalendarService
 {
-    public class CalendarService
-    {
-        private readonly CalendarService _service;
+    private readonly CalendarService _service;
 
-        public CalendarService()
-        {
-            string[] scopes = { CalendarService.Scope.Calendar };
-            var credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                new ClientSecrets
-                {
-                    ClientId = "YOUR_CLIENT_ID",
-                    ClientSecret = "YOUR_CLIENT_SECRET"
-                },
+    public GoogleCalendarService()
+    {
+        var clientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+        var clientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+
+        if (clientId == null || clientSecret == null)
+            throw new Exception(
+                "Environment variables GoogleApi__ClientId and GoogleApi__ClientSecret must be set."
+            );
+
+        Log.Information("Client Id: {clientId}", clientId);
+        Log.Information("Client Secret: {clientSecret}", clientSecret);
+        string[] scopes = { CalendarService.Scope.Calendar };
+        var credential = GoogleWebAuthorizationBroker
+            .AuthorizeAsync(
+                new ClientSecrets { ClientId = clientId, ClientSecret = clientSecret },
                 scopes,
                 "user",
                 CancellationToken.None,
-                new FileDataStore("Calendar.Auth.Store")).Result;
+                new FileDataStore("Calendar.Auth.Store")
+            )
+            .Result;
 
-            _service = new CalendarService(new BaseClientService.Initializer()
+        _service = new CalendarService(
+            new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
-                ApplicationName = "EventServer"
-            });
-        }
+                ApplicationName = "fx-expert"
+            }
+        );
+    }
 
-        public Events GetCalendarEvents(string calendarId)
-        {
-            EventsResource.ListRequest request = _service.Events.List(calendarId);
-            request.TimeMin = DateTime.Now;
-            request.ShowDeleted = false;
-            request.SingleEvents = true;
-            request.MaxResults = 10;
-            request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+    public Events GetCalendarEvents(string calendarId)
+    {
+        var request = _service.Events.List(calendarId);
+        request.TimeMin = DateTime.Now;
+        request.ShowDeleted = false;
+        request.SingleEvents = true;
+        request.MaxResults = 10;
+        request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
 
-            return request.Execute();
-        }
+        return request.Execute();
+    }
 
-        public Event CreateEvent(string calendarId, Event newEvent)
-        {
-            EventsResource.InsertRequest request = _service.Events.Insert(newEvent, calendarId);
-            return request.Execute();
-        }
+    public Event CreateEvent(string calendarId, Event newEvent)
+    {
+        var request = _service.Events.Insert(newEvent, calendarId);
+        return request.Execute();
     }
 }
