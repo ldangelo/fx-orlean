@@ -1,10 +1,7 @@
-using System.Net;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
-using EventServer.Services;
-using Fortium.Types;
+using EventServer.Aggregates.Calendar.Commands;
+using EventServer.Aggregates.Calendar.Events;
 using Google.Apis.Calendar.v3.Data;
-using Xunit;
+using Serilog;
 using Xunit.Abstractions;
 
 namespace EventServer.Tests;
@@ -14,28 +11,57 @@ public class CalendarControllerTests : IntegrationContext
     public CalendarControllerTests(AppFixture fixture, ITestOutputHelper output)
         : base(fixture, output) { }
 
+    private void DumpConferenceData(ConferenceData data)
+    {
+        if (data != null)
+        {
+            Log.Information("Conference Data {}", data!.CreateRequest!.RequestId);
+        }
+    }
+
+    [Fact]
+    public async Task GetCalendar_ShouldReturnCalendar()
+    {
+        // Arrange
+        // Act
+        var response = await Scenario(x =>
+        {
+            x.Get.Url("/api/calendar/leo.dangelo@fortiumpartners.com/events");
+            x.StatusCodeShouldBe(200);
+        });
+        var events = response.ReadAsJson<Events>();
+
+        Log.Information("Events: {Description}", events.Description);
+        foreach (Event e in events.Items)
+        {
+            Log.Information("Event: {Description}", e.Summary);
+            DumpConferenceData(e.ConferenceData);
+        }
+    }
+
     [Fact]
     public async Task CreateEvent_ShouldReturnSuccess()
     {
         // Arrange
-        var newEvent = new Event
-        {
-            Description = "Event Description",
-            Start = new EventDateTime(),
-            End = new EventDateTime(),
-        };
-        newEvent.Start.DateTime = DateTime.Now;
-        newEvent.End.DateTime = DateTime.Now.AddHours(1);
+        var command = new CreateCalendarEventCommand(
+            Guid.NewGuid().ToString(),
+            "Work",
+            "Test",
+            "Test Event",
+            DateTime.Now,
+            DateTime.Now.AddHours(1),
+            "ldangelo@mac.com"
+        );
 
         // Act
         var response = await Scenario(x =>
         {
-            x.Post.Json(newEvent).ToUrl("/api/calendar/1/events");
+            x.Post.Json(command).ToUrl("/api/calendar/1/events");
             x.StatusCodeShouldBe(200);
         });
 
         // Assert
-        var result = response.ReadAsJson<Event>();
+        var result = response.ReadAsJson<CalendarEventCreatedEvent>();
         //        Assert.NotNull(result?.EventId);
     }
 }
