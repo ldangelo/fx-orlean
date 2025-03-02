@@ -46,18 +46,25 @@ public static class CalendarController
             calEvent.Start.DateTime = command.StartTime;
             calEvent.End = new EventDateTime();
             calEvent.End.DateTime = command.EndTime;
+            calEvent.Organizer = new Event.OrganizerData { Email = command.UserId };
             calEvent.Attendees = new List<EventAttendee>();
-            calEvent.Attendees.Add(new EventAttendee { Email = command.UserId });
-
+            calEvent.Attendees.Add(new EventAttendee
+            {
+                Email = command.PartnerId,
+                Optional = false,
+                Self = true
+            });
+            calEvent.Attendees.Add(new EventAttendee
+            {
+                Email = command.UserId,
+                Optional = false
+            });
             calEvent.ConferenceData = new ConferenceData
             {
                 CreateRequest = new CreateConferenceRequest
                 {
                     RequestId = Guid.NewGuid().ToString(),
-                    ConferenceSolutionKey = new ConferenceSolutionKey
-                    {
-                        Type = "hangoutsMeet"
-                    }
+                    ConferenceSolutionKey = new ConferenceSolutionKey { Type = "hangoutsMeet" }
                 }
             };
 
@@ -67,7 +74,11 @@ public static class CalendarController
                 calendarId
             );
 
-            calendarService.CreateEvent(calendarId, calEvent);
+            var createdEvent = calendarService.CreateEvent(calendarId, calEvent);
+            Log.Information(
+                "CalendarService: created event {createdEvent}",
+                JsonConvert.SerializeObject(createdEvent)
+            );
 
             var calendarCreatedEvent = new CalendarEventCreatedEvent(
                 command.EventId,
