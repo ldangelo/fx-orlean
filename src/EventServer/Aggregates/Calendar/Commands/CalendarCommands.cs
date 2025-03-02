@@ -1,12 +1,12 @@
 namespace EventServer.Aggregates.Calendar.Commands;
 
 public record CreateCalendarEventCommand(
-    string eventId,
-    string calendarId,
-    string title,
-    string description,
-    DateTime startTime,
-    DateTime? endTime,
-    string partnerId, // Partner e-mail address
-    string userId // User e-mail address
+    string EventId,
+    string CalendarId,
+    string Title,
+    string Description,
+    DateTime StartTime,
+    DateTime? EndTime,
+    string PartnerId, // Partner e-mail address
+    string UserId // User e-mail address
 );
