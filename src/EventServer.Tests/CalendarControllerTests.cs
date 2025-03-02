@@ -2,6 +2,7 @@ using EventServer.Aggregates.Calendar.Commands;
 using EventServer.Aggregates.Calendar.Events;
 using Google.Apis.Calendar.v3.Data;
 using Serilog;
+using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace EventServer.Tests;
@@ -15,7 +16,8 @@ public class CalendarControllerTests : IntegrationContext
     {
         if (data != null)
         {
-            Log.Information("Conference Data {}", data!.CreateRequest!.RequestId);
+            var jsonData = JsonSerializer.Serialize(data);
+            Log.Information("Conference Data: {JsonData}", jsonData);
         }
     }
 
