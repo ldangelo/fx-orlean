@@ -34,18 +34,18 @@ public static class CalendarController
         //            var createdEvent = calendarService.CreateEvent(calendarId, newEvent);
         Log.Information(
             "Creating event {eventId} for calendar {calendarId}.",
-            command.eventId,
+            command.EventId,
             calendarId
         );
         try
         {
             var calEvent = new Event();
-            calEvent.Summary = command.title;
-            calEvent.Description = command.description;
+            calEvent.Summary = command.Title;
+            calEvent.Description = command.Description;
             calEvent.Start = new EventDateTime();
-            calEvent.Start.DateTime = command.startTime;
+            calEvent.Start.DateTime = command.StartTime;
             calEvent.End = new EventDateTime();
-            calEvent.End.DateTime = command.endTime;
+            calEvent.End.DateTime = command.EndTime;
             calEvent.Attendees = new List<EventAttendee>();
             calEvent.Attendees.Add(new EventAttendee { Email = command.UserId });
 
