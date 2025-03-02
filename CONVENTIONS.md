@@ -19,10 +19,10 @@
 - [Marten Documentation](https://martendb.io/introduction.html "Marten Documentation") 
 - [Wolverine](https://wolverinefx.net/guide/basics.html) 
 - [Blazer](https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-9.0&WT.mc_id=dotnet-35129-website)
-- [MudBlazor](https://mudblazor.com/docs/overview "j") 
+- [MudBlazor](https://mudblazor.com/docs/overview) 
 - [Google .Net Client Libraries](https://developers.google.com/api-client-library/dotnet) 
 - [Stripe API's](https://docs.stripe.com/api?lang=dotnet) 
-
+- [Newtonsolft](https://www.newtonsoft.com/json/help/html/Introduction.htm) 
 # Architecture
 
 This document presents the high-level architecture for the project, supporting a Partner-based system with additional features for **Users** and **Videoconferences**. The system manages **Partner profiles**, **User accounts**, and **Videoconferences scheduling**, while leveraging **MartenDB** for event-sourcing and persistence and enabling deep integration with **CQRS**. A robust testing suite implemented in xUnit ensures system reliability.
