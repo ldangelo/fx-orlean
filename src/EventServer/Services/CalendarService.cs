@@ -40,7 +40,7 @@ public class GoogleCalendarService
             new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
-                ApplicationName = "fx-expert"
+                ApplicationName = "fx-expert",
             }
         );
     }
@@ -51,7 +51,7 @@ public class GoogleCalendarService
         request.TimeMin = DateTime.Now;
         request.ShowDeleted = false;
         request.SingleEvents = true;
-        request.MaxResults = 10;
+        request.MaxResults = 40;
         request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
 
         return request.Execute();

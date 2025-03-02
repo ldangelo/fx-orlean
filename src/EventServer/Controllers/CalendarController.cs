@@ -63,12 +63,12 @@ public static class CalendarController
                 command.Title,
                 command.Description,
                 command.StartTime,
-                (DateTime)command.EndTime,
+                (DateTime)command.EndTime!,
                 command.PartnerId,
                 command.UserId
             );
             var startStream = MartenOps.StartStream<CalendarEvent>(
-                command.eventId,
+                command.EventId,
                 calendarCreatedEvent
             );
 
@@ -77,7 +77,7 @@ public static class CalendarController
         catch (Exception e)
         {
             Log.Error(e.ToString());
-            throw e;
+            throw new Exception(e.Message);
         }
     }
 }
