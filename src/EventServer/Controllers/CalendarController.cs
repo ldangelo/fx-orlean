@@ -49,6 +49,18 @@ public static class CalendarController
             calEvent.Attendees = new List<EventAttendee>();
             calEvent.Attendees.Add(new EventAttendee { Email = command.UserId });
 
+            calEvent.ConferenceData = new ConferenceData
+            {
+                CreateRequest = new CreateConferenceRequest
+                {
+                    RequestId = Guid.NewGuid().ToString(),
+                    ConferenceSolutionKey = new ConferenceSolutionKey
+                    {
+                        Type = "hangoutsMeet"
+                    }
+                }
+            };
+
             Log.Information(
                 "Adding event {} to calendar {}.",
                 JsonConvert.SerializeObject(calEvent),
