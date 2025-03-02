@@ -58,14 +58,14 @@ public static class CalendarController
             calendarService.CreateEvent(calendarId, calEvent);
 
             var calendarCreatedEvent = new CalendarEventCreatedEvent(
-                command.eventId,
-                command.calendarId,
-                command.title,
-                command.description,
-                command.startTime,
-                (DateTime)command.endTime,
-                command.partnerId,
-                command.userId
+                command.EventId,
+                command.CalendarId,
+                command.Title,
+                command.Description,
+                command.StartTime,
+                (DateTime)command.EndTime,
+                command.PartnerId,
+                command.UserId
             );
             var startStream = MartenOps.StartStream<CalendarEvent>(
                 command.eventId,
