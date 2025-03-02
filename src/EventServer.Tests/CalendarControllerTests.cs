@@ -1,8 +1,8 @@
+using System.Text.Json;
 using EventServer.Aggregates.Calendar.Commands;
 using EventServer.Aggregates.Calendar.Events;
 using Google.Apis.Calendar.v3.Data;
 using Serilog;
-using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace EventServer.Tests;
@@ -34,7 +34,7 @@ public class CalendarControllerTests : IntegrationContext
         var events = response.ReadAsJson<Events>();
 
         Log.Information("Events: {Description}", events.Description);
-        foreach (Event e in events.Items)
+        foreach (var e in events.Items)
         {
             Log.Information("Event: {Description}", e.Summary);
             DumpConferenceData(e.ConferenceData);
@@ -50,15 +50,16 @@ public class CalendarControllerTests : IntegrationContext
             "Work",
             "Test",
             "Test Event",
-            DateTime.Now,
             DateTime.Now.AddHours(1),
+            DateTime.Now.AddHours(2),
+            "leo.dangelo@fortiumpartners.com",
             "ldangelo@mac.com"
         );
 
         // Act
         var response = await Scenario(x =>
         {
-            x.Post.Json(command).ToUrl("/api/calendar/1/events");
+            x.Post.Json(command).ToUrl("/api/calendar/leo.dangelo@fortiumpartners.com/events");
             x.StatusCodeShouldBe(200);
         });
 

@@ -2,17 +2,20 @@ using EventServer.Aggregates.Calendar.Commands;
 using EventServer.Aggregates.Calendar.Events;
 using EventServer.Services;
 using Fortium.Types;
+using Google.Apis.Calendar.v3.Data;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Serilog;
 using Wolverine.Http;
 using Wolverine.Marten;
+using Events = Google.Apis.Calendar.v3.Data.Events;
 
 namespace EventServer.Controllers;
 
 public static class CalendarController
 {
     [WolverineGet("/api/calendar/{calendarId}/events")]
-    public static Google.Apis.Calendar.v3.Data.Events GetEvents(
+    public static Events GetEvents(
         [FromServices] GoogleCalendarService calendarService,
         string calendarId
     )
@@ -23,6 +26,7 @@ public static class CalendarController
 
     [WolverinePost("/api/calendar/{calendarId}/events")]
     public static (CalendarEventCreatedEvent, IStartStream) CreateEvent(
+        [FromServices] GoogleCalendarService calendarService,
         string calendarId,
         [FromBody] CreateCalendarEventCommand command
     )
@@ -33,20 +37,47 @@ public static class CalendarController
             command.eventId,
             calendarId
         );
-        var calendarCreatedEvent = new CalendarEventCreatedEvent(
-            command.eventId,
-            command.calendarId,
-            command.title,
-            command.description,
-            command.startTime,
-            (DateTime)command.endTime,
-            command.invitee
-        );
-        var startStream = MartenOps.StartStream<CalendarEvent>(
-            command.eventId,
-            calendarCreatedEvent
-        );
+        try
+        {
+            var calEvent = new Event();
+            calEvent.Summary = command.title;
+            calEvent.Description = command.description;
+            calEvent.Start = new EventDateTime();
+            calEvent.Start.DateTime = command.startTime;
+            calEvent.End = new EventDateTime();
+            calEvent.End.DateTime = command.endTime;
+            calEvent.Attendees = new List<EventAttendee>();
+            calEvent.Attendees.Add(new EventAttendee { Email = command.UserId });
 
-        return (calendarCreatedEvent, startStream);
+            Log.Information(
+                "Adding event {} to calendar {}.",
+                JsonConvert.SerializeObject(calEvent),
+                calendarId
+            );
+
+            calendarService.CreateEvent(calendarId, calEvent);
+
+            var calendarCreatedEvent = new CalendarEventCreatedEvent(
+                command.eventId,
+                command.calendarId,
+                command.title,
+                command.description,
+                command.startTime,
+                (DateTime)command.endTime,
+                command.partnerId,
+                command.userId
+            );
+            var startStream = MartenOps.StartStream<CalendarEvent>(
+                command.eventId,
+                calendarCreatedEvent
+            );
+
+            return (calendarCreatedEvent, startStream);
+        }
+        catch (Exception e)
+        {
+            Log.Error(e.ToString());
+            throw e;
+        }
     }
 }

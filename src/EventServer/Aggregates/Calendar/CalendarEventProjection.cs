@@ -13,7 +13,8 @@ public class CalendarEventProjection : SingleStreamProjection<CalendarEvent>
         calendarEvent.Description = @event.Description;
         calendarEvent.Start = @event.Start;
         calendarEvent.End = @event.End;
-        calendarEvent.Invitee = @event.Invitee;
+        calendarEvent.PartnerId = @event.PartnerId;
+        calendarEvent.UserId = @event.UserId;
         calendarEvent.CreateDate = DateTime.Now;
 
         return calendarEvent;

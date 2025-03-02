@@ -7,5 +7,6 @@ public record CalendarEventCreatedEvent(
     string Description,
     DateTime Start,
     DateTime End,
-    string Invitee
+    string PartnerId,
+    string UserId
 );

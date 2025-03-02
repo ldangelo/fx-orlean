@@ -7,5 +7,6 @@ public record CreateCalendarEventCommand(
     string description,
     DateTime startTime,
     DateTime? endTime,
-    string invitee
+    string partnerId, // Partner e-mail address
+    string userId // User e-mail address
 );
