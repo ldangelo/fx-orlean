@@ -24,13 +24,15 @@ public class GoogleCalendarService
         Log.Information("Client Id: {clientId}", clientId);
         Log.Information("Client Secret: {clientSecret}", clientSecret);
         string[] scopes = { CalendarService.Scope.Calendar };
+        var receiver = new GoogleLocalServerCodeReceiver();
         var credential = GoogleWebAuthorizationBroker
             .AuthorizeAsync(
                 new ClientSecrets { ClientId = clientId, ClientSecret = clientSecret },
                 scopes,
                 "user",
                 CancellationToken.None,
-                new FileDataStore("Calendar.Auth.Store")
+                new FileDataStore("Calendar.Auth.Store"),
+                receiver
             )
             .Result;
 
