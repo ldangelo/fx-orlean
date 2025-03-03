@@ -18,11 +18,11 @@ public class GoogleCalendarService
 
         if (clientId == null || clientSecret == null)
             throw new Exception(
-                "Environment variables GoogleApi__ClientId and GoogleApi__ClientSecret must be set."
+                "Environment variables GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set."
             );
 
-        Log.Information("Client Id: {clientId}", clientId);
-        Log.Information("Client Secret: {clientSecret}", clientSecret);
+        Log.Information($"Client Id: {clientId}");
+        Log.Information($"Client Secret: {clientSecret}");
         string[] scopes = { CalendarService.Scope.Calendar };
         var receiver = new GoogleLocalServerCodeReceiver();
         var credential = GoogleWebAuthorizationBroker
@@ -45,7 +45,7 @@ public class GoogleCalendarService
         );
     }
 
-    public Events GetCalendarEvents(string calendarId)
+    public Events GetCalendarEvents(string calendarId) : Events
     {
         var request = _service.Events.List(calendarId);
         request.TimeMin = DateTime.Now;
@@ -57,7 +57,7 @@ public class GoogleCalendarService
         return request.Execute();
     }
 
-    public Event CreateEvent(string calendarId, Event newEvent)
+    public Event CreateEvent(string calendarId, Event newEvent) : Event
     {
         var request = _service.Events.Insert(newEvent, calendarId);
         request.SendUpdates = EventsResource.InsertRequest.SendUpdatesEnum.ExternalOnly;
