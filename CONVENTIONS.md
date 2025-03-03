@@ -33,7 +33,7 @@ This document presents the high-level architecture for the project, supporting a
 
 ## Architectural Components
 
-### 1. Application Layer
+### 1. EventServer
 
 - **Technology**: ASP.NET Core 9.0
 - **Responsibility**:
@@ -50,37 +50,64 @@ This document presents the high-level architecture for the project, supporting a
   - `/api/partners` (Partners management).
   - `/api/users` (Users management).
   - `/api/videoconferences` (Videoconference scheduling).
+  - `/api/payments` (payment processing)
+  - `/api/calendar` (calendar management)
 
 #### Critical Modules
 
 - **Controllers**: For Partners, Users, and Videoconferences.
 - **Request Handlers**: Handle commands (`ICommand`) and queries (`IQuery`).
-  - **Dependency Injection (DI)**: Binds service and repository dependencies.
+- **Dependency Injection (DI)**: Binds service and repository dependencies.
 
-### 2. Domain Layer
+### 2. Shared Types
 
 - **Technology**: C# (Domain-Driven Design and Event Sourcing principles applied)
 - **Responsibility**:
-  - Houses the **Commands**, **Events**, and domain **Aggregates** (e.g., `Partner`, `User`, `Videoconference`) along with their business logic.
+- Houses the **Commands**, **Events**, and domain **Aggregates** (e.g., `Partner`, `User`, `Videoconference`) along with their business logic.
 
 #### Key Aggregates
 
 - **Partner**:
+
   - Entity representing a partner in the system.
   - Attributes: `Bio`, `Skills`, `WorkHistory`, etc.
   - Supports commands such as `CreatePartner`, `UpdatePartner`, and `AddSkill`.
 
 - **User**:
+
   - Represents a participant in the system.
   - Attributes: `Email`, `Role` (e.g., Admin/Viewer), `Settings` (e.g., notification preferences).
   - Commands: `RegisterUser`, `AuthenticateUser`, and `UpdateUserSettings`.
 
 - **Videoconference**:
+
   - Handles **scheduling** between partners and/or users.
   - Attributes: `MeetingId`, `Participants`, `Time` (Start/End), `Details`.
   - Commands: `CreateVideoconference`, `CancelVideoconference`, `UpdateVideoconference`.
+
+- Payments:
+
+  - Handles the authorization of payments via Stripe.
+  - Handles the collection of payments via Stripe.
+  - Handles cancelling a previously authorized payment (in case of cancellation of a videoconference).
+
+- Calendar:
+  - Handles creating calendar events.
+  - Handles getting calendar events.
 
 ### Key Concepts
 
 - **Commands**: Represent the intent to **change system state**.
 - **Events**: Triggered as a result of commands, representing something that has happened in the system.
+
+### 2. fx-expert
+
+This is the UI and supporting services. The UI is implemented using Blazer,
+a framework for building web applications in .NET.
+The UI uses the **MudBlazor** component library for building user interfaces.
+
+#### Oauth
+
+Because the UI is using blazor WASM fx-expert utilizes the BFF (Backend for frontend)
+pattern for authentication. Basically the blazer frontend utilizes an exposed endpoint to
+get the access token from the BFF. The BFF then uses that token to validate the user.
