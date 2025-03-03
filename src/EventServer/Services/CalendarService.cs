@@ -40,7 +40,7 @@ public class GoogleCalendarService
             new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
-                ApplicationName = "fx-expert"
+                ApplicationName = "fx-expert",
             }
         );
     }
@@ -60,6 +60,7 @@ public class GoogleCalendarService
     public Event CreateEvent(string calendarId, Event newEvent)
     {
         var request = _service.Events.Insert(newEvent, calendarId);
+        request.SendUpdates = EventsResource.InsertRequest.SendUpdatesEnum.ExternalOnly;
         request.SendNotifications = true;
         request.ConferenceDataVersion = 1;
         return request.Execute();
