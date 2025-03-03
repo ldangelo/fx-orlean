@@ -1,3 +1,8 @@
+using Pulumi;
+using Pulumi.Kubernetes.Core.V1;
+using Pulumi.Kubernetes.Apps.V1;
+using Pulumi.Kubernetes.Types.Inputs.Core.V1;
+using Pulumi.Kubernetes.Types.Inputs.Apps.V1;
 using Pulumi.Docker;
 
 class MyStack : Stack
