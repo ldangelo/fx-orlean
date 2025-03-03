@@ -9,7 +9,7 @@
 - Function names should describe the action being performed.
 - Prefer fewer arguments in functions and methods. Ideally, aim for no more than two or three.
 - Only use comments when necessary, as they can become outdated. Instead, strive to make the code self-explanatory.
-- When functions are used, they should add useful information that is not readily apparent from the code itself.
+- When commands are used, they should add useful information that is not readily apparent from the code itself.
 - Properly handle errors and exceptions to ensure the software's robustness.
 - Use exceptions rather than error codes for handling errors.
 - Consider security implications of the code. Implement security best practices to protect against vulnerabilities and attacks.
@@ -59,12 +59,6 @@ This document presents the high-level architecture for the project, supporting a
 - **Request Handlers**: Handle commands (`ICommand`) and queries (`IQuery`).
 - **Dependency Injection (DI)**: Binds service and repository dependencies.
 
-### 2. Shared Types
-
-- **Technology**: C# (Domain-Driven Design and Event Sourcing principles applied)
-- **Responsibility**:
-- Houses the **Commands**, **Events**, and domain **Aggregates** (e.g., `Partner`, `User`, `Videoconference`) along with their business logic.
-
 #### Key Aggregates
 
 - **Partner**:
@@ -100,7 +94,13 @@ This document presents the high-level architecture for the project, supporting a
 - **Commands**: Represent the intent to **change system state**.
 - **Events**: Triggered as a result of commands, representing something that has happened in the system.
 
-### 2. fx-expert
+### 2. Shared Types
+
+- **Technology**: C# (Domain-Driven Design and Event Sourcing principles applied)
+- **Responsibility**:
+- Houses the **Commands**, **Events**, and domain **Aggregates** (e.g., `Partner`, `User`, `Videoconference`) along with their business logic.
+
+### 3. fx-expert
 
 This is the UI and supporting services. The UI is implemented using Blazer,
 a framework for building web applications in .NET.
