@@ -45,7 +45,7 @@ public class GoogleCalendarService
         );
     }
 
-    public Events GetCalendarEvents(string calendarId) : Events
+    public Events GetCalendarEvents(string calendarId)
     {
         var request = _service.Events.List(calendarId);
         request.TimeMin = DateTime.Now;
@@ -57,7 +57,7 @@ public class GoogleCalendarService
         return request.Execute();
     }
 
-    public Event CreateEvent(string calendarId, Event newEvent) : Event
+    public Event CreateEvent(string calendarId, Event newEvent)
     {
         var request = _service.Events.Insert(newEvent, calendarId);
         request.SendUpdates = EventsResource.InsertRequest.SendUpdatesEnum.ExternalOnly;
