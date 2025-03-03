@@ -13,6 +13,7 @@
 - Use exceptions rather than error codes for handling errors.
 - Consider security implications of the code.  Implement security best practices to protect against vulnerabilities and attacks.
 - Use immutable types whenever possible.
+- When working with pulumi use kubernetes.
 
 # Package Information
 
