@@ -1,124 +1,99 @@
 using Pulumi;
-using Pulumi.Kubernetes.Core.V1;
 using Pulumi.Kubernetes.Apps.V1;
-using Pulumi.Kubernetes.Types.Inputs.Core.V1;
+using Pulumi.Kubernetes.Core.V1;
 using Pulumi.Kubernetes.Types.Inputs.Apps.V1;
+using Pulumi.Kubernetes.Types.Inputs.Core.V1;
 
 class MyStack : Stack
 {
     public MyStack()
     {
-        var appLabels = new InputMap<string>
-        {
-            { "app", "myapp" }
-        };
+        var appLabels = new InputMap<string> { { "app", "myapp" } };
 
-        var eventServerDeployment = new Deployment("eventserver-deployment", new DeploymentArgs
-        {
-            Spec = new DeploymentSpecArgs
+        var eventServerDeployment = new Deployment(
+            "eventserver-deployment",
+            new DeploymentArgs
             {
-                Selector = new LabelSelectorArgs
+                Spec = new DeploymentSpecArgs
                 {
-                    MatchLabels = appLabels
-                },
-                Replicas = 1,
-                Template = new PodTemplateSpecArgs
-                {
-                    Metadata = new ObjectMetaArgs
+                    Selector = new LabelSelectorArgs { MatchLabels = appLabels },
+                    Replicas = 1,
+                    Template = new PodTemplateSpecArgs
                     {
-                        Labels = appLabels
-                    },
-                    Spec = new PodSpecArgs
-                    {
-                        Containers = 
+                        Metadata = new ObjectMetaArgs { Labels = appLabels },
+                        Spec = new PodSpecArgs
                         {
-                            new ContainerArgs
+                            Containers =
                             {
-                                Name = "eventserver",
-                                Image = "eventserver-image", // Replace with your image
-                                Ports = 
+                                new ContainerArgs
                                 {
-                                    new ContainerPortArgs
-                                    {
-                                        ContainerPortValue = 80
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        var fxExpertDeployment = new Deployment("fxexpert-deployment", new DeploymentArgs
-        {
-            Spec = new DeploymentSpecArgs
-            {
-                Selector = new LabelSelectorArgs
-                {
-                    MatchLabels = appLabels
-                },
-                Replicas = 1,
-                Template = new PodTemplateSpecArgs
-                {
-                    Metadata = new ObjectMetaArgs
-                    {
-                        Labels = appLabels
+                                    Name = "eventserver",
+                                    Image = "eventserver-image", // Replace with your image
+                                    Ports = { new ContainerPortArgs { ContainerPortValue = 80 } },
+                                },
+                            },
+                        },
                     },
-                    Spec = new PodSpecArgs
+                },
+            }
+        );
+
+        var fxExpertDeployment = new Deployment(
+            "fxexpert-deployment",
+            new DeploymentArgs
+            {
+                Spec = new DeploymentSpecArgs
+                {
+                    Selector = new LabelSelectorArgs { MatchLabels = appLabels },
+                    Replicas = 1,
+                    Template = new PodTemplateSpecArgs
                     {
-                        Containers = 
+                        Metadata = new ObjectMetaArgs { Labels = appLabels },
+                        Spec = new PodSpecArgs
                         {
-                            new ContainerArgs
+                            Containers =
                             {
-                                Name = "fxexpert",
-                                Image = "fxexpert-image", // Replace with your image
-                                Ports = 
+                                new ContainerArgs
                                 {
-                                    new ContainerPortArgs
-                                    {
-                                        ContainerPortValue = 80
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                                    Name = "fxexpert",
+                                    Image = "fxexpert-image", // Replace with your image
+                                    Ports = { new ContainerPortArgs { ContainerPortValue = 80 } },
+                                },
+                            },
+                        },
+                    },
+                },
             }
-        });
+        );
 
-        var eventServerService = new Service("eventserver-service", new ServiceArgs
-        {
-            Spec = new ServiceSpecArgs
+        var eventServerService = new Service(
+            "eventserver-service",
+            new ServiceArgs
             {
-                Selector = appLabels,
-                Ports = 
+                Spec = new ServiceSpecArgs
                 {
-                    new ServicePortArgs
+                    Selector = appLabels,
+                    Ports =
                     {
-                        Port = 80,
-                        TargetPort = 80
-                    }
-                }
+                        new ServicePortArgs { Port = 80, TargetPort = 80 },
+                    },
+                },
             }
-        });
+        );
 
-        var fxExpertService = new Service("fxexpert-service", new ServiceArgs
-        {
-            Spec = new ServiceSpecArgs
+        var fxExpertService = new Service(
+            "fxexpert-service",
+            new ServiceArgs
             {
-                Selector = appLabels,
-                Ports = 
+                Spec = new ServiceSpecArgs
                 {
-                    new ServicePortArgs
+                    Selector = appLabels,
+                    Ports =
                     {
-                        Port = 80,
-                        TargetPort = 80
-                    }
-                }
+                        new ServicePortArgs { Port = 80, TargetPort = 80 },
+                    },
+                },
             }
-        });
-    }
-}
+        );
     }
 }
