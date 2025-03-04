@@ -6,6 +6,214 @@ FX-expert is a WIP.  It's intended to be an application to allow 'users' to sche
 
 http://www.fortiumpartners.com/
 
+* Dependencies
+
+FX-expert is built using .Net Core (9.0).  It currently uses the following critical dependencies.
+
+
+** Marten: https://martendb.io
+
+Marten provides an Event Store for the CQRS events.
+
+** Postgres:
+
+Postgres provides storage for Entity Framework Projections.
+
+** Wolverine: https://wolverinefx.net
+
+I'm currently playing around with Wolverine for communication across Aggregates.
+
+** Stripe: https://github.com/stripe/stripe-dotnet
+
+** FluentValidator: https://docs.fluentvalidation.net/en/latest/index.html
+
+We will be using FluentValidators to validate Commands, Queries, Events as well as JSON requests/responses.
+
+** Blazor: https://learn.microsoft.com/en-us/aspnet/core/blazor/?view=aspnetcore-9.0
+
+I will be utilizing Blazor for the WebFrontend.
+
+# **Architecture Overview**
+## **Overview**
+This document presents the high-level architecture for the project, supporting a Partner-based system with additional features for **Users** and **Videoconferences**. The system manages **Partner profiles**, **User accounts**, and **Videoconferences scheduling**, while leveraging **MartenDB** for event-sourcing and persistence and enabling deep integration with **CQRS**. A robust testing suite implemented in xUnit ensures system reliability.
+## **Architectural Components**
+### **1. Application Layer**
+- **Technology**: ASP.NET Core 9.0
+- **Responsibility**:
+    - Routes all incoming HTTP requests to their corresponding commands, queries, and business rules.
+    - Events propagate to other components as necessary.
+    - Offers RESTful Web APIs for interacting with Users, Partners, and Videoconferences.
+
+**Key Responsibilities**:
+    - Request validation via Middleware.
+    - Publishing **Commands** (for state changes).
+    - Executing **Queries** (for reading/viewing data).
+    - Exposing endpoints for external applications:
+        - `/api/partners` (Partners management).
+        - `/api/users` (Users management).
+        - `/api/videoconferences` (Videoconference scheduling).
+
+**Critical Modules**:
+    - **Controllers**: For Partners, Users, and Videoconferences.
+    - **Request Handlers**: Handle commands (`ICommand`) and queries (`IQuery`).
+    - **Dependency Injection (DI)**: Binds service and repository dependencies.
+
+### **2. Domain Layer**
+- **Technology**: C# (Domain-Driven Design and Event Sourcing principles applied)
+- **Responsibility**:
+    - Houses the **Commands**, **Events**, and domain **Aggregates** (e.g., `Partner`, `User`, `Videoconference`) along with their business logic.
+
+**Key Aggregates**:
+    - **Partner**:
+        - Entity representing a partner in the system.
+        - Attributes: `Bio`, `Skills`, `WorkHistory`, etc.
+        - Supports commands such as `CreatePartner`, `UpdatePartner`, and `AddSkill`.
+
+    - **User**:
+        - Represents a participant in the system.
+        - Attributes: `Email`, `Role (e.g., Admin/Viewer)`, `Settings` (e.g., notification preferences).
+        - Commands: `RegisterUser`, `AuthenticateUser`, and `UpdateUserSettings`.
+
+    - **Videoconference**:
+        - Handles **scheduling** between partners and/or users.
+        - Attributes: `MeetingId`, `Participants`, `Time (Start/End)`, `Details`.
+        - Commands: `CreateVideoconference`, `CancelVideoconference`, `UpdateVideoconference`.
+
+**Key Concepts**:
+    - **Commands**: Represent the intent to **change system state**.
+    - **Events**: Triggered as a result of commands, representing something that has happened in the system.
+
+#### Sample Commands:
+``` plaintext
+Command: CreatePartner
+  ➜ Description: Creates a new partner profile.
+  ➜ Attributes: Name, Email, Phone, Skills, Bio.
+
+Command: RegisterUser
+  ➜ Description: Registers a new user.
+  ➜ Attributes: Email, Name, Role.
+
+Command: CreateVideoconference
+  ➜ Description: Creates a new videoconference.
+  ➜ Attributes: Participants (UserIds), Start/End time, Organizer.
+```
+#### Sample Events:
+``` plaintext
+Event: PartnerCreated
+  ➜ Triggered after a `CreatePartner` command is successfully executed.
+  ➜ Payload includes PartnerId, Name, Email.
+
+Event: UserRegistered
+  ➜ Triggered after a `RegisterUser` command is successfully executed.
+  ➜ Payload includes UserId, Email, Name.
+
+Event: VideoconferenceCreated
+  ➜ Triggered after a `CreateVideoconference` command is successfully executed.
+  ➜ Payload includes MeetingId, Participants, Times.
+```
+#### Event Flow Example for Videoconference Creation:
+1. **Command Issued**: `CreateVideoconferenceCommand`.
+2. **Business Logic Applied**: Validate participants, meeting time.
+3. **Event Generated**: `VideoconferenceCreatedEvent`.
+4. **Event Handlers Notified**: Updates persistence layer and optionally notifies participants via external services like email or notifications.
+
+### **3. Persistence Layer**
+- **Technology**: MartenDB (Backed by PostgreSQL)
+- **Responsibility**:
+    - **Transactional State Management**: Leverages MartenDB’s built-in event store and JSON storage for aggregate data.
+    - Provides a simplified model for writing (via commands) and reading (via queries).
+    - Stores audit trails for event-streams.
+
+**Storage Objects**:
+    - **Partners** (Aggregate store with event-driven changes).
+    - **Users**.
+    - **Videoconferences**.
+
+**Schema Design** for MartenDB:
+``` plaintext
+  partners (Document JSON Table)
+  ---------------------------------
+  { "id": "UUID", "bio": "Text", "skills": [], ... }
+
+  users (Document JSON Table)
+  ---------------------------------
+  { "id": "UUID", "email": "Text", "role": "Text", ... }
+
+  events (Event Table handled by MartenDB)
+  ---------------------------------
+   | id (UUID) | timestamp (DateTime) | event_type (Text) | payload (JsonB) |
+```
+### **4. Testing Framework**
+- **Technology**: xUnit
+- **Responsibility**:
+    - Verifies commands and their resulting events.
+    - Tests read models (`IQuery`) for correct results.
+
+**Test Coverage Areas**:
+    - **Commands**: Verifies that executing a command succeeds and raises the corresponding event. Example:
+        - Input: `CreateVideoconferenceCommand`.
+        - Verifies: `VideoconferenceCreatedEvent` is raised with the correct payload.
+
+    - **Events**: Checks event handling updates the persistence layer appropriately.
+    - **API Tests**: Ensures that application endpoints return the expected results.
+
+**Sample Tests**:
+``` csharp
+  public class VideoconferenceTests
+  {
+      [Fact]
+      public async Task CreateVideoconference_GeneratesEvent()
+      {
+          var cmd = new CreateVideoconferenceCommand(
+              Guid.NewGuid(),
+              participants: new List<Guid> { user1, user2 },
+              start: DateTime.UtcNow.AddDays(1),
+              end: DateTime.UtcNow.AddDays(1).AddHours(2)
+          );
+
+          var result = await _mediator.Send(cmd);
+
+          // Validate result
+          Assert.NotNull(result);
+          Assert.IsType<VideoconferenceCreated>(result.Event);
+
+          // Validate event properties
+          var evt = result.Event as VideoconferenceCreated;
+          Assert.Equal(2, evt.Participants.Count);
+      }
+  }
+```
+## **High-Level Component Diagram**
+``` plaintext
++----------------------------------+          +-------------------------+          +-------------------------+
+|       Application Layer          |          |       Domain Layer      |          |    Persistence Layer     |
+|----------------------------------|          |-------------------------|          |-------------------------|
+| - RESTful Controllers            |<-------->| - Partners, Users,      |<-------->| - MartenDB              |
+| - Mediator (Commands, Queries)   |          |   Videoconferences      |          | - Documents & Event Logs|
+|----------------------------------|          | - Commands & Events     |          |-------------------------|
++----------------------------------+          +-------------------------+          +-------------------------+
+
+                                    +----------------------------------+
+                                    |        Testing Framework         |
+                                    |----------------------------------|
+                                    | - xUnit (Test Commands/Events)   |
+                                    |----------------------------------|
+                                    +----------------------------------+
+```
+## **User Journeys**
+### **1. Scheduling a Videoconference**
+1. A **User** (with `Organizer` permissions) submits a new videoconference creation request.
+2. The system validates the request and executes the `CreateVideoconferenceCommand`.
+3. If successful, the `VideoconferenceCreated` event is raised.
+4. Event Handlers:
+    - Persist the videoconference to storage.
+    - Notify participants about the meeting details.
+
+## **Conclusion**
+This architecture covers a sophisticated partner management system while supporting scalable features for Users and Videoconferences. The combination of CQRS and MartenDB’s event sourcing ensures high flexibility and maintains system consistency. The xUnit testing framework further ensures the reliability and correctness of behavior across commands, events, and queries.
+
+
+
 * Architecture
 
 FX-expert uses DDD and CQRS to isolate Domain logic.
@@ -33,36 +241,3 @@ Represents the payment details.  We will be utilizing Stripe in the beginning an
 Represents the calendar contents for a specific partner.  We will utilize Google API's to read/write calendar information on the partners behalf.
 The calendar aggregate will require a one-time authorization by the partner to make API calls on their behalf.
 
-* Dependencies
-
-FX-expert is built using .Net Core (9.0).  It currently uses the following critical dependencies.
-
-** Orleans: https://learn.microsoft.com/en-us/dotnet/orleans/overview
-
-Orleans is utilized as an 'Agent' framework.
-
-** Orleankka: https://github.com/OrleansContrib/Orleankka
-
-Orleankka provides a CQRS implementation on top of Orleans.
-
-** Marten: https://martendb.io
-
-Marten provides an Event Store for the CQRS events.
-
-** Postgres:
-
-Postgres provides storage for Entity Framework Projections.
-
-** Wolverine: https://wolverinefx.net
-
-I'm currently playing around with Wolverine for communication across Aggregates.
-
-** Stripe: https://github.com/stripe/stripe-dotnet
-
-** FluentValidator: https://docs.fluentvalidation.net/en/latest/index.html
-
-We will be using FluentValidators to validate Commands, Queries, Events as well as JSON requests/responses.
-
-** Blazor: https://learn.microsoft.com/en-us/aspnet/core/blazor/?view=aspnetcore-9.0
-
-I will be utilizing Blazor for the WebFrontend.

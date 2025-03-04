@@ -1,68 +1,52 @@
-using Orleans;
+using System.Diagnostics;
+using Marten.Schema;
 
-namespace org.fortium.fx.common;
+namespace Fortium.Types;
 
 [Serializable]
-[GenerateSerializer]
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class Partner
 {
     // Parameterless constructor
-    public Partner()
-    {
-    }
+    public Partner() { }
 
-    // Optional: Constructor with parameters
-    public Partner(
-        string emailAddress,
-        string firstName,
-        string lastName,
-        string primaryPhone,
-        string photoUrl,
-        string? bio,
-        List<WorkHistory> workHistories,
-        List<string> skills,
-        List<Guid?> videoConferences
-    )
-    {
-        Id = emailAddress;
-        EmailAddress = emailAddress;
-        FirstName = firstName;
-        LastName = lastName;
-        PrimaryPhone = primaryPhone;
-        PhotoUrl = photoUrl;
-        Bio = bio;
-        WorkHistories = workHistories;
-        Skills = skills;
-        VideoConferences = videoConferences;
-    }
+    public bool Active { get; set; }
+    public bool LoggedIn { get; set; } = false;
+    public DateTime LastLogin { get; set; }
+    public DateTime LastLogout { get; set; }
+    public DateTime CreateDate { get; set; }
+    public DateTime UpdateDate { get; set; }
 
-    [Id(0)] public string Id { get; set; } = "";
+    //    public String Id { get; set; } = "";
 
-    [Id(1)] public string EmailAddress { get; set; } = "";
+    [Identity]
+    public string EmailAddress { get; set; } = "";
 
-    [Id(2)] public string FirstName { get; set; } = "";
+    public string FirstName { get; set; } = "";
 
-    [Id(3)] public string LastName { get; set; } = "";
+    public string LastName { get; set; } = "";
 
-    [Id(4)] public string PrimaryPhone { get; set; } = "";
+    public string PrimaryPhone { get; set; } = "";
 
-    [Id(5)] public string PhotoUrl { get; init; } = "";
+    public string PhotoUrl { get; set; } = "";
 
-    [Id(6)] public string? Bio { get; set; } = "";
+    public DollarAmount Rate { get; set; } = 1000.00;
+    public Double PartnerPercentage { get; set; } = 0.80;
+    public string? Bio { get; set; } = "";
 
-    [Id(7)] public List<WorkHistory> WorkHistories { get; init; } = new();
+    public List<WorkHistory> WorkHistories { get; init; } = new();
 
-    [Id(8)] public List<string> Skills { get; init; } = new();
+    public List<PartnerSkill> Skills { get; init; } = new();
 
-    [Id(9)] public List<Guid?> VideoConferences { get; init; } = new();
+    public List<Guid?> VideoConferences { get; init; } = new();
 
-    [Id(10)] public string Title { get; set; } = "Chief Technology Officer";
+    public string Title { get; set; } = "";
 
-    [Id(11)] public string City { get; set; } = "Prosper";
+    public string City { get; set; } = "";
 
-    [Id(12)] public string State { get; set; } = "Tx";
+    public string State { get; set; } = "";
 
-    [Id(13)] public string Country { get; set; } = "United States";
+    public string Country { get; set; } = "";
 
     public string GetFullName()
     {
@@ -72,5 +56,20 @@ public class Partner
     public string GetLocation()
     {
         return City + ", " + State + ", " + Country;
+    }
+
+    public bool IsLoggedIn()
+    {
+        return LoggedIn;
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+
+    public override string ToString()
+    {
+        return $"IsActive: {Active}, EmailAddress: {EmailAddress}, FirstName: {FirstName}, LastName: {LastName}, PrimaryPhone: {PrimaryPhone}, PhotoUrl: {PhotoUrl}, Bio: {Bio}, WorkHistories: {WorkHistories}, Skills: {Skills.Count}, VideoConferences: {VideoConferences.Count}, Title: {Title}, City: {City}, State: {State}, Country: {Country}, CreateDate {CreateDate}";
     }
 }

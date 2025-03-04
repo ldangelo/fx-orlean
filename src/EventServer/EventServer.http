@@ -1,0 +1,41 @@
+:EventServer_HostAddress = http://localhost:5032
+:currentTime := (format-time-string "%Y-%m-%dT%H:%M:%S.%3NZ" (current-time))
+
+GET :EventServer_HostAddress/weatherforecast/
+Accept: application/json
+
+###
+# Log Partner In
+POST :EventServer_HostAddress/partners/loggedin/leo.dangelo@fortiumpartners.com
+Accept: application/json
+
+{
+    "id": "leo.dangelo@fortiumpartners.com",
+    "loginTime": ":currentTime"
+}
+### Logout
+#  Log Partner Out
+POST :EventServer_HostAddress/partners/loggedout/leo.dangelo@fortiumpartners.com
+Accept: application/json
+
+{
+    "id": "leo.dangelo@fortiumpartners.com",
+    "logoutTime": ":currentTime"
+}
+
+
+##
+# Get Partner
+GET :EventServer_HostAddress/partners/leo.dangelo@fortiumpartners.com
+Accept: application/json
+
+##
+## Create Partner
+POST :EventServer_HostAddress/partners
+Accept: application/json
+
+{
+    "EmailAddress": "leo.dangelo@fortiumpartners.com",
+    "FirstName": "Leo",
+    "LastName": "DAngelo"
+}

@@ -101,3 +101,9 @@ volumes:
 networks:
   data-network:
     driver: bridge
+
+  eventserver:
+    image: eventserver
+    build:
+      context: .
+      dockerfile: src/EventServer/Dockerfile
