@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "common", "src\common\common
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "shared-types", "shared-types\shared-types.csproj", "{B5D9EEBE-6212-4329-95EE-AE52782BDB59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert", "src\FxExpert\FxExpert\FxExpert.csproj", "{C4627111-ED3A-41EA-8963-F1A591FBACD9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert.Client", "src\FxExpert\FxExpert.Client\FxExpert.Client.csproj", "{8E1A2F96-CBAF-44D4-A723-E74ECB264126}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer", "src\EventServer\EventServer.csproj", "{3343A3AF-C7D8-44F6-8781-7734150E4F85}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventServer.Tests", "src\EventServer.Tests\EventServer.Tests.csproj", "{C9FAC095-30B0-427B-AC32-41B6C9788D74}"
