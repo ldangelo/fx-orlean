@@ -97,6 +97,13 @@ public class Program
             opts.UseFluentValidationProblemDetailMiddleware();
         });
 
+        // Define the minimal API endpoint
+        app.MapGet("/api/ai/problem/{description}", (string description) =>
+        {
+            // Logic to get partners based on the description
+            return new List<Partner>();
+        });
+
         app.Run();
     }
 }
