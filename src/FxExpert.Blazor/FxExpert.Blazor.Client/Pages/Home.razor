@@ -1,3 +1,23 @@
 ﻿@page "/"
 
  
+@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<h3>Describe Your Problem</h3>
+
+<EditForm>
+    <MudTextField @bind-Value="problemDescription" Label="Problem Description" Variant="Variant.Outlined" FullWidth="true" Multiline="true" Rows="5" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitProblem">Submit</MudButton>
+</EditForm>
+
+@code {
+    private string problemDescription = string.Empty;
+
+    private void SubmitProblem()
+    {
+        // Logic to handle the submitted problem description
+        Console.WriteLine($"Problem Description: {problemDescription}");
+    }
+}
