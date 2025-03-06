@@ -23,7 +23,8 @@ You are a managing partner for a consulting firm that specializes in fractional 
 given this list of partners and associated skills {partnersAndSkills} tell me which partners
 would be best suited to solve the {problem} at hand.  in descending order of their relevance to the problem.
 Add a rank to each partner.  Add a reason why you think the partner is a good fit.
-Return a rank sorted list of all partners as a properly format json object.";
+Return a rank sorted list of all partners as a properly format json object.
+Only return json no additonal information is necessary";
 
   private readonly List<Partner> samplePartners = new();
 
@@ -94,9 +95,9 @@ Return a rank sorted list of all partners as a properly format json object.";
 
   private static string CleanUpAnswer(string answer)
   {
+    answer = answer.Replace("json", "");
     answer = answer.TrimStart('`');
     answer = answer.TrimEnd('`');
-    answer = answer.Replace("json", "");
 
     return answer;
   }
