@@ -18,12 +18,7 @@ public class AIRequest
   public string ProblemDescription { get; set; }
 }
 
-public class AIResponse
-{
-  public List<string> Partners { get; set; }
-}
-
-public class AIController : FastEndpoints.Endpoint<AIRequest, List<PartnerInfo>>
+public class AIController : FastEndpoints.Endpoint<AIRequest, List<Partner>>
 {
   private readonly ChatGPTWithRAG _chatGPTWithRAG;
 
