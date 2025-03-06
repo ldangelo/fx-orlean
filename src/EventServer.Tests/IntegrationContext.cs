@@ -105,6 +105,7 @@ public abstract class IntegrationContext : IAsyncLifetime
         DateOnly.FromDateTime(DateTime.Now.AddYears(-1)),
         "Allied Payment Network", "CTO",
         "As CTO, I was responsible for the development of the company's payments platform. I led a team of 15 C# developers, 7 QA engineers, and 2 business analysts. To produce a state of the art consumer bill payment platform, I was responsible for the development of a new payment platform that was designed to be scalable, flexible, and easy to use."));
+    leo.AvailabilityNext30Days = 160;
 
     var burke = new Partner();
     burke.FirstName = "Burke";
@@ -114,6 +115,7 @@ public abstract class IntegrationContext : IAsyncLifetime
     burke.Skills.Add(new PartnerSkill("strategic thinking", 30, ExperienceLevel.Expert));
     burke.WorkHistories.Add(new WorkHistory(DateOnly.FromDateTime(DateTime.Now.AddYears(-10)), null,
         "Fortium Partners", "CEO", "Founder and CEO of Fortium Partners"));
+    burke.AvailabilityNext30Days = 160;
 
     Store.BulkInsert<Partner>([leo, burke]);
   }
