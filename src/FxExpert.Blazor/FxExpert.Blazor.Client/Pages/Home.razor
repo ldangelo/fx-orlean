@@ -12,12 +12,23 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitProblem">Submit</MudButton>
 </EditForm>
 
+@inject HttpClient Http
+
 @code {
     private string problemDescription = string.Empty;
+    private List<Partner> partners = new();
 
-    private void SubmitProblem()
+    private async Task SubmitProblem()
     {
-        // Logic to handle the submitted problem description
-        Console.WriteLine($"Problem Description: {problemDescription}");
+        var response = await Http.PostAsJsonAsync("/api/ai/partners", new { ProblemDescription = problemDescription });
+        if (response.IsSuccessStatusCode)
+        {
+            partners = await response.Content.ReadFromJsonAsync<List<Partner>>();
+            Console.WriteLine($"Retrieved {partners.Count} partners.");
+        }
+        else
+        {
+            Console.WriteLine("Failed to retrieve partners.");
+        }
     }
 }
