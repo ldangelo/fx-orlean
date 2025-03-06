@@ -8,21 +8,43 @@ using Newtonsoft.Json;
 using Serilog;
 using Wolverine.Http;
 using Wolverine.Marten;
+using static ChatGPTWithRAG;
 using Events = Google.Apis.Calendar.v3.Data.Events;
 
 namespace EventServer.Controllers;
 
-public class AIController
+public class AIRequest
 {
+  public string ProblemDescription { get; set; }
+}
+
+public class AIResponse
+{
+  public List<string> Partners { get; set; }
+}
+
+public class AIController : FastEndpoints.Endpoint<AIRequest, List<PartnerInfo>>
+{
+  private readonly ChatGPTWithRAG _chatGPTWithRAG;
+
   public AIController(ChatGPTWithRAG chatGPTWithRAG)
   {
 
+    _chatGPTWithRAG = chatGPTWithRAG;
   }
 
-  [WolverineGet("/api/ai/problem/{description}")]
-  static List<Partner> GetPartners(string description)
+  public override void Configure()
   {
+    Post("/api/ai/partners");
+    AllowAnonymous();
+  }
 
-    return new List<Partner>();
+  public override async Task HandleAsync(AIRequest r, CancellationToken cancellationToken)
+  {
+    Log.Information("AIController: {description}", r.ProblemDescription);
+
+    var partners = _chatGPTWithRAG.GetChatGPTResponse(r.ProblemDescription).Result;
+    Log.Information("AIController: {output}", JsonConvert.SerializeObject(partners));
+    await SendAsync(partners);
   }
 }
