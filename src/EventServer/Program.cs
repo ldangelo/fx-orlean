@@ -36,6 +36,10 @@ public class Program
         builder.Services.AddFastEndpoints().SwaggerDocument();
 
         builder.Services.AddControllers();
+        builder.Environment.ApplicationName = "EventServer";
+
+        if (builder.Environment.IsDevelopment())
+            builder.Services.AddHostedService<StartUpTask>();
         //
         // add wolverine/marten
         builder
