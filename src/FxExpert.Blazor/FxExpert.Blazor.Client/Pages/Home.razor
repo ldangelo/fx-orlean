@@ -1,34 +1,90 @@
 ﻿@page "/"
+@using Fortium.Types
 
- 
-@page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h3>Describe Your Problem</h3>
 
-<EditForm>
-    <MudTextField @bind-Value="problemDescription" Label="Problem Description" Variant="Variant.Outlined" FullWidth="true" Multiline="true" Rows="5" />
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitProblem">Submit</MudButton>
+<EditForm Model="@(this)">
+    <MudTextField @bind-Value="problemDescription" Label="Problem Description" Variant="Variant.Text" FullWidth="true" Lines="5"/>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitProblem" Disabled="isBusy">
+        @if (isBusy)
+        {
+            <MudProgressCircular Indeterminte="true"/>
+        }
+        else
+        {
+            <span>Submit</span>
+        }
+    </MudButton>
 </EditForm>
+
+@if(partners.Count > 0) {
+  <MudCarousel style="height:1000px;" ShowArrows=true ShowBullets=true AutoCycle=false TData="object">
+  @foreach(var Partner in partners) {
+     <div style="height:100%" class ="d-flex">
+<MudCarouselItem>
+     <MudCard >
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">@(Partner?.GetFullName())</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.subtitle1">@(Partner?.Title)</MudText>
+        <MudText Typo="Typo.subtitle2">Fortium Partners</MudText>
+        <br/>
+        <div MudCardContentstyle="display: flex; flex-direction: row; gap: 10px;">
+            <MudText>@(Partner?.EmailAddress)</MudText>
+            <MudText>@(Partner?.PrimaryPhone)</MudText>
+        </div>
+        <br/>
+        <MudText>@Partner?.Reason</MudText>
+    </MudCardContent>
+     </MudCard>
+     </MudCarouselItem>
+     </div>
+  }
+  </MudCarousel>
+}
+
 
 @inject HttpClient Http
 
 @code {
     private string problemDescription = string.Empty;
     private List<Partner> partners = new();
+    private bool isBusy = false;
 
     private async Task SubmitProblem()
     {
-        var response = await Http.PostAsJsonAsync("/api/ai/partners", new { ProblemDescription = problemDescription });
-        if (response.IsSuccessStatusCode)
+        Console.WriteLine("SubmitProblem");
+         
+        isBusy = true;
+        try
         {
-            partners = await response.Content.ReadFromJsonAsync<List<Partner>>();
-            Console.WriteLine($"Retrieved {partners.Count} partners.");
+            var response = await Http.PostAsJsonAsync("/api/ai/partners", new { ProblemDescription = problemDescription });
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<Partner>>();
+                partners = result?.Where(p => p != null).ToList() ?? new List<Partner>();
+
+                Console.WriteLine($"Retrieved {partners.Count} partners.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to retrieve partners. {response.ReasonPhrase}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Failed to retrieve partners.");
+            Console.WriteLine($"failed to retrieve partner: {ex.Message}");
+        }
+        finally
+        {
+            isBusy = false;
         }
     }
+
 }

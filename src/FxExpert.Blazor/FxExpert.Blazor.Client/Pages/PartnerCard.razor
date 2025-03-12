@@ -3,12 +3,8 @@
 @inject NavigationManager NavigationManager
 
 <MudCard Outlined="true">
-    <MudCardHeader>
-        <CardHeaderContent>
-            <MudText Typo="Typo.h4">@(Partner?.GetFullName())</MudText>
-        </CardHeaderContent>
-    </MudCardHeader>
     <MudCardContent>
+            <MudText Typo="Typo.h5">@(Partner?.GetFullName())</MudText>
         <MudText Typo="Typo.subtitle1">@(Partner?.Title)</MudText>
         <MudText Typo="Typo.subtitle2">Fortium Partners</MudText>
         <br/>
@@ -16,6 +12,7 @@
             <MudText>@(Partner?.EmailAddress)</MudText>
             <MudText>@(Partner?.PrimaryPhone)</MudText>
         </div>
+        <MudText Variant="Variant.Outlined">@Partner?.Reason</MudText>
         <MudText Variant="Variant.Outlined">@Partner?.GetLocation()</MudText>
         <MudText Variant="Variant.Outlined">@_meetingUrl</MudText>
     </MudCardContent>
