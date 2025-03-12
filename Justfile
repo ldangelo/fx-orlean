@@ -2,10 +2,9 @@ build:
   dotnet build
 
 run-eventserver: 
-  wezterm cli spawn --cwd . dotnet run --project src/EventServer/EventServer.csproj
+  wezterm cli spawn --cwd . dotnet watch --project src/EventServer/EventServer.csproj
 
 run-fxexpert: 
-  wezterm cli spawn --cwd . dotnet run --project src/FxExpert.Blazor/FxExpert.Blazor/FxExpert.Blazor.csproj
+  wezterm cli spawn --cwd . dotnet watch --project src/FxExpert.Blazor/FxExpert.Blazor/FxExpert.Blazor.csproj
 
 run: run-eventserver run-fxexpert
-  open http://localhost:8500
