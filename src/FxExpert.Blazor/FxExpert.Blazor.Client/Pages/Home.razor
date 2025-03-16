@@ -152,7 +152,7 @@
                             </MudChipSet>
                         </MudCardContent>
                         <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ViewPartnerDetails(partner?.Id))">View Profile</MudButton>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ViewPartnerDetails(partner?.EmailAddress))">View Profile</MudButton>
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.CalendarToday">Schedule</MudButton>
                         </MudCardActions>
                     </MudCard>
@@ -201,11 +201,12 @@
         }
     }
 
-    private void ViewPartnerDetails(Guid? partnerId)
+    private void ViewPartnerDetails(string? partnerEmail)
     {
-        if (partnerId.HasValue)
+        if (!string.IsNullOrEmpty(partnerEmail))
         {
-            NavigationManager.NavigateTo($"/partner/{partnerId}");
+            var encodedEmail = Uri.EscapeDataString(partnerEmail);
+            NavigationManager.NavigateTo($"/partner/{encodedEmail}");
         }
     }
 }

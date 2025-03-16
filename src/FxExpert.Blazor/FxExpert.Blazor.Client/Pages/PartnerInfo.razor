@@ -1,4 +1,4 @@
-@page "/partner/{PartnerId:guid}"
+@page "/partner/{PartnerEmail}"
 @using System.Text
 @using System.Text.Json
 @using Fortium.Types
@@ -195,7 +195,7 @@
 
 @code {
     [Parameter]
-    public string PartnerId { get; set; } = string.Empty;
+    public string PartnerEmail { get; set; } = string.Empty;
     
     private Partner? _partner;
     private bool _loading = true;
@@ -213,10 +213,12 @@
     {
         try
         {
-            // In a real application, you would call your API with the PartnerId
-            if (Guid.TryParse(PartnerId, out var id))
+            string email = Uri.UnescapeDataString(PartnerEmail);
+            
+            // In a real application, you would call your API with the PartnerEmail
+            if (!string.IsNullOrEmpty(email))
             {
-                var response = await Http.GetAsync($"/api/partners/{id}");
+                var response = await Http.GetAsync($"/api/partners/email/{email}");
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -230,11 +232,10 @@
             {
                 _partner = new Partner
                 {
-                    Id = Guid.Parse(PartnerId),
+                    EmailAddress = email,
                     FirstName = "John",
                     LastName = "Smith",
                     Title = "Chief Technology Officer",
-                    EmailAddress = "john.smith@example.com",
                     PrimaryPhone = "(555) 123-4567",
                     Bio = "John is a seasoned executive with over 25 years of technology leadership experience. He has led digital transformations for Fortune 500 companies and specializes in cloud architecture, cybersecurity, and IT governance. His strategic approach to technology has helped numerous organizations achieve their business objectives through innovative solutions.",
                     Address = new Address { City = "Chicago", State = "IL" },
@@ -298,7 +299,7 @@
             // Example payload for scheduling a meeting
             var meetingRequest = new
             {
-                PartnerId = _partner?.Id,
+                PartnerEmail = _partner?.EmailAddress,
                 MeetingDate = _selectedDate,
                 MeetingTime = _selectedTime,
                 Topic = _meetingTopic
@@ -308,7 +309,7 @@
             // var response = await Http.PostAsJsonAsync("/api/calendar/schedule", meetingRequest);
             
             // For now, we'll just show success and navigate to a confirmation page
-            NavigationManager.NavigateTo($"/confirmation/{_partner?.Id}");
+            NavigationManager.NavigateTo($"/confirmation/{Uri.EscapeDataString(_partner?.EmailAddress ?? "")}");
         }
         catch (Exception ex)
         {

@@ -1,4 +1,4 @@
-@page "/confirmation/{PartnerId:guid}"
+@page "/confirmation/{PartnerEmail}"
 @using Fortium.Types
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
@@ -61,17 +61,19 @@
 
 @code {
     [Parameter]
-    public string PartnerId { get; set; } = string.Empty;
+    public string PartnerEmail { get; set; } = string.Empty;
     
     private Partner? _partner;
     
     protected override async Task OnInitializedAsync()
     {
-        if (Guid.TryParse(PartnerId, out var id))
+        string email = Uri.UnescapeDataString(PartnerEmail);
+        
+        if (!string.IsNullOrEmpty(email))
         {
             try
             {
-                var response = await Http.GetAsync($"/api/partners/{id}");
+                var response = await Http.GetAsync($"/api/partners/email/{email}");
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -87,7 +89,7 @@
                 {
                     _partner = new Partner
                     {
-                        Id = id,
+                        EmailAddress = email,
                         FirstName = "John",
                         LastName = "Smith",
                         Title = "Chief Technology Officer"
