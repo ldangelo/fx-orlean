@@ -1,56 +1,169 @@
 ﻿@page "/"
 @using Fortium.Types
 
+<PageTitle>Fortium Expert Connect</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Elevation="3" Class="pa-6 mb-6" Style="background-color: #f7f7f9;">
+        <MudText Typo="Typo.h3" Align="Align.Center" Class="mb-4" Color="Color.Primary">Welcome to Fortium Expert Connect</MudText>
+        <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="mb-6">
+            Connect with top technology executives to solve your most challenging problems
+        </MudText>
+    </MudPaper>
 
-<h3>Describe Your Problem</h3>
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4 mb-4">
+                <MudText Typo="Typo.h5" Class="mb-3">Describe Your Business Challenge</MudText>
+                <MudText Typo="Typo.body2" Class="mb-4">
+                    Our AI will match you with relevant Fortium Partners based on your needs.
+                    Be specific about industry, technologies, and desired outcomes.
+                </MudText>
+                <EditForm Model="@(this)" Class="mt-3">
+                    <MudTextField @bind-Value="problemDescription" 
+                                 Label="Problem Description" 
+                                 Variant="Variant.Outlined" 
+                                 FullWidth="true" 
+                                 Lines="5"
+                                 Placeholder="E.g., We need to implement a secure cloud migration strategy for our financial services platform while maintaining compliance with regulatory requirements..."
+                                 Class="mb-4" />
+                    
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="string" Label="Industry" Variant="Variant.Outlined" FullWidth="true" Class="mb-3">
+                                <MudSelectItem Value="@("Financial Services")">Financial Services</MudSelectItem>
+                                <MudSelectItem Value="@("Healthcare")">Healthcare</MudSelectItem>
+                                <MudSelectItem Value="@("Retail")">Retail</MudSelectItem>
+                                <MudSelectItem Value="@("Manufacturing")">Manufacturing</MudSelectItem>
+                                <MudSelectItem Value="@("Technology")">Technology</MudSelectItem>
+                                <MudSelectItem Value="@("Other")">Other</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="string" Label="Urgency" Variant="Variant.Outlined" FullWidth="true" Class="mb-3">
+                                <MudSelectItem Value="@("High")">High - Need solution within days</MudSelectItem>
+                                <MudSelectItem Value="@("Medium")">Medium - Need solution within weeks</MudSelectItem>
+                                <MudSelectItem Value="@("Low")">Low - Planning ahead</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                    
+                    <MudButton Variant="Variant.Filled" 
+                              Color="Color.Primary" 
+                              FullWidth="true"
+                              Size="Size.Large"
+                              OnClick="SubmitProblem" 
+                              Disabled="isBusy"
+                              Class="mt-3 py-2">
+                        @if (isBusy)
+                        {
+                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                            <span>Finding Experts...</span>
+                        }
+                        else
+                        {
+                            <span>Find Experts</span>
+                        }
+                    </MudButton>
+                </EditForm>
+            </MudPaper>
+        </MudItem>
+        
+        <MudItem xs="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4">
+                <MudText Typo="Typo.h5" Class="mb-3">How It Works</MudText>
+                <MudList Clickable="false">
+                    <MudListItem Icon="@Icons.Material.Filled.Description">
+                        <MudText Typo="Typo.body1"><b>1. Describe your challenge</b></MudText>
+                        <MudText Typo="Typo.body2" Class="ml-6">Share the details of your business or technical problem</MudText>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.PersonSearch">
+                        <MudText Typo="Typo.body1"><b>2. Get matched with experts</b></MudText>
+                        <MudText Typo="Typo.body2" Class="ml-6">Our AI instantly identifies the best partners for your needs</MudText>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.CalendarToday">
+                        <MudText Typo="Typo.body1"><b>3. Schedule a consultation</b></MudText>
+                        <MudText Typo="Typo.body2" Class="ml-6">Book a time with your selected expert at your convenience</MudText>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.VideoCall">
+                        <MudText Typo="Typo.body1"><b>4. Meet virtually</b></MudText>
+                        <MudText Typo="Typo.body2" Class="ml-6">Connect via video conference for targeted problem-solving</MudText>
+                    </MudListItem>
+                </MudList>
+            </MudPaper>
+            
+            <MudPaper Elevation="2" Class="pa-4 mt-4">
+                <MudText Typo="Typo.h5" Class="mb-2">Why Fortium Partners?</MudText>
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-1" /> C-level experience</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-1" /> Industry specialists</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-1" /> Technical expertise</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body1"><MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-1" /> Proven results</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 
-<EditForm Model="@(this)">
-    <MudTextField @bind-Value="problemDescription" Label="Problem Description" Variant="Variant.Text" FullWidth="true" Lines="5"/>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitProblem" Disabled="isBusy">
-        @if (isBusy)
-        {
-            <MudProgressCircular Indeterminte="true"/>
-        }
-        else
-        {
-            <span>Submit</span>
-        }
-    </MudButton>
-</EditForm>
-
-@if(partners.Count > 0) {
-  <MudCarousel style="height:1000px;" ShowArrows=true ShowBullets=true AutoCycle=false TData="object">
-  @foreach(var Partner in partners) {
-     <div style="height:100%" class ="d-flex">
-<MudCarouselItem>
-     <MudCard >
-    <MudCardHeader>
-        <CardHeaderContent>
-            <MudText Typo="Typo.h4">@(Partner?.GetFullName())</MudText>
-        </CardHeaderContent>
-    </MudCardHeader>
-    <MudCardContent>
-        <MudText Typo="Typo.subtitle1">@(Partner?.Title)</MudText>
-        <MudText Typo="Typo.subtitle2">Fortium Partners</MudText>
-        <br/>
-        <div MudCardContentstyle="display: flex; flex-direction: row; gap: 10px;">
-            <MudText>@(Partner?.EmailAddress)</MudText>
-            <MudText>@(Partner?.PrimaryPhone)</MudText>
-        </div>
-        <br/>
-        <MudText>@Partner?.Reason</MudText>
-    </MudCardContent>
-     </MudCard>
-     </MudCarouselItem>
-     </div>
-  }
-  </MudCarousel>
-}
-
+    @if(partners.Count > 0) 
+    {
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h4" Class="mb-4">Recommended Experts for Your Challenge</MudText>
+        
+        <MudGrid>
+            @foreach(var partner in partners)
+            {
+                <MudItem xs="12" md="4">
+                    <MudCard Elevation="3" Class="h-100">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar Color="Color.Primary">@(partner?.FirstName?.Substring(0,1))@(partner?.LastName?.Substring(0,1))</MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5">@(partner?.GetFullName())</MudText>
+                                <MudText Typo="Typo.subtitle1">@(partner?.Title)</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2" Class="mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1" />
+                                @(partner?.EmailAddress)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1" />
+                                @(partner?.PrimaryPhone)
+                            </MudText>
+                            
+                            <MudText Typo="Typo.body2" Style="font-weight: bold" Class="mt-2">Why this expert matches your needs:</MudText>
+                            <MudText Typo="Typo.body2">@partner?.Reason</MudText>
+                            
+                            <MudChipSet Class="mt-3">
+                                @foreach (var skill in partner?.Skills ?? new List<PartnerSkill>())
+                                {
+                                    <MudChip Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@skill.Name</MudChip>
+                                }
+                            </MudChipSet>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ViewPartnerDetails(partner?.Id))">View Profile</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.CalendarToday">Schedule</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
 
 @inject HttpClient Http
+@inject NavigationManager NavigationManager
 
 @code {
     private string problemDescription = string.Empty;
@@ -59,8 +172,9 @@
 
     private async Task SubmitProblem()
     {
-        Console.WriteLine("SubmitProblem");
-         
+        if (string.IsNullOrWhiteSpace(problemDescription))
+            return;
+
         isBusy = true;
         try
         {
@@ -87,4 +201,11 @@
         }
     }
 
+    private void ViewPartnerDetails(Guid? partnerId)
+    {
+        if (partnerId.HasValue)
+        {
+            NavigationManager.NavigateTo($"/partner/{partnerId}");
+        }
+    }
 }

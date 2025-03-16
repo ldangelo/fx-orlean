@@ -5,38 +5,107 @@
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
+
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-                       OnClick="@(e => DrawerToggle())"/>
-        <MudText Typo="Typo.h5" Class="ml-3">FX-Expert</MudText>
-        <MudSpacer/>
+    <MudAppBar Elevation="3" Color="Color.Primary" Fixed="true">
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudImage Src="images/fortium-logo.png" Alt="Fortium Logo" Height="40" Class="mr-3" />
+        </MudHidden>
+        
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                          OnClick="@(e => DrawerToggle())" />
+        </MudHidden>
+        
+        <MudText Typo="Typo.h5" Class="ml-3">Fortium Expert Connect</MudText>
+        <MudSpacer />
+        
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudStack Row="true">
+                <MudButton Href="/" Color="Color.Inherit" Class="ml-2">Home</MudButton>
+                <MudButton Href="/about" Color="Color.Inherit" Class="ml-2">About</MudButton>
+                <MudButton Href="/experts" Color="Color.Inherit" Class="ml-2">Our Experts</MudButton>
+                <MudButton Href="/contact" Color="Color.Inherit" Class="ml-2">Contact</MudButton>
+            </MudStack>
+        </MudHidden>
+        
+        <MudSpacer />
+        
         <CascadingAuthenticationState>
             <AuthorizeView>
                 <Authorized>
-                    <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" Href="/bff/login"/>
+                    <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true" Direction="Direction.Bottom" OffsetY="true">
+                        <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
+                        <MudDivider />
+                        <MudMenuItem Href="/profile">My Profile</MudMenuItem>
+                        <MudMenuItem Href="/meetings">My Meetings</MudMenuItem>
+                        <MudMenuItem Href="@context.User.FindFirst("bff:logout_url")?.Value">Logout</MudMenuItem>
+                    </MudMenu>
                 </Authorized>
                 <NotAuthorized>
-                    <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"
-                                   Href="@context.User.FindFirst("bff:logout_url")?.Value"/>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login" Href="/bff/login">
+                        Sign In
+                    </MudButton>
                 </NotAuthorized>
             </AuthorizeView>
         </CascadingAuthenticationState>
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End"/>
+        
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="ml-3" />
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu/>
+    
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="@DrawerVariant.Temporary" ClipMode="DrawerClipMode.Always">
+        <MudDrawerHeader>
+            <MudImage Src="images/fortium-logo.png" Alt="Fortium Logo" Height="40" />
+            <MudText Typo="Typo.h6" Class="ml-3">Fortium Connect</MudText>
+        </MudDrawerHeader>
+        <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4">
+    
+    <MudMainContent Class="pt-16 pb-6">
         @Body
+        
+        <MudDivider Class="mt-8 mb-4" />
+        
+        <MudContainer>
+            <MudGrid Justify="Justify.Center" Class="text-center">
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Fortium Expert Connect</MudText>
+                    <MudText Typo="Typo.body2">
+                        Connect with top technology executives to solve your most challenging problems
+                    </MudText>
+                </MudItem>
+                
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Quick Links</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/">Home</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/about">About</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/experts">Experts</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="/contact">Contact</MudButton>
+                </MudItem>
+                
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Contact Us</MudText>
+                    <MudText Typo="Typo.body2">
+                        <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1" />
+                        info@fortiumpartners.com
+                    </MudText>
+                    <MudText Typo="Typo.body2">
+                        <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1" />
+                        (555) 123-4567
+                    </MudText>
+                </MudItem>
+                
+                <MudItem xs="12" Class="mt-4">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">© @DateTime.Now.Year Fortium Partners. All rights reserved.</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
     </MudMainContent>
 </MudLayout>
 
-
 @code {
-    private bool _drawerOpen = true;
-    private bool _isDarkMode = true;
+    private bool _drawerOpen = false;
+    private bool _isDarkMode = false;
     private MudTheme? _theme;
 
     protected override void OnInitialized()
@@ -47,10 +116,51 @@
         {
             PaletteLight = _lightPalette,
             PaletteDark = _darkPalette,
-            LayoutProperties = new LayoutProperties()
+            Typography = new Typography
+            {
+                Default = new Default
+                {
+                    FontFamily = new[] { "Poppins", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "0.9rem",
+                    FontWeight = 400,
+                    LineHeight = 1.5,
+                    LetterSpacing = "normal"
+                },
+                H1 = new H1
+                {
+                    FontFamily = new[] { "Poppins", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "4rem",
+                    FontWeight = 700,
+                    LineHeight = 1.1,
+                    LetterSpacing = "-0.01em"
+                },
+                H2 = new H2
+                {
+                    FontFamily = new[] { "Poppins", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "3.5rem",
+                    FontWeight = 700,
+                    LineHeight = 1.2,
+                    LetterSpacing = "-0.01em"
+                },
+                H3 = new H3
+                {
+                    FontFamily = new[] { "Poppins", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "2.5rem",
+                    FontWeight = 600,
+                    LineHeight = 1.3,
+                    LetterSpacing = "0"
+                },
+                H4 = new H4
+                {
+                    FontFamily = new[] { "Poppins", "Helvetica", "Arial", "sans-serif" },
+                    FontSize = "2rem",
+                    FontWeight = 600,
+                    LineHeight = 1.4,
+                    LetterSpacing = "0.01em"
+                }
+            }
         };
     }
-
 
     private void Login()
     {
@@ -74,47 +184,56 @@
 
     private readonly PaletteLight _lightPalette = new()
     {
-        Black = "#110e2d",
+        Primary = "#1976d2",
+        Secondary = "#0d3f6e",
+        Tertiary = "#7c4dff",
         AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
+        AppbarBackground = "#1976d2",
         DrawerBackground = "#ffffff",
+        Background = "#f5f5f5",
+        Surface = "#ffffff",
         GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9"
+        GrayLighter = "#f9f9f9",
+        Success = "#4caf50",
+        Warning = "#ff9800",
+        Error = "#f44336",
+        Info = "#2196f3"
     };
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = "#7e6fff",
-        Surface = "#1e1e2d",
-        Background = "#1a1a27",
-        BackgroundGray = "#151521",
-        AppbarText = "#92929f",
-        AppbarBackground = "rgba(26,26,39,0.8)",
-        DrawerBackground = "#1a1a27",
-        ActionDefault = "#74718e",
+        Primary = "#2196f3",
+        Secondary = "#90caf9",
+        Tertiary = "#bb86fc",
+        Surface = "#2d2d2d",
+        Background = "#1c1c1c",
+        BackgroundGray = "#151515",
+        AppbarText = "#ffffff",
+        AppbarBackground = "#1e1e1e",
+        DrawerBackground = "#2d2d2d",
+        ActionDefault = "#adadb1",
         ActionDisabled = "#9999994d",
         ActionDisabledBackground = "#605f6d4d",
-        TextPrimary = "#b2b0bf",
-        TextSecondary = "#92929f",
+        TextPrimary = "#ffffff",
+        TextSecondary = "#b0b0b0",
         TextDisabled = "#ffffff33",
-        DrawerIcon = "#92929f",
-        DrawerText = "#92929f",
-        GrayLight = "#2a2833",
-        GrayLighter = "#1e1e2d",
-        Info = "#4a86ff",
-        Success = "#3dcb6c",
-        Warning = "#ffb545",
-        Error = "#ff3f5f",
-        LinesDefault = "#33323e",
-        TableLines = "#33323e",
-        Divider = "#292838",
-        OverlayLight = "#1e1e2d80"
+        DrawerIcon = "#b0b0b0",
+        DrawerText = "#b0b0b0",
+        GrayLight = "#2a2a2a",
+        GrayLighter = "#1e1e1e",
+        Info = "#29b6f6",
+        Success = "#66bb6a",
+        Warning = "#ffa726",
+        Error = "#f44336",
+        LinesDefault = "#444444",
+        TableLines = "#444444",
+        Divider = "#3e3e3e",
+        OverlayLight = "#1e1e1e80"
     };
 
     public string DarkLightModeButtonIcon => _isDarkMode switch
     {
-        true => Icons.Material.Rounded.AutoMode,
+        true => Icons.Material.Rounded.LightMode,
         false => Icons.Material.Outlined.DarkMode
     };
-
 }
