@@ -20,7 +20,6 @@ Availability filter to only show partners who can meet soon
 Display of matched partners with relevance scores
 Brief profiles highlighting expertise relevant to the stated problem
 Availability calendar for each partner
-
 ### Booking System
 
 Seamless transition to scheduling once a partner is selected
@@ -81,6 +80,8 @@ Real-time availability checks
 - Prefer exceptions over error codes for error handling
 - Use immutable types whenever possible
 - In controllers, use Wolverine attributes and return command events
+- In the UI use Blazor and MudComponents.
+- Prefer MudCompenents over standard html.
 
 ## Architecture Overview
 - System uses CQRS and Event Sourcing patterns

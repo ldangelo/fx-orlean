@@ -1,0 +1,56 @@
+flowchart TB
+    Start([User Enters Site]) --> HomePage[Home Page]
+    HomePage --> ProblemStatement[User Describes Challenge]
+    ProblemStatement --> AIAnalysis{AI Analysis}
+    
+    AIAnalysis --> PartnerSelection[Partner Selection Page]
+    PartnerSelection --> PartnerChosen[User Selects Partner]
+    PartnerChosen --> BookingPage[Booking Calendar Page]
+    
+    BookingPage --> DateSelection[User Selects Date]
+    DateSelection --> TimeSelection[User Selects Time Slot]
+    TimeSelection --> DurationSelection[User Selects Duration]
+    DurationSelection --> BookButton[User Clicks Book Meeting]
+    
+    BookButton --> PaymentModal[Payment Modal Opens]
+    PaymentModal --> EnterPaymentInfo[User Enters Payment Info]
+    EnterPaymentInfo --> StripeProcessing{Stripe Payment Processing}
+    
+    StripeProcessing -->|Success| ConfirmationPage[Booking Confirmation Page]
+    StripeProcessing -->|Failure| PaymentError[Payment Error Message]
+    PaymentError --> PaymentModal
+    
+    ConfirmationPage --> EmailSent[Confirmation Email Sent]
+    EmailSent --> CalendarEvent[Meeting Added to Calendars]
+    
+    CalendarEvent --> Reminder[Reminder Sent Before Meeting]
+    Reminder --> MeetingTime[Video Conference Meeting]
+    
+    MeetingTime --> FeedbackRequest[Post-Meeting Feedback Request]
+    FeedbackRequest --> End([Process Complete])
+    
+    subgraph "AI Matching Process"
+        AIAnalysis
+        ExtractKeywords[Extract Keywords from Problem]
+        PartnerDatabase[(Partner Skills Database)]
+        CalendarAPI[Calendar Availability API]
+        
+        AIAnalysis --> ExtractKeywords
+        ExtractKeywords <--> PartnerDatabase
+        PartnerDatabase <--> CalendarAPI
+        CalendarAPI --> PartnerSelection
+    end
+    
+    subgraph "Payment Process"
+        PaymentModal
+        EnterPaymentInfo
+        StripeProcessing
+        PaymentError
+    end
+    
+    subgraph "Meeting Process"
+        CalendarEvent
+        Reminder
+        MeetingTime
+        FeedbackRequest
+    end
