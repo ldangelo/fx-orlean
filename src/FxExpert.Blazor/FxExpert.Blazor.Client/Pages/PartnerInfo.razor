@@ -1,4 +1,4 @@
-@page "/partner/{PartnerEmail}"
+@page "/partner/{PartnerEmail}/{ProblemDescription}/{ProblemIndustry}/{ProblemPriority}"
 @using System.Text.Json
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
@@ -57,7 +57,7 @@
 
                         <MudButton Variant="Variant.Filled"
                                    Color="Color.Primary"
-                                   FullWidth="true"
+                                   FullWidth
                                    EndIcon="@Icons.Material.Filled.CalendarToday"
                                    OnClick="ShowSchedulingPanel"
                                    Size="Size.Large"
@@ -147,7 +147,7 @@
                 @if (_showSchedule)
                 {
                     <MudPaper Elevation="3" Class="pa-4 mt-4">
-                        <MudText Typo="Typo.h5" Class="mb-3">Schedule a Consultation</MudText>
+                        <MudText Typo="Typo.h5" ShrinkLabel Class="mb-3">Schedule a Consultation</MudText>
 
                         <MudGrid>
                             <MudItem xs="12" md="6">
@@ -156,12 +156,12 @@
                                                Placeholder="Select a date"
                                                DisableToolbar="true"
                                                Variant="Variant.Outlined"
-                                               FullWidth="true"/>
+                                               FullWidth/>
                             </MudItem>
 
                             <MudItem xs="12" md="6">
                                 <MudSelect T="string" @bind-Value="_selectedTime" Label="Select Time"
-                                           Variant="Variant.Outlined" FullWidth="true">
+                                           Variant="Variant.Outlined" FullWidth>
                                     <MudSelectItem Value="@("9:00 AM")">9:00 AM</MudSelectItem>
                                     <MudSelectItem Value="@("10:00 AM")">10:00 AM</MudSelectItem>
                                     <MudSelectItem Value="@("11:00 AM")">11:00 AM</MudSelectItem>
@@ -174,16 +174,18 @@
 
                             <MudItem xs="12">
                                 <MudTextField @bind-Value="_meetingTopic"
+                                              ShrinkLabel
+                                              T="string"
                                               Label="Meeting Topic"
-                                              Placeholder="Briefly describe what you'd like to discuss"
+                                              Placeholder="@ProblemDescription"
                                               Variant="Variant.Outlined"
-                                              FullWidth="true"/>
+                                              FullWidth/>
                             </MudItem>
 
                             <MudItem xs="12">
                                 <MudButton Variant="Variant.Filled"
                                            Color="Color.Primary"
-                                           FullWidth="true"
+                                           FullWidth
                                            OnClick="ScheduleConsultation"
                                            Disabled="!CanSchedule">
                                     Confirm Booking
@@ -199,6 +201,9 @@
 
 @code {
     [Parameter] public string PartnerEmail { get; set; } = string.Empty;
+    [Parameter] [SupplyParameterFromQuery] public string ProblemDescription { get; set; } = string.Empty;
+    [Parameter] [SupplyParameterFromQuery] public string ProblemIndustry { get; set; } = string.Empty;
+    [Parameter] [SupplyParameterFromQuery] public string ProblemPriority { get; set; } = string.Empty;
 
     private Partner? _partner;
     private bool _loading = true;
@@ -221,7 +226,7 @@
             // In a real application, you would call your API with the PartnerEmail
             if (!string.IsNullOrEmpty(email))
             {
-                var response = await Http.GetAsync($"/api/partners/email/{email}");
+                var response = await Http.GetAsync($"/partners/{email}");
 
                 if (response.IsSuccessStatusCode)
                 {

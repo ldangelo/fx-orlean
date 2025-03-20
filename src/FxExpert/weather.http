@@ -1,3 +1,0 @@
-
-# test the weather service
-GET http://localhost:5266/api/weather

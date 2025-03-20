@@ -1,7 +1,6 @@
 using Fortium.Types;
 using Marten;
 using Serilog;
-using Wolverine.Persistence;
 
 namespace EventServer;
 
@@ -11,7 +10,7 @@ public class StartUpTask : IHostedService
 
     public StartUpTask(IDocumentStore store)
     {
-        this._store = store;
+        _store = store;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -23,6 +22,13 @@ public class StartUpTask : IHostedService
         leo.FirstName = "Leo";
         leo.LastName = "DAngelo";
         leo.EmailAddress = "leo.dangelo@fortiumpartners.com";
+        leo.PrimaryPhone = "+1 (972) 979-0116";
+        leo.City = "Plano";
+        leo.State = "TX";
+        leo.Country = "USA";
+
+        leo.Bio =
+            "Leo is a seasoned technology veteran.  He has over 40 years of experience the majority of it in SaaS solutions.";
         leo.Skills.Add(new PartnerSkill("leadership", 30, ExperienceLevel.Expert));
         leo.Skills.Add(new PartnerSkill("architecture", 30, ExperienceLevel.Expert));
         leo.Skills.Add(new PartnerSkill("aws", 30, ExperienceLevel.Expert));
@@ -34,7 +40,7 @@ public class StartUpTask : IHostedService
         leo.Skills.Add(new PartnerSkill("java", 30, ExperienceLevel.Expert));
         leo.WorkHistories.Add(new WorkHistory(DateOnly.FromDateTime(DateTime.Now.AddYears(-10)), null,
             "Fortium Partners", "CTO",
-            "Fractional CTO with experience working with SaaS companies in the financial services industry"));
+            "Fractional CTO with experience working with SaaS companies.  Specializing in transitioning to or improving existing SaaS solutions. "));
         leo.WorkHistories.Add(new WorkHistory(DateOnly.FromDateTime(DateTime.Now.AddYears(-6)),
             DateOnly.FromDateTime(DateTime.Now.AddYears(-1)),
             "Allied Payment Network", "CTO",
