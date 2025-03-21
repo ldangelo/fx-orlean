@@ -84,7 +84,7 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = false
         };
         
-        // Custom handling for roles
+        // Custom handling for roles and errors
         options.Events = new OpenIdConnectEvents
         {
             OnTokenValidated = context =>
@@ -106,6 +106,14 @@ builder.Services.AddAuthentication(options =>
                     }
                 }
                 
+                return Task.CompletedTask;
+            },
+            
+            // Handle authentication errors
+            OnRemoteFailure = context =>
+            {
+                context.Response.Redirect("/authentication-failed?error=" + Uri.EscapeDataString(context.Failure.Message));
+                context.HandleResponse();
                 return Task.CompletedTask;
             }
         };

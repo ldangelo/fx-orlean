@@ -1,5 +1,6 @@
 @page "/confirmation/{PartnerEmail}"
 @using Fortium.Types
+@attribute [AuthorizeRoles("USER")]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 

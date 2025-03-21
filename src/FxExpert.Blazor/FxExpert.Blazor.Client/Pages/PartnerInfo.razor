@@ -1,5 +1,6 @@
 @page "/partner/{PartnerEmail}/{ProblemDescription}/{ProblemIndustry}/{ProblemPriority}"
 @using System.Text.Json
+@attribute [AuthorizeRoles("USER")]
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
 
