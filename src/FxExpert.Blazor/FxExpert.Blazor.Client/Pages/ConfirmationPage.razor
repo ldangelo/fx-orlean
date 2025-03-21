@@ -73,7 +73,7 @@
         {
             try
             {
-                var response = await Http.GetAsync($"/api/partners/email/{email}");
+                var response = await Http.GetAsync($"/partners/{email}");
                 
                 if (response.IsSuccessStatusCode)
                 {
