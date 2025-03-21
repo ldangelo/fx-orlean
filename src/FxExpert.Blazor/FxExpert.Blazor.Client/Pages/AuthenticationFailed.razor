@@ -1,5 +1,5 @@
 @page "/authentication-failed"
-@using Microsoft.AspNetCore.WebUtilities
+@using System.Web
 
 <PageTitle>Authentication Failed</PageTitle>
 
@@ -32,8 +32,10 @@
     protected override void OnInitialized()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
         
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("error", out var errorMsg))
+        var errorMsg = query["error"];
+        if (!string.IsNullOrEmpty(errorMsg))
         {
             ErrorMessage = errorMsg;
         }
