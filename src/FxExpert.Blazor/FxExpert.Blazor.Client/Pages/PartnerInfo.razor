@@ -177,7 +177,8 @@
                                               ShrinkLabel
                                               T="string"
                                               Label="Meeting Topic"
-                                              Placeholder="@ProblemDescription"
+                                              Lines="5"
+                                              Placeholder="What is the purpose of this meeting request?"
                                               Variant="Variant.Outlined"
                                               FullWidth/>
                             </MudItem>
@@ -214,6 +215,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _meetingTopic = ProblemDescription;
         await LoadPartnerData();
     }
 
