@@ -39,11 +39,11 @@
                         <MudDivider />
                         <MudMenuItem Href="/profile">My Profile</MudMenuItem>
                         <MudMenuItem Href="/meetings">My Meetings</MudMenuItem>
-                        <MudMenuItem Href="@context.User.FindFirst("bff:logout_url")?.Value">Logout</MudMenuItem>
+                        <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
                     </MudMenu>
                 </Authorized>
                 <NotAuthorized>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login" Href="/bff/login">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login" OnClick="Login">
                         Sign In
                     </MudButton>
                 </NotAuthorized>
@@ -113,12 +113,12 @@
 
     private void Login()
     {
-        NavigationManager.NavigateTo("bff/login", true);
+        NavigationManager.NavigateTo("/signin-oidc?ReturnUrl=" + Uri.EscapeDataString(NavigationManager.Uri), true);
     }
 
     private void Logout()
     {
-        NavigationManager.NavigateTo("bff/logout", true);
+        NavigationManager.NavigateTo("/signout-oidc", true);
     }
 
     private void DrawerToggle()

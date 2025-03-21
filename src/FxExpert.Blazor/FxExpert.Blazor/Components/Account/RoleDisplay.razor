@@ -1,0 +1,45 @@
+@using System.Security.Claims
+@inject ILogger<RoleDisplay> Logger
+
+<AuthorizeView>
+    <Authorized>
+        @if (_userRoles.Any())
+        {
+            <MudText Typo="Typo.body2">Current roles: @string.Join(", ", _userRoles)</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.body2">No roles assigned</MudText>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.body2">Not authenticated</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private IEnumerable<string> _userRoles = Array.Empty<string>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthState != null)
+        {
+            var authState = await AuthState;
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                // Extract roles from claims
+                _userRoles = user.Claims
+                    .Where(c => c.Type == ClaimTypes.Role || c.Type == "roles")
+                    .Select(c => c.Value)
+                    .ToList();
+
+                Logger.LogInformation("User has the following roles: {Roles}", string.Join(", ", _userRoles));
+            }
+        }
+    }
+}

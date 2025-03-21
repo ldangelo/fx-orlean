@@ -1,11 +1,17 @@
 using FxExpert.Blazor.Components;
 using FxExpert.Blazor.Components.Account;
 using FxExpert.Blazor.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using Serilog;
+using System.Security.Claims;
 using _Imports = FxExpert.Blazor.Client._Imports;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,12 +43,73 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+// Configure Authentication with Keycloak
 builder.Services.AddAuthentication(options =>
     {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
     })
-    .AddIdentityCookies();
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    })
+    .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+    {
+        // Get settings from configuration
+        var config = builder.Configuration.GetSection("OpenIdConnect");
+        options.Authority = config["Authority"];
+        options.ClientId = config["ClientId"];
+        options.ClientSecret = config["ClientSecret"];
+        options.ResponseType = OpenIdConnectResponseType.Code;
+        options.RequireHttpsMetadata = config.GetValue<bool>("RequireHttpsMetadata");
+        options.UsePkce = config.GetValue<bool>("UsePkce");
+        options.SaveTokens = config.GetValue<bool>("SaveTokens");
+        options.GetClaimsFromUserInfoEndpoint = config.GetValue<bool>("GetClaimsFromUserInfoEndpoint");
+        
+        // Add scopes
+        foreach (var scope in config.GetSection("Scope").Get<string[]>() ?? Array.Empty<string>())
+        {
+            options.Scope.Add(scope);
+        }
+        
+        // Configure token validation parameters
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = config["TokenValidationParameters:NameClaimType"] ?? "name",
+            RoleClaimType = config["TokenValidationParameters:RoleClaimType"] ?? "roles",
+            ValidateIssuer = true,
+            ValidateAudience = false
+        };
+        
+        // Custom handling for roles
+        options.Events = new OpenIdConnectEvents
+        {
+            OnTokenValidated = context =>
+            {
+                // Map Keycloak roles to claims
+                var identity = context.Principal?.Identity as ClaimsIdentity;
+                if (identity == null) return Task.CompletedTask;
+                
+                if (context.TokenEndpointResponse?.AccessToken != null)
+                {
+                    var roleClaimType = config["TokenValidationParameters:RoleClaimType"] ?? "roles";
+                    // Add roles from access token if present
+                    foreach (var claim in context.Principal.Claims)
+                    {
+                        if (claim.Type == roleClaimType && !identity.HasClaim(roleClaimType, claim.Value))
+                        {
+                            identity.AddClaim(new Claim(ClaimTypes.Role, claim.Value));
+                        }
+                    }
+                }
+                
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
                        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -56,6 +123,22 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Configure authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    // Default policy requires authentication
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    
+    // Add role-based policies
+    options.AddPolicy("RequireUserRole", policy => 
+        policy.RequireRole("USER"));
+    
+    options.AddPolicy("RequireAdminRole", policy => 
+        policy.RequireRole("ADMIN"));
+});
 
 var app = builder.Build();
 
