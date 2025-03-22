@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -50,7 +51,39 @@
             </AuthorizeView>
         </CascadingAuthenticationState>
         
+        @if(_debugMode)
+        {
+            <div style="position: fixed; bottom: 10px; right: 10px; z-index: 9999; background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px; max-width: 300px; font-size: 12px;">
+                <h4 style="margin: 0 0 5px 0;">Auth Debug Info</h4>
+                <AuthorizeView>
+                    <Authorized>
+                        <p style="margin: 2px 0;">Status: Authenticated</p>
+                        <p style="margin: 2px 0;">Name: @context.User.Identity?.Name</p>
+                        <p style="margin: 2px 0;">
+                            Roles: 
+                            @if (context.User.IsInRole("USER"))
+                            {
+                                <span>USER</span>
+                            }
+                            else
+                            {
+                                <span>No USER role</span>
+                            }
+                        </p>
+                        <p style="margin: 2px 0;">
+                            Claims: @string.Join(", ", context.User.Claims.Select(c => $"{c.Type}={c.Value}").Take(5))
+                        </p>
+                    </Authorized>
+                    <NotAuthorized>
+                        <p style="margin: 2px 0;">Status: Not Authenticated</p>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <button @onclick="ToggleDebug" style="margin-top: 5px; padding: 2px 5px;">Close</button>
+            </div>
+        }
+        
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="ml-3" />
+        <MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" OnClick="@ToggleDebug" Class="ml-3" />
     </MudAppBar>
     
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="@DrawerVariant.Temporary" ClipMode="DrawerClipMode.Always">
@@ -99,6 +132,7 @@
     private bool _drawerOpen = false;
     private bool _isDarkMode = false;
     private MudTheme? _theme;
+    private bool _debugMode = true; // Set to true to show debug info
 
     protected override void OnInitialized()
     {
@@ -129,6 +163,11 @@
     private void DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
+    }
+    
+    private void ToggleDebug()
+    {
+        _debugMode = !_debugMode;
     }
 
     private readonly PaletteLight _lightPalette = new()
