@@ -63,6 +63,10 @@ builder.Services.AddAuthentication(options =>
         options.Authority = config["Authority"];
         options.ClientId = config["ClientId"];
         options.ClientSecret = config["ClientSecret"];
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+        options.Scope.Add("roles");
         options.ResponseType = OpenIdConnectResponseType.Code;
         options.RequireHttpsMetadata = config.GetValue<bool>("RequireHttpsMetadata");
         options.UsePkce = config.GetValue<bool>("UsePkce");
