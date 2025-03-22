@@ -69,6 +69,42 @@ builder.Services.AddAuthentication(options =>
         options.SaveTokens = config.GetValue<bool>("SaveTokens");
         options.GetClaimsFromUserInfoEndpoint = config.GetValue<bool>("GetClaimsFromUserInfoEndpoint");
         
+        // Set the callback paths
+        options.CallbackPath = config["CallbackPath"] ?? "/signin-oidc";
+        options.SignedOutCallbackPath = config["SignedOutCallbackPath"] ?? "/signout-callback-oidc";
+        options.RemoteSignOutPath = config["RemoteSignOutPath"] ?? "/signout-oidc";
+        
+        // Log the configuration for debugging
+        var callbackPath = options.CallbackPath;
+        var signedOutCallbackPath = options.SignedOutCallbackPath;
+        var remoteSignOutPath = options.RemoteSignOutPath;
+        var errorPath = config["ErrorPath"] ?? "/authentication-failed";
+        
+        Console.WriteLine($"OIDC Configuration:");
+        Console.WriteLine($"Authority: {options.Authority}");
+        Console.WriteLine($"ClientId: {options.ClientId}");
+        Console.WriteLine($"CallbackPath: {callbackPath}");
+        Console.WriteLine($"SignedOutCallbackPath: {signedOutCallbackPath}");
+        Console.WriteLine($"RemoteSignOutPath: {remoteSignOutPath}");
+        Console.WriteLine($"ErrorPath: {errorPath}");
+        
+        // Get host from configuration or use default
+        var scheme = builder.Environment.IsDevelopment() ? "http" : "https";
+        var host = builder.Configuration["ApplicationUrl"] ?? "localhost:8500";
+        
+        // Extract host from applicationUrl in launchSettings if available
+        var urls = builder.WebHost.GetSetting("urls")?.Split(';');
+        if (urls?.Length > 0 && !string.IsNullOrEmpty(urls[0]))
+        {
+            var url = new Uri(urls[0]);
+            host = url.Authority;
+        }
+        
+        Console.WriteLine($"Application host: {host}");
+        Console.WriteLine($"Redirect URI: {scheme}://{host}{callbackPath}");
+        Console.WriteLine($"Signout Redirect URI: {scheme}://{host}{signedOutCallbackPath}");
+        Console.WriteLine($"Error Redirect URI: {scheme}://{host}{errorPath}");
+        
         // Add scopes
         foreach (var scope in config.GetSection("Scope").Get<string[]>() ?? Array.Empty<string>())
         {
