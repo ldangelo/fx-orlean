@@ -1,5 +1,4 @@
 ﻿@page "/"
-@attribute [AuthorizeRoles("USER")]
 
 <PageTitle>Fortium Expert Connect</PageTitle>
 
@@ -24,6 +23,7 @@
 </style>
 
 <!-- Hero Section -->
+
 <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="px-0 hero-section">
     <MudContainer MaxWidth="MaxWidth.Large">
         <MudText Typo="Typo.h3" Class="mb-2">Find Your Fractional CIO, CTO, or CISO</MudText>
@@ -130,7 +130,8 @@
                                 @(partner?.PrimaryPhone)
                             </MudText>
 
-                            <MudText Typo="Typo.body2" Style="font-weight: bold" Class="mt-2">Why this expert matches
+                            <MudText Typo="Typo.body2" Style="font-weight: bold" Class="mt-2">Why this expert
+                                matches
                                 your needs:
                             </MudText>
                             <MudText Typo="Typo.body2">@partner?.Reason</MudText>

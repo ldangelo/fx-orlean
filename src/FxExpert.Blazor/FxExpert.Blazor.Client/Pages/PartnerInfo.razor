@@ -1,6 +1,5 @@
 @page "/partner/{PartnerEmail}/{ProblemDescription}/{ProblemIndustry}/{ProblemPriority}"
 @using System.Text.Json
-@attribute [AuthorizeRoles("USER")]
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
 
@@ -15,7 +14,8 @@
     else if (_partner == null)
     {
         <MudAlert Severity="Severity.Error" Class="my-4">Expert profile not found</MudAlert>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/"))">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@(() => NavigationManager.NavigateTo("/"))">
             Return to Home
         </MudButton>
     }

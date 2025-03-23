@@ -1,10 +1,10 @@
 ﻿@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 @code {
-
     protected override void OnInitialized()
     {
-        NavigationManager.NavigateTo($"/signin-oidc?ReturnUrl={Uri.EscapeDataString(NavigationManager.Uri)}", forceLoad: true);
+        // Use the standard authentication request URI format
+        NavigationManager.NavigateToLogin("authentication/login");
     }
-
 }
