@@ -1,6 +1,8 @@
 using EventServer.Aggregates.Partners;
 using EventServer.Aggregates.Payments;
 using EventServer.Aggregates.Users;
+using FastEndpoints;
+using FastEndpoints.Swagger;
 using Marten;
 using Marten.Events;
 using Marten.Events.Projections;
@@ -31,8 +33,13 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Host.UseSerilog();
+        builder.Services.AddFastEndpoints().SwaggerDocument();
 
         builder.Services.AddControllers();
+        builder.Environment.ApplicationName = "EventServer";
+
+        if (builder.Environment.IsDevelopment())
+            builder.Services.AddHostedService<StartUpTask>();
         //
         // add wolverine/marten
         builder
@@ -67,6 +74,7 @@ public class Program
             })
             .StartAsync();
 
+        builder.Services.AddSingleton<ChatGPTWithRAG>();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddWolverineHttp();
@@ -85,6 +93,7 @@ public class Program
             store.Advanced.Clean.DeleteAllEventData();
         }
 
+        app.UseFastEndpoints().UseSwaggerGen();
         app.UseHttpsRedirection();
 
         app.MapControllers();
@@ -96,6 +105,8 @@ public class Program
             });
             opts.UseFluentValidationProblemDetailMiddleware();
         });
+
+        // Define the minimal API endpoint
 
         app.Run();
     }

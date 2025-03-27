@@ -1,0 +1,10 @@
+﻿@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Use the standard authentication request URI format
+        NavigationManager.NavigateToLogin("authentication/login");
+    }
+}

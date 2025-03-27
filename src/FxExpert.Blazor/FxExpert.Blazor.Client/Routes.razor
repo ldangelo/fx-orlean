@@ -1,0 +1,31 @@
+﻿<Router AppAssembly="typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                @if (context.User.Identity?.IsAuthenticated == true)
+                {
+                    <MudContainer Class="mt-16 text-center">
+                        <MudText Typo="Typo.h5" Color="Color.Error">
+                            You do not have permission to access this page.
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">Return Home</MudButton>
+                    </MudContainer>
+                }
+                else
+                {
+                    <RedirectToLogin/>
+                }
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <MudContainer Class="mt-16 text-center">
+                <MudText Typo="Typo.h4">404 - Page Not Found</MudText>
+                <MudText Typo="Typo.body1" Class="mb-4">Sorry, the page you are looking for does not exist.</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/">Return Home</MudButton>
+            </MudContainer>
+        </LayoutView>
+    </NotFound>
+</Router>
