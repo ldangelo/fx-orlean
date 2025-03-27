@@ -15,7 +15,7 @@
 
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-                           OnClick="@(e => DrawerToggle())"/>
+                           OnClick="DrawerToggle"/>
         </MudHidden>
 
         <MudText Typo="Typo.h5" Class="ml-3">Fortium Expert Connect</MudText>
@@ -39,8 +39,15 @@
                              Direction="Direction.Bottom" OffsetY="true">
                         <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
                         <MudDivider/>
-                        <MudMenuItem Href="/profile">My Profile</MudMenuItem>
-                        <MudMenuItem Href="/meetings">My Meetings</MudMenuItem>
+                        @if (context.User.IsInRole("Partner"))
+                        {
+                            <MudMenuItem Href="/partner_home">Partner Dashboard</MudMenuItem>
+                        }
+                        else
+                        {
+                            <MudMenuItem Href="/profile">My Profile</MudMenuItem>
+                            <MudMenuItem Href="/meetings">My Meetings</MudMenuItem>
+                        }
                         <MudMenuItem Href="authentication/logout">Logout</MudMenuItem>
                     </MudMenu>
                 </Authorized>

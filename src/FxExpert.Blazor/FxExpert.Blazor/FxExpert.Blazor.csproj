@@ -10,7 +10,7 @@
         <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.3"/>
         <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.11.0"/>
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0-preview.1.25080.5"/>

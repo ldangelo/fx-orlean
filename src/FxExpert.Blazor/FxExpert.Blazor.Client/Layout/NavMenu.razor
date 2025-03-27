@@ -8,9 +8,19 @@
     
     <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="ml-4 my-3">Account</MudText>
     
-    <MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
-    <MudNavLink Href="/meetings" Icon="@Icons.Material.Filled.CalendarToday">My Meetings</MudNavLink>
-    <MudNavLink Href="/payments" Icon="@Icons.Material.Filled.CreditCard">Payment History</MudNavLink>
+    <AuthorizeView Roles="User">
+        <Authorized>
+            <MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+            <MudNavLink Href="/meetings" Icon="@Icons.Material.Filled.CalendarToday">My Meetings</MudNavLink>
+            <MudNavLink Href="/payments" Icon="@Icons.Material.Filled.CreditCard">Payment History</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    
+    <AuthorizeView Roles="Partner">
+        <Authorized>
+            <MudNavLink Href="/partner_home" Icon="@Icons.Material.Filled.Dashboard">Partner Dashboard</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
     
     <MudDivider Class="my-2" />
     
