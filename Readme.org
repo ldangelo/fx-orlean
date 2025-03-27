@@ -2,7 +2,7 @@
 
 * Introduction
 
-FX-expert is a WIP.  It's intended to be an application to allow 'users' to schedule video conferences with 'partners' at Fortium Partners. Fortium Partners provices executive level fractional leadership for CIO's, CTO's and CISO's.  I'm a partner within the CTO practice.
+FX-expert is a WIP.  It's intended to be an application to allow 'users' to schedule video conferences with 'partners' at Fortium Partners. Fortium Partners provides executive level fractional leadership for CIO's, CTO's and CISO's.  I'm a partner within the CTO practice.
 
 http://www.fortiumpartners.com/
 
