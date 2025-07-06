@@ -49,4 +49,49 @@ public class UserProjection : SingleStreamProjection<User>
 
         return user;
     }
+    
+    public static User Apply(UserProfileUpdatedEvent @event, User user)
+    {
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserProfileUpdatedEvent), @event.EmailAddress);
+        user.FirstName = @event.FirstName;
+        user.LastName = @event.LastName;
+        user.PhoneNumber = @event.PhoneNumber;
+        user.ProfilePictureUrl = @event.ProfilePictureUrl;
+        user.UpdateDate = DateTime.Now;
+        
+        return user;
+    }
+    
+    public static User Apply(UserAddressUpdatedEvent @event, User user)
+    {
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserAddressUpdatedEvent), @event.EmailAddress);
+        if (user.Address == null) {
+            user.Address = new Address();
+        }
+        user.Address.Street1 = @event.Street1;
+        user.Address.Street2 = @event.Street2;
+        user.Address.City = @event.City;
+        user.Address.State = @event.State;
+        user.Address.ZipCode = @event.ZipCode;
+        user.Address.Country = @event.Country;
+        user.UpdateDate = DateTime.Now;
+        
+        return user;
+    }
+    
+    public static User Apply(UserPreferencesUpdatedEvent @event, User user)
+    {
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserPreferencesUpdatedEvent), @event.EmailAddress);
+        if (user.Preferences == null) {
+            user.Preferences = new UserPreferences();
+        }
+        user.Preferences.ReceiveEmailNotifications = @event.ReceiveEmailNotifications;
+        user.Preferences.ReceiveSmsNotifications = @event.ReceiveSmsNotifications;
+        user.Preferences.PreferredLanguage = @event.PreferredLanguage;
+        user.Preferences.TimeZone = @event.TimeZone;
+        user.Preferences.Theme = @event.Theme;
+        user.UpdateDate = DateTime.Now;
+        
+        return user;
+    }
 }

@@ -13,4 +13,6 @@
 @using Fortium.Types
 @using FxExpert.Blazor.Client
 @using Microsoft.AspNetCore.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar Snackbar
 @attribute [Authorize]
