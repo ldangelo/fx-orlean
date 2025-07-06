@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <TargetFramework>net9.0</TargetFramework>
+    <UserSecretsId>a56089b4-fc40-44bc-91f3-0a2c64be2e93</UserSecretsId>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Alba" Version="8.1.1"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0"/>
+    <PackageReference Include="xunit" Version="2.9.0"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+   </ItemGroup>
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\common.csproj"/>
+    <ProjectReference Include="..\..\EventServer\EventServer.csproj"/>
+  </ItemGroup>
+</Project>

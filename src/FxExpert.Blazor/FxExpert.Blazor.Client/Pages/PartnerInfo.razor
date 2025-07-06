@@ -1,0 +1,330 @@
+@page "/partner/{PartnerEmail}/{ProblemDescription}/{ProblemIndustry}/{ProblemPriority}"
+@using System.Text.Json
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+<PageTitle>Expert Profile</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
+        <MudText Typo="Typo.h6" Align="Align.Center" Class="my-4">Loading expert profile...</MudText>
+    }
+    else if (_partner == null)
+    {
+        <MudAlert Severity="Severity.Error" Class="my-4">Expert profile not found</MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="@(() => NavigationManager.NavigateTo("/"))">
+            Return to Home
+        </MudButton>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudPaper Elevation="3" Class="pa-4">
+                    <MudStack>
+                        <MudAvatar Color="Color.Primary" Size="Size.Large"
+                                   Style="height: 80px; width: 80px; font-size: 2rem; margin: 0 auto;">
+                            @_partner.FirstName?.Substring(0, 1)@_partner.LastName?.Substring(0, 1)
+                        </MudAvatar>
+
+                        <MudText Typo="Typo.h4" Align="Align.Center" Class="mt-2">@_partner.GetFullName()</MudText>
+                        <MudText Typo="Typo.subtitle1" Align="Align.Center">@_partner.Title</MudText>
+                        <MudText Typo="Typo.subtitle2" Align="Align.Center">Fortium Partners</MudText>
+
+                        <MudDivider/>
+
+                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Email" Class="mr-2"/> @_partner.EmailAddress
+                        </MudText>
+                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.Phone" Class="mr-2"/> @_partner.PrimaryPhone
+                        </MudText>
+                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Class="mr-2"/> @_partner.GetLocation()
+                        </MudText>
+
+                        <MudDivider/>
+
+                        <MudText Typo="Typo.h6">Areas of Expertise</MudText>
+                        <MudChipSet T="string">
+                            @foreach (var skill in _partner.Skills ?? new List<PartnerSkill>())
+                            {
+                                <MudChip Color="Color.Primary" Variant="Variant.Outlined">@skill.Skill</MudChip>
+                            }
+                        </MudChipSet>
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   FullWidth
+                                   EndIcon="@Icons.Material.Filled.CalendarToday"
+                                   OnClick="ShowSchedulingPanel"
+                                   Size="Size.Large"
+                                   Class="mt-4">
+                            Schedule a Consultation
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="8">
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    <MudTabPanel Text="Overview" Icon="@Icons.Material.Filled.Person">
+                        <MudText Typo="Typo.h5" Class="mb-4">Professional Summary</MudText>
+                        <MudText Typo="Typo.body1">@(_partner.Bio ?? "No bio information available.")</MudText>
+
+                        @if (!string.IsNullOrEmpty(_partner.Reason))
+                        {
+                            <MudPaper Elevation="0" Class="pa-4 mt-4"
+                                      Style="background-color: #f5f5f5; border-left: 4px solid var(--mud-palette-primary);">
+                                <MudText Typo="Typo.h6">Why this expert matches your needs:</MudText>
+                                <MudText Typo="Typo.body1">@_partner.Reason</MudText>
+                            </MudPaper>
+                        }
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Experience" Icon="@Icons.Material.Filled.Work">
+                        <MudText Typo="Typo.h5" Class="mb-4">Professional Experience</MudText>
+
+                        @if (_partner.WorkHistories != null && _partner.WorkHistories.Any())
+                        {
+                            <MudTimeline>
+                                @foreach (var work in _partner.WorkHistories.OrderByDescending(w => w.EndDate))
+                                {
+                                    <MudTimelineItem Color="Color.Primary">
+                                        <ItemContent>
+                                            <MudCard Elevation="0" Class="mb-2">
+                                                <MudCardHeader>
+                                                    <CardHeaderContent>
+                                                        <MudText Typo="Typo.h6">@work.Title</MudText>
+                                                        <MudText Typo="Typo.subtitle1">@work.CompanyName</MudText>
+                                                        <MudText Typo="Typo.subtitle2">
+                                                            @(work.StartDate.ToString("MMM yyyy")) - @(work.EndDate?.ToString("MMM yyyy"))
+                                                        </MudText>
+                                                    </CardHeaderContent>
+                                                </MudCardHeader>
+                                                <MudCardContent>
+                                                    <MudText Typo="Typo.body1">@work.Description</MudText>
+                                                </MudCardContent>
+                                            </MudCard>
+                                        </ItemContent>
+                                    </MudTimelineItem>
+                                }
+                            </MudTimeline>
+                        }
+                        else
+                        {
+                            <MudText>No work history available.</MudText>
+                        }
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Reviews" Icon="@Icons.Material.Filled.Star">
+                        <MudText Typo="Typo.h5" Class="mb-4">Client Reviews</MudText>
+                        <MudPaper Elevation="0" Class="pa-4" Style="background-color: #f5f5f5;">
+                            <MudText Typo="Typo.body1" Style="font-style: italic;">
+                                "Working with @_partner.FirstName was an absolute game-changer for our organization.
+                                Their expertise in technology strategy helped us navigate a complex digital
+                                transformation with confidence."
+                            </MudText>
+                            <MudText Typo="Typo.subtitle2" Class="mt-2">— Jane Smith, CTO at Example Corp</MudText>
+                            <MudRating ReadOnly="true" SelectedValue="5"/>
+                        </MudPaper>
+
+                        <MudPaper Elevation="0" Class="pa-4 mt-3" Style="background-color: #f5f5f5;">
+                            <MudText Typo="Typo.body1" Style="font-style: italic;">
+                                "@_partner.FirstName brought incredible insights to our cybersecurity challenges.
+                                Their strategic approach and deep technical knowledge helped us implement robust
+                                security measures."
+                            </MudText>
+                            <MudText Typo="Typo.subtitle2" Class="mt-2">— Michael Johnson, CISO at Tech Innovations
+                            </MudText>
+                            <MudRating ReadOnly="true" SelectedValue="5"/>
+                        </MudPaper>
+                    </MudTabPanel>
+                </MudTabs>
+
+                @if (_showSchedule)
+                {
+                    <MudPaper Elevation="3" Class="pa-4 mt-4">
+                        <MudText Typo="Typo.h5" shrinkLabel Class="mb-3">Schedule a Consultation</MudText>
+
+                        <MudGrid>
+                            <MudItem xs="12" md="6">
+                                <MudDatePicker Label="Select Date"
+                                               @bind-Date="_selectedDate"
+                                               Placeholder="Select a date"
+                                               disableToolbar="true"
+                                               Variant="Variant.Outlined"
+                                               fullWidth/>
+                            </MudItem>
+
+                            <MudItem xs="12" md="6">
+                                <MudSelect T="string" @bind-Value="_selectedTime" Label="Select Time"
+                                           Variant="Variant.Outlined" fullWidth>
+                                    <MudSelectItem Value="@("9:00 AM")">9:00 AM</MudSelectItem>
+                                    <MudSelectItem Value="@("10:00 AM")">10:00 AM</MudSelectItem>
+                                    <MudSelectItem Value="@("11:00 AM")">11:00 AM</MudSelectItem>
+                                    <MudSelectItem Value="@("1:00 PM")">1:00 PM</MudSelectItem>
+                                    <MudSelectItem Value="@("2:00 PM")">2:00 PM</MudSelectItem>
+                                    <MudSelectItem Value="@("3:00 PM")">3:00 PM</MudSelectItem>
+                                    <MudSelectItem Value="@("4:00 PM")">4:00 PM</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="_meetingTopic"
+                                              shrinkLabel
+                                              T="string"
+                                              Label="Meeting Topic"
+                                              Lines="5"
+                                              Placeholder="What is the purpose of this meeting request?"
+                                              Variant="Variant.Outlined"
+                                              fullWidth/>
+                            </MudItem>
+
+                            <MudItem xs="12">
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           FullWidth
+                                           OnClick="ScheduleConsultation"
+                                           Disabled="!CanSchedule">
+                                    Confirm Booking
+                                </MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                }
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public string PartnerEmail { get; set; } = string.Empty;
+    [Parameter] [SupplyParameterFromQuery] public string ProblemDescription { get; set; } = string.Empty;
+    [Parameter] [SupplyParameterFromQuery] public string ProblemIndustry { get; set; } = string.Empty;
+    [Parameter] [SupplyParameterFromQuery] public string ProblemPriority { get; set; } = string.Empty;
+
+    private Partner? _partner;
+    private bool _loading = true;
+    private bool _showSchedule;
+    private DateTime? _selectedDate;
+    private string _selectedTime = string.Empty;
+    private string _meetingTopic = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _meetingTopic = ProblemDescription;
+        await LoadPartnerData();
+    }
+
+    private async Task LoadPartnerData()
+    {
+        try
+        {
+            var email = Uri.UnescapeDataString(PartnerEmail);
+
+            // In a real application, you would call your API with the PartnerEmail
+            if (!string.IsNullOrEmpty(email))
+            {
+                var response = await Http.GetAsync($"/partners/{email}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _partner = JsonSerializer.Deserialize<Partner>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+
+            // For demo/development purposes, if the API call fails, create sample data
+            if (_partner == null)
+            {
+                _partner = new Partner
+                {
+                    EmailAddress = email,
+                    FirstName = "John",
+                    LastName = "Smith",
+                    Title = "Chief Technology Officer",
+                    PrimaryPhone = "(555) 123-4567",
+                    Bio = "John is a seasoned executive with over 25 years of technology leadership experience. He has led digital transformations for Fortune 500 companies and specializes in cloud architecture, cybersecurity, and IT governance. His strategic approach to technology has helped numerous organizations achieve their business objectives through innovative solutions.",
+                    City = "Chicago", State = "IL",
+                    Skills = new List<PartnerSkill>
+                    {
+                        new("Cloud Architecture", 25, ExperienceLevel.Expert),
+                        new("Enterprise Security", 20, ExperienceLevel.Proficient),
+                        new("IT Governance", 15, ExperienceLevel.Proficient),
+                        new("Digital Transformation", 30, ExperienceLevel.Expert),
+                        new("Strategic Planning", 5, ExperienceLevel.Proficient)
+                    },
+                    WorkHistories = new List<WorkHistory>
+                    {
+                        new(
+                            new DateOnly(2015, 1, 1),
+                            null,
+                            "Tech Innovations Inc.",
+                            "CTO",
+                            "Led digital transformation initiatives and managed a team of 50 IT professionals."
+                        ),
+                        new(
+                            new DateOnly(2010, 3, 1),
+                            new DateOnly(2014, 12, 31),
+                            "Enterprise Solutions LLC",
+                            "VP of Technology",
+                            "Responsible for cloud migration strategy and implementation of enterprise security solutions."
+                        )
+                    }
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading partner data: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ShowSchedulingPanel()
+    {
+        _showSchedule = true;
+    }
+
+    private bool CanSchedule =>
+        _selectedDate.HasValue &&
+        !string.IsNullOrWhiteSpace(_selectedTime) &&
+        !string.IsNullOrWhiteSpace(_meetingTopic);
+
+    private Task ScheduleConsultation()
+    {
+        // In a real application, you would call your API to schedule the meeting
+        // For now, we'll just navigate to a confirmation page or show a success message
+
+        try
+        {
+            // Example payload for scheduling a meeting
+            var meetingRequest = new
+            {
+                PartnerEmail = _partner?.EmailAddress,
+                MeetingDate = _selectedDate,
+                MeetingTime = _selectedTime,
+                Topic = _meetingTopic
+            };
+
+            // This is a placeholder - in a real app you would send this to your backend
+            // var response = await Http.PostAsJsonAsync("/api/calendar/schedule", meetingRequest);
+
+            // For now, we'll just show success and navigate to a confirmation page
+            NavigationManager.NavigateTo($"/confirmation/{Uri.EscapeDataString(_partner?.EmailAddress ?? "")}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error scheduling consultation: {ex.Message}");
+        }
+        return Task.CompletedTask;
+    }
+
+}

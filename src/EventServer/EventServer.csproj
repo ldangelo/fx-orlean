@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="FastEndpoints" Version="5.35.0" />
+        <PackageReference Include="FastEndpoints.Swagger" Version="5.35.0" />
+        <PackageReference Include="FluentValidation" Version="11.11.0" />
+        <PackageReference Include="Google.Apis.Calendar.v3" Version="1.69.0.3667" />
+        <PackageReference Include="OpenAI" Version="2.0.0" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.11.2" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.0.24" />
+        <PackageReference Include="Serilog" Version="4.2.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+        <PackageReference Include="Serilog.Enrichers.ClassName" Version="0.3.0" />
+        <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+        <PackageReference Include="Marten.AspNetCore" Version="7.37.0" />
+        <PackageReference Include="Stripe.net" Version="47.4.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+        <PackageReference Include="WolverineFx" Version="3.8.1" />
+        <PackageReference Include="WolverineFx.FluentValidation" Version="3.8.1" />
+        <PackageReference Include="WolverineFx.Http" Version="3.8.1" />
+        <PackageReference Include="WolverineFx.Http.FluentValidation" Version="3.8.1" />
+        <PackageReference Include="WolverineFx.Http.Marten" Version="3.8.1" />
+        <PackageReference Include="WolverineFx.Marten" Version="3.8.1" />
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="FxExpert\obj\FxExpert.csproj.nuget.dgspec.json" />
+        <_ContentIncludedByDefault Remove="FxExpert\obj\project.assets.json" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\shared-types\shared-types.csproj" />
+        <ProjectReference Include="..\common\common.csproj" />
+    </ItemGroup>
+</Project>

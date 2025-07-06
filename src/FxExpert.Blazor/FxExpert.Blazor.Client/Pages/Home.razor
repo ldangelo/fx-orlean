@@ -1,0 +1,221 @@
+﻿@page "/"
+
+<PageTitle>Fortium Expert Connect</PageTitle>
+
+<style>
+    .hero-section {
+        background-color: #0055a4;
+        padding: 40px 0;
+        color: white;
+    }
+
+    .form-card {
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .footer {
+        background-color: #f8f9fa;
+        padding: 10px 0;
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
+
+<!-- Hero Section -->
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="px-0 hero-section">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudText Typo="Typo.h3" Class="mb-2">Find Your Fractional CIO, CTO, or CISO</MudText>
+        <MudText Typo="Typo.subtitle1" Class="mb-6">
+            Describe your challenge, and we'll match you with the right expert
+        </MudText>
+    </MudContainer>
+</MudContainer>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <!-- Main Form Area -->
+    <MudPaper Elevation="3" Class="pa-6 form-card">
+        <MudText Typo="Typo.h5" Class="mb-4">What challenge can we help you with?</MudText>
+
+        <EditForm Model="@(this)" Class="mt-3">
+            <!-- Problem Statement Box -->
+            <MudTextField @bind-Value="problemDescription"
+                          ShrinkLabel
+                          Variant="Variant.Outlined"
+                          FullWidth
+                          Lines="5"
+                          Placeholder="Describe your business challenge, technical needs, or leadership requirements..."
+                          Class="mb-4"/>
+
+            <MudGrid>
+                <!-- Optional Fields -->
+                <MudItem xs="12" md="6">
+                    <MudSelect T="string"
+                               @bind-Value="Industry"
+                               ShrinkLabel
+                               Label="Industry (Optional)"
+                               Variant="Variant.Outlined"
+                               FullWidth="true"
+                               Class="mb-3">
+                        <MudSelectItem Value=@("Financial Services")>Financial Services</MudSelectItem>
+                        <MudSelectItem Value=@("Healthcare")>Healthcare</MudSelectItem>
+                        <MudSelectItem Value=@("Retail")>Retail</MudSelectItem>
+                        <MudSelectItem Value=@("Manufacturing")>Manufacturing</MudSelectItem>
+                        <MudSelectItem Value=@("Technology")>Technology</MudSelectItem>
+                        <MudSelectItem Value=@("Other")>Other</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect T="string" @bind-Value="Priority" ShrinkLabel Label="Urgency (Optional)"
+                               Variant="Variant.Outlined"
+                               FullWidth="true"
+                               Class="mb-3">
+                        <MudSelectItem Value=@("High")>High - Need solution within days</MudSelectItem>
+                        <MudSelectItem Value=@("Medium")>Medium - Need solution within weeks</MudSelectItem>
+                        <MudSelectItem Value=@("Low")>Low - Planning ahead</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Submit Button -->
+            <div class="d-flex justify-end mt-4">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           Size="Size.Large"
+                           OnClick="SubmitProblem"
+                           Disabled="isBusy"
+                           Class="py-2 px-4">
+                    @if (isBusy)
+                    {
+                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true"/>
+                        <span>Finding Experts...</span>
+                    }
+                    else
+                    {
+                        <span>Find Expert</span>
+                    }
+                </MudButton>
+            </div>
+        </EditForm>
+    </MudPaper>
+
+    @if (partners.Count > 0)
+    {
+        <MudDivider Class="my-6"/>
+        <MudText Typo="Typo.h4" Class="mb-4">Recommended Experts for Your Challenge</MudText>
+
+        <MudGrid>
+            @foreach (var partner in partners)
+            {
+                <MudItem xs="12" md="4">
+                    <MudCard Elevation="3" Class="h-100">
+                        <MudCardHeader>
+                            <CardHeaderAvatar>
+                                <MudAvatar
+                                    Color="Color.Primary">@(partner?.FirstName?.Substring(0, 1))@(partner?.LastName?.Substring(0, 1))</MudAvatar>
+                            </CardHeaderAvatar>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5">@(partner?.GetFullName())</MudText>
+                                <MudText Typo="Typo.subtitle1">@(partner?.Title)</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText Typo="Typo.body2" Class="mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1"/>
+                                @(partner?.EmailAddress)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1"/>
+                                @(partner?.PrimaryPhone)
+                            </MudText>
+
+                            <MudText Typo="Typo.body2" Style="font-weight: bold" Class="mt-2">Why this expert
+                                matches
+                                your needs:
+                            </MudText>
+                            <MudText Typo="Typo.body2">@partner?.Reason</MudText>
+
+                            <MudChipSet T="string" Class="mt-3">
+                                @foreach (var skill in partner?.Skills ?? new List<PartnerSkill>())
+                                {
+                                    <MudChip Size="Size.Small" Color="Color.Primary"
+                                             Variant="Variant.Outlined">@skill.Skill</MudChip>
+                                }
+                            </MudChipSet>
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                       OnClick="@(() => ViewPartnerDetails(partner?.EmailAddress, problemDescription, Industry, Priority))">
+                                View Profile
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                       EndIcon="@Icons.Material.Filled.CalendarToday">Schedule
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    <!-- Footer -->
+    <div class="footer">
+        <MudText Typo="Typo.body2" Color="Color.Dark">© 2025 Fortium Partners, LP</MudText>
+    </div>
+</MudContainer>
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@code {
+    private string problemDescription = string.Empty;
+    private List<Partner> partners = new();
+    private bool isBusy;
+    private string Industry = string.Empty;
+    private string Priority = string.Empty;
+
+    private async Task SubmitProblem()
+    {
+        if (string.IsNullOrWhiteSpace(problemDescription))
+            return;
+
+        isBusy = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/ai/partners", new { ProblemDescription = problemDescription });
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<Partner>>();
+                partners = result?.Where(p => p != null).ToList() ?? new List<Partner>();
+
+                Console.WriteLine($"Retrieved {partners.Count} partners.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to retrieve partners. {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"failed to retrieve partner: {ex.Message}");
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private void ViewPartnerDetails(string? partnerEmail, string? problemDescription, string? problemIndustry, string? problemPriority)
+    {
+        if (!string.IsNullOrEmpty(partnerEmail))
+        {
+            var encodedEmail = Uri.EscapeDataString(partnerEmail);
+            var encodedProblemDescription = Uri.EscapeDataString(problemDescription ?? string.Empty);
+            var encodedProblemIndustry = Uri.EscapeDataString(problemIndustry ?? string.Empty);
+            var encodedProblemPriority = Uri.EscapeDataString(problemPriority ?? string.Empty);
+            NavigationManager.NavigateTo($"/partner/{encodedEmail}/{encodedProblemDescription}/{encodedProblemIndustry}/{encodedProblemPriority}");
+        }
+    }
+
+}

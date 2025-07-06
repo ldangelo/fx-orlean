@@ -1,0 +1,48 @@
+@page "/authentication-failed"
+@using System.Web
+
+<PageTitle>Authentication Failed</PageTitle>
+
+<MudContainer Class="mt-16 pa-6">
+    <MudPaper Elevation="3" Class="pa-6 text-center">
+        <MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Color="Color.Error" Size="Size.Large" Class="mb-4" />
+        <MudText Typo="Typo.h4" Class="mb-4">Authentication Failed</MudText>
+        
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@ErrorMessage</MudAlert>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Class="mb-4">There was a problem authenticating your account.</MudText>
+        }
+        
+        <MudText Typo="Typo.body1" Class="mb-6">Please try again or contact support if the problem persists.</MudText>
+        
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mr-2">Return to Home</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="TryAgain">Try Again</MudButton>
+    </MudPaper>
+</MudContainer>
+
+@inject NavigationManager NavigationManager
+
+@code {
+    private string? ErrorMessage { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        
+        var errorMsg = query["error"];
+        if (!string.IsNullOrEmpty(errorMsg))
+        {
+            ErrorMessage = errorMsg;
+        }
+    }
+
+    private void TryAgain()
+    {
+        NavigationManager.NavigateTo("/signin-oidc", true);
+    }
+}

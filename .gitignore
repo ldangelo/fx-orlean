@@ -482,8 +482,10 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
-#src/common/obj
+src/EventServer/Internal/
 bin
 obj
 devbox.lock
 docker/postgres/data/*
+/.envrc
+.aider*

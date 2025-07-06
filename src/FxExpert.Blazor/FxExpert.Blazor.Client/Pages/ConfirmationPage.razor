@@ -1,0 +1,114 @@
+@page "/confirmation/{PartnerEmail}"
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Booking Confirmation</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+    <MudPaper Elevation="3" Class="pa-6 text-center">
+        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" Class="mb-4"
+                 Style="width: 80px; height: 80px;"/>
+
+        <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-4">Consultation Scheduled!</MudText>
+
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Your consultation with @(_partner?.GetFullName() ?? "the expert") has been confirmed.
+            You will receive a calendar invitation shortly with meeting details.
+        </MudText>
+
+        <MudDivider Class="my-6"/>
+
+        <MudText Typo="Typo.h5" Class="mb-4">Meeting Details</MudText>
+
+        <MudList T="string" Dense="false">
+            <MudListItem Icon="@Icons.Material.Filled.Person">
+                <MudText Typo="Typo.body1"><b>Expert:</b> @(_partner?.GetFullName() ?? "Your selected expert")
+                </MudText>
+            </MudListItem>
+
+            <MudListItem Icon="@Icons.Material.Filled.CalendarToday">
+                <MudText Typo="Typo.body1"><b>Date &
+                        Time:</b> @DateTime.Now.AddDays(3).ToString("dddd, MMMM d, yyyy") at 10:00 AM EST
+                </MudText>
+            </MudListItem>
+
+            <MudListItem Icon="@Icons.Material.Filled.VideoCall">
+                <MudText Typo="Typo.body1"><b>Meeting Link:</b> A Google Meet link will be included in your calendar
+                    invitation
+                </MudText>
+            </MudListItem>
+
+            <MudListItem Icon="@Icons.Material.Filled.Timer">
+                <MudText Typo="Typo.body1"><b>Duration:</b> 60 minutes</MudText>
+            </MudListItem>
+
+            <MudListItem Icon="@Icons.Material.Filled.CreditCard">
+                <MudText Typo="Typo.body1"><b>Payment:</b> $800.00 (will be processed before the meeting)</MudText>
+            </MudListItem>
+        </MudList>
+
+        <MudPaper Elevation="0" Class="pa-4 my-6"
+                  Style="background-color: #f5f5f5; border-left: 4px solid var(--mud-palette-success);">
+            <MudText Typo="Typo.body2">
+                <b>Preparation tip:</b> To make the most of your consultation, prepare specific questions and any
+                relevant documents
+                you'd like to discuss during the meeting.
+            </MudText>
+        </MudPaper>
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   OnClick="@(() => NavigationManager.NavigateTo("/"))"
+                   Class="mt-4">
+            Return to Home
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public string PartnerEmail { get; set; } = string.Empty;
+
+    private Partner? _partner;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = Uri.UnescapeDataString(PartnerEmail);
+
+        if (!string.IsNullOrEmpty(email))
+        {
+            try
+            {
+                var response = await Http.GetAsync($"/partners/{email}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _partner = JsonSerializer.Deserialize<Partner>(
+                        content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                }
+
+                // For demo purposes, create sample data if API call fails
+                if (_partner == null)
+                {
+                    _partner = new Partner
+                    {
+                        EmailAddress = email,
+                        FirstName = "John",
+                        LastName = "Smith",
+                        Title = "Chief Technology Officer"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading partner data: {ex.Message}");
+            }
+        }
+    }
+
+}

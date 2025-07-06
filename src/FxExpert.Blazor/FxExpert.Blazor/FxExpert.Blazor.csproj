@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>aspnet-FxExpert.Blazor-cce2c8ea-02bd-422f-b9ee-ce707124478f</UserSecretsId>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.3"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.11.0"/>
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0-preview.1.25080.5"/>
+        <PackageReference Include="MudExRichTextEditor" Version="8.0.1"/>
+        <PackageReference Include="Serilog" Version="4.2.0"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7"/>
+        <PackageReference Include="System.Formats.Asn1" Version="9.0.0-preview.2.24128.5"/>
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.0-preview.2.24128.5"/>
+        <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.0-preview.2.24128.5"/>
+        <ProjectReference Include="..\FxExpert.Blazor.Client\FxExpert.Blazor.Client.csproj"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.*"/>
+        <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="3.*"/>
+    </ItemGroup>
+</Project>

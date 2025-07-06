@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Fortium</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Marten" Version="7.37.0"/>
+    <PackageReference Include="Serilog" Version="4.2.0"/>
+  </ItemGroup>
+</Project>

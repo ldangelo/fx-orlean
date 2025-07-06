@@ -1,0 +1,506 @@
+@page "/partner_home"
+@using System.Text.RegularExpressions
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize(Roles = "Partner")]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Partner Dashboard</MudText>
+
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        <MudTabPanel Text="Profile Information">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-4 mb-4">
+                        <MudForm @ref="elementForm" @bind-IsValid="@success" @bind-Errors="@errors">
+                            <MudTextField @bind-Value="partner.FirstName" Label="First Name" Required="true"
+                                          RequiredError="First name is required!"/>
+                            <MudTextField @bind-Value="partner.LastName" Label="Last Name" Required="true"
+                                          RequiredError="Last name is required!"/>
+                            <MudTextField @bind-Value="partner.PrimaryPhone" Label="Phone Number" Required="true"
+                                          RequiredError="Phone number is required!"
+                                          Validation="@(new Func<string, string>(ValidatePhone))"/>
+                            <MudTextField @bind-Value="partner.Title" Label="Title" Required="true"
+                                          RequiredError="Title is required!"/>
+                            <MudTextField @bind-Value="partner.City" Label="City" Required="true"
+                                          RequiredError="City is required!"/>
+                            <MudTextField @bind-Value="partner.State" Label="State" Required="true"
+                                          RequiredError="State is required!"/>
+                            <MudTextField @bind-Value="partner.Country" Label="Country" Required="true"
+                                          RequiredError="Country is required!"/>
+                            <MudTextField @bind-Value="partner.PhotoUrl" Label="Photo URL" Required="true"
+                                          RequiredError="Photo URL is required!"
+                                          Validation="@(new Func<string, string>(ValidateUrl))"/>
+                            <MudTextField @bind-Value="partner.Bio" Label="Bio" Lines="5" Required="true"
+                                          RequiredError="Bio is required!"/>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4"
+                                       OnClick="SaveProfile">Save Profile
+                            </MudButton>
+                        </MudForm>
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" Class="mb-3">Skills</MudText>
+
+                        @if (partner.Skills != null && partner.Skills.Any())
+                        {
+                            <MudList T="string" clickable="false">
+                                @foreach (var skill in partner.Skills)
+                                {
+                                    <MudListItem>
+                                        <MudText>@skill.Skill - @skill.ExperienceLevel (@skill.YearsOfExperience years)</MudText>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText>No skills added yet.</MudText>
+                        }
+
+                        <MudDivider Class="my-3"/>
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Add New Skill</MudText>
+
+                        <MudTextField @bind-Value="newSkill.Skill" Label="Skill Name" Required="true"
+                                      RequiredError="Skill name is required!"/>
+                        <MudNumericField @bind-Value="newSkill.YearsOfExperience" Label="Years of Experience" Min="0"
+                                         Max="50" Required="true"/>
+                        <MudSelect @bind-Value="newSkill.ExperienceLevel" Label="Experience Level" Required="true">
+                            @foreach (var level in Enum.GetValues(typeof(ExperienceLevel)))
+                            {
+                                <MudSelectItem Value="@level">@level</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="mt-2" OnClick="AddSkill">Add
+                            Skill
+                        </MudButton>
+                    </MudPaper>
+
+                    <MudPaper Class="pa-4 mb-4">
+                        <MudText Typo="Typo.h6" Class="mb-3">Work History</MudText>
+
+                        @if (partner.WorkHistories != null && partner.WorkHistories.Any())
+                        {
+                            <MudList T="string" clickable="false">
+                                @foreach (var work in partner.WorkHistories)
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.subtitle1">@work.Title at @work.CompanyName</MudText>
+                                        <MudText Typo="Typo.body2">
+                                            @work.StartDate.ToString("MMM yyyy") -
+                                            @(work.EndDate.HasValue ? work.EndDate.Value.ToString("MMM yyyy") : "Present")
+                                        </MudText>
+                                        <MudText Typo="Typo.body2">@work.Description</MudText>
+                                    </MudListItem>
+                                    <MudDivider/>
+                                }
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText>No work history added yet.</MudText>
+                        }
+
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-3"
+                                   OnClick="AddWorkHistory">Add Work History
+                        </MudButton>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Scheduled Meetings">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Upcoming Meetings</MudText>
+
+                        @if (upcomingMeetings != null && upcomingMeetings.Any())
+                        {
+                            <MudTable T="CalendarEvent" Items="@upcomingMeetings" Hover="true"
+                                      Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Title</MudTh>
+                                    <MudTh>Date & Time</MudTh>
+                                    <MudTh>Duration</MudTh>
+                                    <MudTh>Client</MudTh>
+                                    <MudTh>Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Title">@context.Title</MudTd>
+                                    <MudTd
+                                        DataLabel="Date & Time">@context.Start.ToString("MMM dd, yyyy h:mm tt")</MudTd>
+                                    <MudTd DataLabel="Duration">@((context.End - context.Start).TotalMinutes) minutes
+                                    </MudTd>
+                                    <MudTd DataLabel="Client">@context.UserId</MudTd>
+                                    <MudTd>
+                                        <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                                                   OnClick="@(() => ViewMeetingDetails(context))">
+                                            View Details
+                                        </MudButton>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">You have no upcoming meetings scheduled.</MudAlert>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-4">
+                    <MudPaper Class="pa-4">
+                        <MudText Typo="Typo.h6" Class="mb-4">Past Meetings</MudText>
+
+                        @if (pastMeetings != null && pastMeetings.Any())
+                        {
+                            <MudTable Items="@pastMeetings" Hover="true" Breakpoint="Breakpoint.Sm">
+                                <HeaderContent>
+                                    <MudTh>Title</MudTh>
+                                    <MudTh>Date & Time</MudTh>
+                                    <MudTh>Duration</MudTh>
+                                    <MudTh>Client</MudTh>
+                                    <MudTh>Actions</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Title">@context.Title</MudTd>
+                                    <MudTd
+                                        DataLabel="Date & Time">@context.Start.ToString("MMM dd, yyyy h:mm tt")</MudTd>
+                                    <MudTd DataLabel="Duration">@((context.End - context.Start).TotalMinutes) minutes
+                                    </MudTd>
+                                    <MudTd DataLabel="Client">@context.UserId</MudTd>
+                                    <MudTd>
+                                        <MudButton Variant="Variant.Outlined" Size="Size.Small"
+                                                   OnClick="@(() => ViewMeetingDetails(context))">
+                                            View Details
+                                        </MudButton>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">You have no past meetings.</MudAlert>
+                        }
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@if (showWorkHistoryDialog)
+{
+    <MudDialog @bind-isVisible="showWorkHistoryDialog">
+        <TitleContent>
+            <MudText Typo="Typo.h6">Add Work History</MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudForm @ref="workHistoryForm">
+                <MudTextField @bind-Value="newWorkHistory.CompanyName" Label="Company Name" Required="true"/>
+                <MudTextField @bind-Value="newWorkHistory.Title" Label="Job Title" Required="true"/>
+                <MudDatePicker @bind-Date="newWorkHistoryStartDate" Label="Start Date" Required="true"/>
+                <MudDatePicker @bind-Date="newWorkHistoryEndDate" Label="End Date"/>
+                <MudCheckBox T="bool" @bind-checked="currentlyWorking" Label="I currently work here"/>
+                <MudTextField @bind-Value="newWorkHistory.Description" Label="Description" Lines="3" Required="true"/>
+            </MudForm>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="CancelWorkHistory" Variant="Variant.Text" Color="Color.Default">Cancel</MudButton>
+            <MudButton OnClick="SaveWorkHistory" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        </DialogActions>
+    </MudDialog>
+}
+
+@if (selectedMeeting != null)
+{
+    <MudDialog>
+        <TitleContent>
+            <MudText Typo="Typo.h6">Meeting Details</MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">@selectedMeeting.Title</MudText>
+                    <MudText Typo="Typo.body1">@selectedMeeting.Description</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.subtitle2">Start Time</MudText>
+                    <MudText>@selectedMeeting.Start.ToString("MMM dd, yyyy h:mm tt")</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.subtitle2">End Time</MudText>
+                    <MudText>@selectedMeeting.End.ToString("MMM dd, yyyy h:mm tt")</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2">Client</MudText>
+                    <MudText>@selectedMeeting.UserId</MudText>
+                </MudItem>
+                @if (!string.IsNullOrEmpty(selectedMeeting.CalendarId))
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2">Calendar Event ID</MudText>
+                        <MudText>@selectedMeeting.CalendarId</MudText>
+                    </MudItem>
+                }
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="@(() => selectedMeeting = null)" Variant="Variant.Text" Color="Color.Default">Close
+            </MudButton>
+            <MudButton OnClick="@(() => OpenMeeting(selectedMeeting))" Variant="Variant.Filled" Color="Color.Primary">
+                Open Meeting
+            </MudButton>
+        </DialogActions>
+    </MudDialog>
+}
+
+@code {
+    private Partner partner = new();
+    private List<CalendarEvent> allMeetings = new();
+    private List<CalendarEvent> upcomingMeetings = new();
+    private List<CalendarEvent> pastMeetings = new();
+    private PartnerSkill newSkill = new("", 0, ExperienceLevel.Novice);
+    private WorkHistory newWorkHistory = new(DateOnly.FromDateTime(DateTime.Today), null, "", "", "");
+    private bool showWorkHistoryDialog;
+    private DateTime? newWorkHistoryStartDate = DateTime.Today;
+    private DateTime? newWorkHistoryEndDate;
+    private bool currentlyWorking;
+    private CalendarEvent? selectedMeeting;
+
+    private bool success;
+    private string[] errors = { };
+    private MudForm? elementForm;
+    private MudForm? workHistoryForm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true && !string.IsNullOrEmpty(user.Identity.Name))
+        {
+            var email = user.Identity.Name;
+            await LoadPartnerData(email);
+            await LoadMeetings(email);
+        }
+    }
+
+    private async Task LoadPartnerData(string email)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"/partners/{email}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<Partner>();
+                partner = result ?? new Partner();
+            }
+            else
+            {
+                Snackbar.Add("Failed to load partner data", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadMeetings(string email)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"/calendar/events/{email}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<CalendarEvent>>();
+                allMeetings = result ?? new List<CalendarEvent>();
+                var now = DateTime.Now;
+                upcomingMeetings = allMeetings.Where(m => m.Start > now).OrderBy(m => m.Start).ToList();
+                pastMeetings = allMeetings.Where(m => m.Start <= now).OrderByDescending(m => m.Start).ToList();
+            }
+            else
+            {
+                Snackbar.Add("Failed to load meetings", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task SaveProfile()
+    {
+        try
+        {
+            elementForm?.Validate();
+            if (elementForm?.IsValid == true)
+            {
+                // Update bio
+                var bioResponse = await Http.PostAsJsonAsync($"/partners/bio/{partner.EmailAddress}",
+                    new { partner.EmailAddress, partner.Bio });
+
+                // Update primary phone
+                var phoneResponse = await Http.PostAsJsonAsync($"/partners/primaryphone/{partner.EmailAddress}",
+                    new { partner.EmailAddress, partner.PrimaryPhone });
+
+                // Update photo URL
+                var photoResponse = await Http.PostAsJsonAsync($"/partners/photourl/{partner.EmailAddress}",
+                    new { partner.EmailAddress, partner.PhotoUrl });
+
+                if (bioResponse.IsSuccessStatusCode && phoneResponse.IsSuccessStatusCode && photoResponse.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Profile updated successfully", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to update profile", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task AddSkill()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newSkill.Skill) || newSkill.YearsOfExperience < 0)
+            {
+                Snackbar.Add("Please enter valid skill information", Severity.Warning);
+                return;
+            }
+
+            var skillsResponse = await Http.PostAsJsonAsync($"/partners/skills/{partner.EmailAddress}",
+                new { partner.EmailAddress, Skills = new[] { newSkill } });
+
+            if (skillsResponse.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Skill added successfully", Severity.Success);
+
+                // Refresh partner data
+                await LoadPartnerData(partner.EmailAddress);
+
+                // Reset new skill form
+                newSkill = new PartnerSkill("", 0, ExperienceLevel.Novice);
+            }
+            else
+            {
+                Snackbar.Add("Failed to add skill", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void AddWorkHistory()
+    {
+        newWorkHistory = new WorkHistory(DateOnly.FromDateTime(DateTime.Today), null, "", "", "");
+        newWorkHistoryStartDate = DateTime.Today;
+        newWorkHistoryEndDate = null;
+        currentlyWorking = false;
+        showWorkHistoryDialog = true;
+    }
+
+    private void CancelWorkHistory()
+    {
+        showWorkHistoryDialog = false;
+    }
+
+    private async Task SaveWorkHistory()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newWorkHistory.CompanyName) ||
+                string.IsNullOrWhiteSpace(newWorkHistory.Title) ||
+                string.IsNullOrWhiteSpace(newWorkHistory.Description) ||
+                !newWorkHistoryStartDate.HasValue)
+            {
+                Snackbar.Add("Please fill in all required fields", Severity.Warning);
+                return;
+            }
+
+            var startDate = DateOnly.FromDateTime(newWorkHistoryStartDate.Value);
+            DateOnly? endDate = null;
+
+            if (!currentlyWorking && newWorkHistoryEndDate.HasValue)
+            {
+                endDate = DateOnly.FromDateTime(newWorkHistoryEndDate.Value);
+            }
+
+            var workHistory = new WorkHistory(
+                startDate,
+                endDate,
+                newWorkHistory.CompanyName,
+                newWorkHistory.Title,
+                newWorkHistory.Description
+            );
+
+            var response = await Http.PostAsJsonAsync($"/partners/workexperience/{partner.EmailAddress}",
+                new { partner.EmailAddress, WorkHistory = new[] { workHistory } });
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Work history added successfully", Severity.Success);
+                showWorkHistoryDialog = false;
+
+                // Refresh partner data
+                await LoadPartnerData(partner.EmailAddress);
+            }
+            else
+            {
+                Snackbar.Add("Failed to add work history", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void ViewMeetingDetails(CalendarEvent meeting)
+    {
+        selectedMeeting = meeting;
+    }
+
+    private void OpenMeeting(CalendarEvent meeting)
+    {
+        // Implement logic to open/join meeting
+        Snackbar.Add("Opening meeting...", Severity.Info);
+    }
+
+    private string ValidatePhone(string phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            return "Phone number is required";
+
+        // Simple regex for US phone numbers
+        if (!Regex.IsMatch(phone, @"\(?\d{3}\)?-? *\d{3}-? *-?\d{4}"))
+            return "Please enter a valid phone number";
+
+        return string.Empty;
+    }
+
+    private string ValidateUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return "URL is required";
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out _))
+            return "Please enter a valid URL";
+
+        return string.Empty;
+    }
+
+}
