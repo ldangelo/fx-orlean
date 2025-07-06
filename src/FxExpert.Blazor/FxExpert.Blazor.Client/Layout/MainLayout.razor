@@ -1,0 +1,240 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar Elevation="3" Color="Color.Primary" Fixed="true">
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudImage Src="images/fortium-logo.png" Alt="Fortium Logo" Height="40" Class="mr-3"/>
+        </MudHidden>
+
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                           OnClick="DrawerToggle"/>
+        </MudHidden>
+
+        <MudText Typo="Typo.h5" Class="ml-3">Fortium Expert Connect</MudText>
+        <MudSpacer/>
+
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudStack Row="true">
+                <MudButton Href="/" Color="Color.Inherit" Class="ml-2">Home</MudButton>
+                <MudButton Href="/about" Color="Color.Inherit" Class="ml-2">About</MudButton>
+                <MudButton Href="/experts" Color="Color.Inherit" Class="ml-2">Our Experts</MudButton>
+                <MudButton Href="/contact" Color="Color.Inherit" Class="ml-2">Contact</MudButton>
+            </MudStack>
+        </MudHidden>
+
+        <MudSpacer/>
+
+        <CascadingAuthenticationState>
+            <AuthorizeView Roles="User">
+                <Authorized>
+                    <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true"
+                             direction="direction.bottom" offsetY="true">
+                        <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
+                        <MudDivider/>
+                        @if (context.User.IsInRole("Partner"))
+                        {
+                            <MudMenuItem Href="/partner_home">Partner Dashboard</MudMenuItem>
+                        }
+                        else
+                        {
+                            <MudMenuItem Href="/profile">My Profile</MudMenuItem>
+                            <MudMenuItem Href="/meetings">My Meetings</MudMenuItem>
+                        }
+                        <MudMenuItem Href="authentication/logout">Logout</MudMenuItem>
+                    </MudMenu>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login"
+                               Href="authentication/login">
+                        Sign In
+                    </MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
+
+        @if (_debugMode)
+        {
+            <div
+                style="position: fixed; bottom: 10px; right: 10px; z-index: 9999; background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px; max-width: 300px; font-size: 12px;">
+                <h4 style="margin: 0 0 5px 0;">Auth Debug Info</h4>
+                <AuthorizeView>
+                    <Authorized>
+                        <p style="margin: 2px 0;">Status: Authenticated</p>
+                        <p style="margin: 2px 0;">Name: @context.User.Identity?.Name</p>
+                        <p style="margin: 2px 0;">
+                            Roles:
+                        </p>
+                        <div style="max-height: 100px; overflow-y: auto; margin: 2px 0; font-size: 11px;">
+                            <div>USER: <strong>@context.User.IsInRole("User")</strong></div>
+                            <div>ADMIN: <strong>@context.User.IsInRole("Admin")</strong></div>
+                            <div>PARTNER: <strong>@context.User.IsInRole("Partner")</strong></div>
+                        </div>
+                        <p style="margin: 2px 0;">
+                            Claims: @string.Join(", ", context.User.Claims.Select(c => $"{c.Type}={c.Value}")))
+                        </p>
+                    </Authorized>
+                    <NotAuthorized>
+                        <p style="margin: 2px 0;">Status: Not Authenticated</p>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <button @onclick="ToggleDebug" style="margin-top: 5px; padding: 2px 5px;">Close</button>
+            </div>
+        }
+
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="ml-3"/>
+        <MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" OnClick="@ToggleDebug"
+                       Class="ml-3"/>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="@DrawerVariant.Temporary"
+               ClipMode="DrawerClipMode.Always">
+        <MudDrawerHeader>
+            <MudImage Src="images/fortium-logo.png" Alt="Fortium Logo" Height="40"/>
+            <MudText Typo="Typo.h6" Class="ml-3">Fortium Connect</MudText>
+        </MudDrawerHeader>
+        <NavMenu/>
+    </MudDrawer>
+
+    <MudMainContent Class="pt-16 pb-6">
+        @Body
+
+        <MudDivider Class="mt-8 mb-4"/>
+
+        <MudContainer>
+            <MudGrid Justify="Justify.Center" Class="text-center">
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Fortium Expert Connect</MudText>
+                    <MudText Typo="Typo.body2">
+                        Connect with top technology executives to solve your most challenging problems
+                    </MudText>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudText Typo="Typo.h6" Class="mb-2">Contact Us</MudText>
+                    <MudText Typo="Typo.body2">
+                        <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1"/>
+                        info@fortiumpartners.com
+                    </MudText>
+                    <MudText Typo="Typo.body2">
+                        <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1"/>
+                        (555) 123-4567
+                    </MudText>
+                </MudItem>
+
+                <MudItem xs="12" Class="mt-4">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">© @DateTime.Now.Year Fortium Partners. All rights
+                        reserved.
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen;
+    private bool _isDarkMode;
+    private MudTheme? _theme;
+    private bool _debugMode = true; // Set to true to show debug info
+    private AuthenticationState? context;
+
+    protected override async void OnInitialized()
+    {
+        base.OnInitialized();
+        context = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _theme = new MudTheme
+        {
+            PaletteLight = _lightPalette,
+            PaletteDark = _darkPalette
+        };
+    }
+
+    private void Login()
+    {
+        NavigationManager.NavigateTo("/signin-oidc?ReturnUrl=" + Uri.EscapeDataString(NavigationManager.Uri), true);
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/signout-oidc", true);
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void DarkModeToggle()
+    {
+        _isDarkMode = !_isDarkMode;
+    }
+
+    private void ToggleDebug()
+    {
+        _debugMode = !_debugMode;
+    }
+
+    private readonly PaletteLight _lightPalette = new()
+    {
+        Primary = "#1976d2",
+        Secondary = "#0d3f6e",
+        Tertiary = "#7c4dff",
+        AppbarText = "#424242",
+        AppbarBackground = "#1976d2",
+        DrawerBackground = "#ffffff",
+        Background = "#f5f5f5",
+        Surface = "#ffffff",
+        GrayLight = "#e8e8e8",
+        GrayLighter = "#f9f9f9",
+        Success = "#4caf50",
+        Warning = "#ff9800",
+        Error = "#f44336",
+        Info = "#2196f3"
+    };
+
+    private readonly PaletteDark _darkPalette = new()
+    {
+        Primary = "#2196f3",
+        Secondary = "#90caf9",
+        Tertiary = "#bb86fc",
+        Surface = "#2d2d2d",
+        Background = "#1c1c1c",
+        BackgroundGray = "#151515",
+        AppbarText = "#ffffff",
+        AppbarBackground = "#1e1e1e",
+        DrawerBackground = "#2d2d2d",
+        ActionDefault = "#adadb1",
+        ActionDisabled = "#9999994d",
+        ActionDisabledBackground = "#605f6d4d",
+        TextPrimary = "#ffffff",
+        TextSecondary = "#b0b0b0",
+        TextDisabled = "#ffffff33",
+        DrawerIcon = "#b0b0b0",
+        DrawerText = "#b0b0b0",
+        GrayLight = "#2a2a2a",
+        GrayLighter = "#1e1e1e",
+        Info = "#29b6f6",
+        Success = "#66bb6a",
+        Warning = "#ffa726",
+        Error = "#f44336",
+        LinesDefault = "#444444",
+        TableLines = "#444444",
+        Divider = "#3e3e3e",
+        OverlayLight = "#1e1e1e80"
+    };
+
+    public string DarkLightModeButtonIcon => _isDarkMode switch
+    {
+        true => Icons.Material.Rounded.LightMode,
+        false => Icons.Material.Outlined.DarkMode
+    };
+
+}

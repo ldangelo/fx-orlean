@@ -1,0 +1,31 @@
+@using Fortium.Types
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<MudCard Outlined="true">
+    <MudCardContent>
+            <MudText Typo="Typo.h5">@(Partner?.GetFullName())</MudText>
+        <MudText Typo="Typo.subtitle1">@(Partner?.Title)</MudText>
+        <MudText Typo="Typo.subtitle2">Fortium Partners</MudText>
+        <br/>
+        <div MudCardContentstyle="display: flex; flex-direction: row; gap: 10px;">
+            <MudText>@(Partner?.EmailAddress)</MudText>
+            <MudText>@(Partner?.PrimaryPhone)</MudText>
+        </div>
+        <MudText variant="variant.outlined">@Partner?.Reason</MudText>
+        <MudText variant="variant.outlined">@Partner?.GetLocation()</MudText>
+        <MudText variant="variant.outlined">@_meetingUrl</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public Partner? Partner { get; set; } = null!;
+    private string? _meetingUrl;
+
+    protected override Task OnInitializedAsync()
+    {
+        _meetingUrl = NavigationManager.ToAbsoluteUri("/meeting/" + Partner?.EmailAddress).ToString();
+        return Task.CompletedTask;
+    }
+
+}
