@@ -1,0 +1,349 @@
+@page "/profile"
+@using Fortium.Types
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Net.Http.Json
+@using System.Security.Claims
+@using System.ComponentModel.DataAnnotations
+@using FxExpert.Blazor.Client.Services
+@inject UserService UserService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+<PageTitle>User Profile</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h4" Class="mb-4">Profile Information</MudText>
+            
+            @if (isLoading)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else
+            {
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    <MudTabPanel Text="Personal Information">
+                        <EditForm Model="@profileModel" OnValidSubmit="SaveProfileAsync">
+                            <DataAnnotationsValidator />
+                            
+                            <MudCard>
+                                <MudCardContent>
+                                    <MudTextField Label="First Name" @bind-Value="profileModel.FirstName" 
+                                        For="@(() => profileModel.FirstName)" />
+                                    
+                                    <MudTextField Label="Last Name" @bind-Value="profileModel.LastName" 
+                                        For="@(() => profileModel.LastName)" />
+                                    
+                                    <MudTextField Label="Email Address" @bind-Value="profileModel.EmailAddress" 
+                                        ReadOnly="true" For="@(() => profileModel.EmailAddress)" />
+                                    
+                                    <MudTextField Label="Phone Number" @bind-Value="profileModel.PhoneNumber" 
+                                        For="@(() => profileModel.PhoneNumber)" />
+                                        
+                                    <MudTextField Label="Profile Picture URL" @bind-Value="profileModel.ProfilePictureUrl" 
+                                        For="@(() => profileModel.ProfilePictureUrl)" />
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" 
+                                        Color="Color.Primary" Class="ml-auto">Save Changes</MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </EditForm>
+                    </MudTabPanel>
+                    
+                    <MudTabPanel Text="Address">
+                        <EditForm Model="@addressModel" OnValidSubmit="SaveAddressAsync">
+                            <DataAnnotationsValidator />
+                            
+                            <MudCard>
+                                <MudCardContent>
+                                    <MudTextField Label="Street Address 1" @bind-Value="addressModel.Street1" 
+                                        For="@(() => addressModel.Street1)" />
+                                    
+                                    <MudTextField Label="Street Address 2" @bind-Value="addressModel.Street2" 
+                                        For="@(() => addressModel.Street2)" />
+                                    
+                                    <MudTextField Label="City" @bind-Value="addressModel.City" 
+                                        For="@(() => addressModel.City)" />
+                                    
+                                    <MudGrid>
+                                        <MudItem xs="6">
+                                            <MudTextField Label="State/Province" @bind-Value="addressModel.State" 
+                                                For="@(() => addressModel.State)" />
+                                        </MudItem>
+                                        <MudItem xs="6">
+                                            <MudTextField Label="Zip/Postal Code" @bind-Value="addressModel.ZipCode" 
+                                                For="@(() => addressModel.ZipCode)" />
+                                        </MudItem>
+                                    </MudGrid>
+                                    
+                                    <MudTextField Label="Country" @bind-Value="addressModel.Country" 
+                                        For="@(() => addressModel.Country)" />
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" 
+                                        Color="Color.Primary" Class="ml-auto">Save Address</MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </EditForm>
+                    </MudTabPanel>
+                    
+                    <MudTabPanel Text="Preferences">
+                        <EditForm Model="@preferencesModel" OnValidSubmit="SavePreferencesAsync">
+                            <DataAnnotationsValidator />
+                            
+                            <MudCard>
+                                <MudCardContent>
+                                    <MudSwitch T="bool" checked="@preferencesModel.ReceiveEmailNotifications" 
+                                        checkedChanged="@((bool val) => preferencesModel.ReceiveEmailNotifications = val)"
+                                        Label="Receive Email Notifications" Color="Color.Primary" />
+                                    
+                                    <MudSwitch T="bool" checked="@preferencesModel.ReceiveSmsNotifications" 
+                                        checkedChanged="@((bool val) => preferencesModel.ReceiveSmsNotifications = val)"
+                                        Label="Receive SMS Notifications" Color="Color.Secondary" />
+                                    
+                                    <MudSelect T="string" Label="Preferred Language" @bind-Value="preferencesModel.PreferredLanguage">
+                                        <MudSelectItem Value="@("en-US")">English (US)</MudSelectItem>
+                                        <MudSelectItem Value="@("es-ES")">Spanish</MudSelectItem>
+                                        <MudSelectItem Value="@("fr-FR")">French</MudSelectItem>
+                                    </MudSelect>
+                                    
+                                    <MudSelect T="string" Label="Time Zone" @bind-Value="preferencesModel.TimeZone">
+                                        <MudSelectItem Value="@("UTC")">UTC</MudSelectItem>
+                                        <MudSelectItem Value="@("America/New_York")">Eastern Time (US & Canada)</MudSelectItem>
+                                        <MudSelectItem Value="@("America/Chicago")">Central Time (US & Canada)</MudSelectItem>
+                                        <MudSelectItem Value="@("America/Denver")">Mountain Time (US & Canada)</MudSelectItem>
+                                        <MudSelectItem Value="@("America/Los_Angeles")">Pacific Time (US & Canada)</MudSelectItem>
+                                    </MudSelect>
+                                    
+                                    <MudSelect T="string" Label="Theme" @bind-Value="preferencesModel.Theme">
+                                        <MudSelectItem Value="@("Light")">Light</MudSelectItem>
+                                        <MudSelectItem Value="@("Dark")">Dark</MudSelectItem>
+                                        <MudSelectItem Value="@("System")">System Default</MudSelectItem>
+                                    </MudSelect>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" 
+                                        Color="Color.Primary" Class="ml-auto">Save Preferences</MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </EditForm>
+                    </MudTabPanel>
+                </MudTabs>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private bool isLoading = true;
+    private string userEmail = "";
+    
+    // Model classes for the form
+    private class ProfileModel
+    {
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string? EmailAddress { get; set; }
+        
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50, ErrorMessage = "First name must be less than 50 characters")]
+        public string? FirstName { get; set; }
+        
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50, ErrorMessage = "Last name must be less than 50 characters")]
+        public string? LastName { get; set; }
+        
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        public string? PhoneNumber { get; set; }
+        
+        [Url(ErrorMessage = "Invalid URL format")]
+        public string? ProfilePictureUrl { get; set; }
+    }
+    
+    private class AddressModel
+    {
+        public string? Street1 { get; set; }
+        public string? Street2 { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
+        public string? ZipCode { get; set; }
+        public string? Country { get; set; }
+    }
+    
+    private class PreferencesModel
+    {
+        public bool ReceiveEmailNotifications { get; set; } = true;
+        public bool ReceiveSmsNotifications { get; set; } = false;
+        public string? PreferredLanguage { get; set; } = "en-US";
+        public string? TimeZone { get; set; } = "UTC";
+        public string? Theme { get; set; } = "Light";
+    }
+    
+    private ProfileModel profileModel = new();
+    private AddressModel addressModel = new();
+    private PreferencesModel preferencesModel = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Get the current user's email from claims
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            userEmail = user.FindFirst(ClaimTypes.Email)?.Value ?? "test@example.com";
+            
+            // Ensure userEmail is never null to prevent null reference warnings
+            if (userEmail == null)
+            {
+                userEmail = "test@example.com";
+            }
+            
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+            
+            await LoadUserDataAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading profile: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private async Task LoadUserDataAsync()
+    {
+        try
+        {
+            // Load user profile data
+            var userData = await UserService.GetUserProfileAsync(userEmail);
+            
+            if (userData != null)
+            {
+                // Map user data to form models
+                profileModel.EmailAddress = userData.EmailAddress;
+                profileModel.FirstName = userData.FirstName;
+                profileModel.LastName = userData.LastName;
+                profileModel.PhoneNumber = userData.PhoneNumber;
+                profileModel.ProfilePictureUrl = userData.ProfilePictureUrl;
+                
+                if (userData.Address != null)
+                {
+                    addressModel.Street1 = userData.Address.Street1;
+                    addressModel.Street2 = userData.Address.Street2;
+                    addressModel.City = userData.Address.City;
+                    addressModel.State = userData.Address.State;
+                    addressModel.ZipCode = userData.Address.ZipCode;
+                    addressModel.Country = userData.Address.Country;
+                }
+                
+                if (userData.Preferences != null)
+                {
+                    preferencesModel.ReceiveEmailNotifications = userData.Preferences.ReceiveEmailNotifications;
+                    preferencesModel.ReceiveSmsNotifications = userData.Preferences.ReceiveSmsNotifications;
+                    preferencesModel.PreferredLanguage = userData.Preferences.PreferredLanguage;
+                    preferencesModel.TimeZone = userData.Preferences.TimeZone;
+                    preferencesModel.Theme = userData.Preferences.Theme;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading user data: {ex.Message}", Severity.Error);
+        }
+    }
+    
+    private async Task SaveProfileAsync()
+    {
+        try
+        {
+            var success = await UserService.UpdateUserProfileAsync(
+                userEmail,
+                profileModel.FirstName,
+                profileModel.LastName,
+                profileModel.PhoneNumber,
+                profileModel.ProfilePictureUrl
+            );
+            
+            if (success)
+            {
+                Snackbar.Add("Profile updated successfully", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to update profile", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating profile: {ex.Message}", Severity.Error);
+        }
+    }
+    
+    private async Task SaveAddressAsync()
+    {
+        try
+        {
+            var success = await UserService.UpdateUserAddressAsync(
+                userEmail,
+                addressModel.Street1,
+                addressModel.Street2,
+                addressModel.City,
+                addressModel.State,
+                addressModel.ZipCode,
+                addressModel.Country
+            );
+            
+            if (success)
+            {
+                Snackbar.Add("Address updated successfully", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to update address", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating address: {ex.Message}", Severity.Error);
+        }
+    }
+    
+    private async Task SavePreferencesAsync()
+    {
+        try
+        {
+            var success = await UserService.UpdateUserPreferencesAsync(
+                userEmail,
+                preferencesModel.ReceiveEmailNotifications,
+                preferencesModel.ReceiveSmsNotifications,
+                preferencesModel.PreferredLanguage,
+                preferencesModel.TimeZone,
+                preferencesModel.Theme
+            );
+            
+            if (success)
+            {
+                Snackbar.Add("Preferences updated successfully", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to update preferences", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating preferences: {ex.Message}", Severity.Error);
+        }
+    }
+}
