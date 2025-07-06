@@ -1,22 +1,32 @@
 
+using System.Diagnostics;
+
 namespace Fortium.Types;
 
 public enum AddressType { Home, Work, Other }
 
-public record Address {
-  public string? StreetAddress1 { get; }
-  public string? StreetAddress2 { get; }
-  public string? City { get; }
-  public string? State { get; }
-  public string? ZipCode { get; }
-  public AddressType? AddressType { get; }
+[Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+public class Address {
+  public string? Street1 { get; set; }
+  public string? Street2 { get; set; }
+  public string? City { get; set; }
+  public string? State { get; set; }
+  public string? ZipCode { get; set; }
+  public string? Country { get; set; }
+  public AddressType AddressType { get; set; } = AddressType.Home;
 
-  public Address(string address1, string? address2, string city, string state, string zip, AddressType type) {
-    StreetAddress1 = address1;
-    StreetAddress2 = address2;
+  public Address() { }
+
+  public Address(string street1, string? street2, string city, string state, string zipCode, string? country = null, AddressType addressType = AddressType.Home) {
+    Street1 = street1;
+    Street2 = street2;
     City = city;
     State = state;
-    ZipCode = zip;
-    AddressType = type;
+    ZipCode = zipCode;
+    Country = country;
+    AddressType = addressType;
   }
+  
+  private string DebuggerDisplay => $"{Street1}, {City}, {State} {ZipCode}";
 }

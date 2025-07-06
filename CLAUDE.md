@@ -20,6 +20,7 @@ Availability filter to only show partners who can meet soon
 Display of matched partners with relevance scores
 Brief profiles highlighting expertise relevant to the stated problem
 Availability calendar for each partner
+
 ### Booking System
 
 Seamless transition to scheduling once a partner is selected
@@ -40,6 +41,7 @@ Additionally confirmation e-mails will be sent out from the google meeting reque
 
 
 ### Implementation Approach
+ 
 For the AI matching component, you could:
 
 Use a Large Language Model (LLM) like OpenAI's GPT or similar:

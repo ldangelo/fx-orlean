@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet list package:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "mcp__node__create_comment",
+      "mcp__node__create_issue",
+      "mcp__node__get_issue",
+      "mcp__node__get_projects",
+      "mcp__node__search_issues",
+      "mcp__node__update_issue"
+    ],
+    "deny": []
+  }
+}

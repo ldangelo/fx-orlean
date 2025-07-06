@@ -77,4 +77,58 @@ public static class UserController
         Log.Information("Getting user {emailAddress}", user.EmailAddress);
         return user;
     }
+
+    [WolverinePost("/users/profile/{userId}")]
+    [EmptyResponse]
+    public static UserProfileUpdatedEvent UpdateUserProfile(
+        [FromBody] UpdateUserProfileCommand command,
+        [Aggregate] User user
+    )
+    {
+        Log.Information("Updating profile for user {emailAddress}", command.EmailAddress);
+        return new UserProfileUpdatedEvent(
+            command.EmailAddress,
+            command.FirstName,
+            command.LastName,
+            command.PhoneNumber,
+            command.ProfilePictureUrl
+        );
+    }
+
+    [WolverinePost("/users/address/{userId}")]
+    [EmptyResponse]
+    public static UserAddressUpdatedEvent UpdateUserAddress(
+        [FromBody] UpdateUserAddressCommand command,
+        [Aggregate] User user
+    )
+    {
+        Log.Information("Updating address for user {emailAddress}", command.EmailAddress);
+        return new UserAddressUpdatedEvent(
+            command.EmailAddress,
+            command.Street1,
+            command.Street2,
+            command.City,
+            command.State,
+            command.ZipCode,
+            command.Country
+        );
+    }
+
+    [WolverinePost("/users/preferences/{userId}")]
+    [EmptyResponse]
+    public static UserPreferencesUpdatedEvent UpdateUserPreferences(
+        [FromBody] UpdateUserPreferencesCommand command,
+        [Aggregate] User user
+    )
+    {
+        Log.Information("Updating preferences for user {emailAddress}", command.EmailAddress);
+        return new UserPreferencesUpdatedEvent(
+            command.EmailAddress,
+            command.ReceiveEmailNotifications,
+            command.ReceiveSmsNotifications,
+            command.PreferredLanguage,
+            command.TimeZone,
+            command.Theme
+        );
+    }
 }
