@@ -12,6 +12,8 @@ using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Http.FluentValidation;
 using Wolverine.Marten;
+using Fortium.Types;
+using JasperFx;
 
 namespace EventServer;
 
@@ -37,8 +39,8 @@ public class Program
         builder.Services.AddControllers();
         builder.Environment.ApplicationName = "EventServer";
 
-        if (builder.Environment.IsDevelopment())
-            builder.Services.AddHostedService<StartUpTask>();
+//        if (builder.Environment.IsDevelopment())
+//            builder.Services.AddHostedService<StartUpTask>();
         //
         // add wolverine/marten
         builder
@@ -47,7 +49,13 @@ public class Program
                 opts.Connection(builder.Configuration.GetConnectionString("EventStore")!);
                 opts.UseNewtonsoftForSerialization();
 
+                if (builder.Environment.IsDevelopment())
+                    opts.AutoCreateSchemaObjects = AutoCreate.All;
+
                 opts.Events.StreamIdentity = StreamIdentity.AsString;
+                opts.Events.AppendMode = EventAppendMode.Rich;
+
+//                opts.Schema.For<Partner>().UseOptimisticConcurrency(true);
 
                 opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
@@ -57,17 +65,16 @@ public class Program
             .UseLightweightSessions()
             .IntegrateWithWolverine() // forward martin events too wolverine outbox
             .EventForwardingToWolverine();
-        //            .AddAsyncDaemon(DaemonMode.HotCold);
+//            .AddAsyncDaemon(DaemonMode.HotCold);
 
 
-        await builder
+        builder
             .Host.UseWolverine(opts =>
             {
                 opts.UseFluentValidation();
                 opts.Policies.AutoApplyTransactions();
 //                opts.OptimizeArtifactWorkflow();
-            })
-            .StartAsync();
+            });
 
         builder.Services.AddSingleton<ChatGPTWithRAG>();
         builder.Services.AddEndpointsApiExplorer();
@@ -84,9 +91,9 @@ public class Program
             app.MapOpenApi();
 
             var store = app.Services.GetRequiredService<IDocumentStore>();
-            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(PartnerProjection));
-            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(UserProjection));
-            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(PaymentProjection));
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(Partner));  // Changed from PartnerProjection to Partner
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(User));    // Assuming User is the document type
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(Payment)); // Assuming Payment is the document type
         }
 
         app.UseFastEndpoints().UseSwaggerGen();

@@ -17,6 +17,12 @@ public class StartUpTask : IHostedService
     {
         Log.Information("Starting up");
 
+        //
+        // There is a race condition that occurs when starting up on a
+        // 'fresh' schmea.  Effectively marten is still creating the schema while we
+        // are trying to insert records into it.  We need to wait for the schema to be written
+        // before trying to insert
+        Thread.Sleep(30);
         var leo = new Partner();
 
         leo.FirstName = "Leo";

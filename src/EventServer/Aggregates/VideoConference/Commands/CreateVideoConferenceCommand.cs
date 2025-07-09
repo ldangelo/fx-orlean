@@ -1,4 +1,5 @@
 using FluentValidation;
+using Fortium.Types;
 
 namespace EventServer.Aggregates.VideoConference.Commands;
 
@@ -12,7 +13,8 @@ public record CreateVideoConferenceCommand(
     DateTime StartTime,
     DateTime EndTime,
     string UserId,
-    string PartnerId
+    string PartnerId,
+    RateInformation RateInformation
 ) : IVideoConferenceCommand
 {
 }
@@ -24,21 +26,64 @@ public class CreateVideoConferenceCommandValidator : AbstractValidator<CreateVid
         RuleFor(command => command.ConferenceId)
             .NotEqual(Guid.Empty)
             .WithMessage("ConferenceId is required");
+            
         RuleFor(command => command.StartTime)
             .NotEqual(default(DateTime))
             .WithMessage("StartTime is required")
             .LessThan(command => command.EndTime)
             .WithMessage("StartTime must be before EndTime");
+            
         RuleFor(command => command.EndTime)
             .NotEqual(default(DateTime))
             .WithMessage("EndTime is required")
             .GreaterThan(command => command.StartTime)
             .WithMessage("EndTime must be after StartTime");
+            
         RuleFor(command => command.UserId)
-            .NotEqual(default(string))
+            .NotEmpty()
             .WithMessage("UserId is required");
+            
         RuleFor(command => command.PartnerId)
-            .NotEqual(default(string))
+            .NotEmpty()
             .WithMessage("PartnerId is required");
+            
+        RuleFor(command => command.RateInformation)
+            .NotNull()
+            .WithMessage("RateInformation is required");
+            
+        RuleFor(command => command.RateInformation.RatePerMinute)
+            .GreaterThan(0)
+            .When(command => command.RateInformation != null)
+            .WithMessage("RatePerMinute must be greater than 0");
+            
+        RuleFor(command => command.RateInformation.MinimumCharge)
+            .GreaterThanOrEqualTo(0)
+            .When(command => command.RateInformation != null)
+            .WithMessage("MinimumCharge must be greater than or equal to 0");
+            
+        RuleFor(command => command.RateInformation.MinimumMinutes)
+            .GreaterThan(0)
+            .When(command => command.RateInformation != null)
+            .WithMessage("MinimumMinutes must be greater than 0");
+            
+        RuleFor(command => command.RateInformation.BillingIncrementMinutes)
+            .GreaterThan(0)
+            .When(command => command.RateInformation != null)
+            .WithMessage("BillingIncrementMinutes must be greater than 0");
+            
+        RuleFor(command => command.RateInformation.EffectiveDate)
+            .LessThanOrEqualTo(command => command.StartTime)
+            .When(command => command.RateInformation != null)
+            .WithMessage("Rate must be effective before or at conference start time");
+            
+        RuleFor(command => command.RateInformation.ExpirationDate)
+            .GreaterThanOrEqualTo(command => command.EndTime)
+            .When(command => command.RateInformation?.ExpirationDate != null)
+            .WithMessage("Rate must not expire before conference end time");
+            
+        RuleFor(command => command.RateInformation.IsActive)
+            .Equal(true)
+            .When(command => command.RateInformation != null)
+            .WithMessage("Rate must be active");
     }
 }

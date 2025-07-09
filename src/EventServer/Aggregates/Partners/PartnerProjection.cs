@@ -8,6 +8,23 @@ namespace EventServer.Aggregates.Partners;
 
 public class PartnerProjection : SingleStreamProjection<Partner, string>
 {
+    public static Partner Create(PartnerCreatedEvent @event)
+    {
+        Log.Information(
+            "PartnerProjection: Creating new Partner for {EmailAddress}",
+            @event.EmailAddress
+        );
+
+        return new Partner
+        {
+            EmailAddress = @event.EmailAddress,  // This is our identity field
+            FirstName = @event.FirstName,
+            LastName = @event.LastName,
+            CreateDate = DateTime.Now,
+            Active = true
+        };
+    }
+
     public static Partner Apply(PartnerCreatedEvent @event, Partner partner)
     {
         Log.Information(

@@ -3,6 +3,7 @@ using Marten.Schema;
 
 namespace Fortium.Types;
 
+
 [Serializable]
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class Partner

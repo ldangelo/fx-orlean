@@ -1,3 +1,5 @@
+using Fortium.Types;
+
 namespace EventServer.Aggregates.VideoConference.Events;
 
 public interface IVideoConferenceEvent
@@ -6,9 +8,10 @@ public interface IVideoConferenceEvent
 
 [Serializable]
 public record VideoConferenceCreatedEvent(
-        Guid conferenceId,
-        DateTime commandStartTime,
-        DateTime commandEndTime,
-        string commandUserId,
-        string commandPartnerId
-    ): IVideoConferenceEvent;
+    Guid ConferenceId,
+    DateTime StartTime,
+    DateTime EndTime,
+    string UserId,
+    string PartnerId,
+    RateInformation RateInformation
+) : IVideoConferenceEvent;

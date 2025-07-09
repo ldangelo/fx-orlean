@@ -1,39 +1,89 @@
 using EventServer.Aggregates.Payments.Events;
+using EventServer.Aggregates.VideoConference;
 using Fortium.Types;
 using Marten.Events.Aggregation;
 using Serilog;
-using Wolverine.Attributes;
 
 namespace EventServer.Aggregates.Payments;
 
-public class PaymentProjection : SingleStreamProjection<Payment, string>
+public class PaymentState
 {
-    public static Payment Apply(PaymentAuthorizedEvent @event, Payment payment)
+    public required string Id {get; set; }
+    public required string PaymentId { get; set; }
+    public required decimal Amount { get; set; }
+    public required string Currency { get; set; }
+    public required string Status { get; set; }
+    public DateTime? AuthorizationDate { get; set; }
+    public DateTime? CaptureDate { get; set; }
+    public Guid? ConferenceId { get; set; }
+    public RateInformation? RateInformation { get; set; }
+}
+
+public class PaymentProjection : SingleStreamProjection<PaymentState, string>
+{
+    public PaymentProjection()
     {
-        Log.Information(
-            "PaymentProjection: Applying {type} to {PaymentIntentId}",
-            typeof(PaymentAuthorizedEvent),
-            @event.PaymentId
-        );
+        ProjectEvent<PaymentAuthorizedEvent>((state, @event) =>
+        {
+            state = state ?? new PaymentState
+            {
+                Id = Guid.NewGuid().ToString(),
+                PaymentId = @event.PaymentId,
+                Amount = @event.Amount,
+                Currency = @event.Currency,
+                Status = "Authorized"
+            };
+            
+            Log.Information(
+                "PaymentProjection: Applying {type} to {PaymentIntentId}",
+                typeof(PaymentAuthorizedEvent),
+                @event.PaymentId
+            );
 
-        payment.PaymentId = @event.PaymentId;
-        payment.Amount = @event.Amount;
-        payment.Currency = @event.Currency;
-        payment.Status = "Authorized";
-        payment.AuthorizationDate = DateTime.Now;
-        return payment;
-    }
+            state.AuthorizationDate = DateTime.Now;
+            
+            return state;
+        });
 
-    public static Payment Apply(PaymentCapturedEvent @event, Payment payment)
-    {
-        Log.Information(
-            "PaymentProjection: Applying {type} to {PaymentIntentId}",
-            typeof(PaymentCapturedEvent),
-            @event.PaymentId
-        );
+        ProjectEvent<PaymentCapturedEvent>((state, @event) =>
+        {
+            if (state == null) return null;
+            
+            Log.Information(
+                "PaymentProjection: Applying {type} to {PaymentIntentId}",
+                typeof(PaymentCapturedEvent),
+                @event.PaymentId
+            );
 
-        payment.Status = "Captured";
-        payment.CaptureDate = DateTime.Now;
-        return payment;
+            state.Status = "Captured";
+            state.CaptureDate = DateTime.Now;
+            
+            return state;
+        });
+
+        ProjectEvent<ConferencePaymentAuthorizedEvent>((state, @event) =>
+        {
+            state = state ?? new PaymentState
+            {
+                Id = Guid.NewGuid().ToString(),
+                PaymentId = @event.PaymentId.ToString(),
+                Amount = @event.Amount,
+                Currency = @event.Currency,
+                Status = "Authorized"
+            };
+            
+            Log.Information(
+                "PaymentProjection: Applying {type} to Payment {PaymentId} for Conference {ConferenceId}",
+                typeof(ConferencePaymentAuthorizedEvent),
+                @event.PaymentId,
+                @event.ConferenceId
+            );
+
+            state.AuthorizationDate = DateTime.Now;
+            state.ConferenceId = @event.ConferenceId;
+            state.RateInformation = @event.RateInformation;
+            
+            return state;
+        });
     }
 }
