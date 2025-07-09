@@ -3,6 +3,7 @@ using EventServer.Aggregates.VideoConference.Commands;
 using EventServer.Aggregates.VideoConference.Events;
 using FluentValidation.Results;
 using Fortium.Types;
+using Marten;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Wolverine.Http;
@@ -45,10 +46,13 @@ public static class VideoConferenceController
     }
 
     [WolverineGet("/videos/{conferenceId}")]
-    public static IResult GetVideoConference(
+    public static async Task<IResult> GetVideoConference(
         [FromRoute] Guid conferenceId,
-        [Document] VideoConferenceState conference)
+        IQuerySession session)
     {
+        var conferenceIdString = conferenceId.ToString();
+        var conference = await session.LoadAsync<VideoConferenceState>(conferenceIdString);
+        
         if (conference == null)
         {
             Log.Warning("Video conference {conferenceId} not found", conferenceId);

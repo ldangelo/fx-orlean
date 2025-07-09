@@ -6,7 +6,7 @@ namespace EventServer.Aggregates.VideoConference;
 
 public class VideoConferenceState
 {
-    public required Guid Id { get; set; }
+    public required string Id { get; set; }
     public required DateTime StartTime { get; set; }
     public required DateTime EndTime { get; set; }
     public required string UserId { get; set; }
@@ -15,7 +15,7 @@ public class VideoConferenceState
     public decimal EstimatedCost => RateInformation?.CalculateCost(StartTime, EndTime) ?? 0;
 }
 
-public class VideoConferenceProjection : SingleStreamProjection<VideoConferenceState, Guid>
+public class VideoConferenceProjection : SingleStreamProjection<VideoConferenceState, string>
 {
     public VideoConferenceProjection()
     {
@@ -23,7 +23,7 @@ public class VideoConferenceProjection : SingleStreamProjection<VideoConferenceS
         {
             state = state ?? new VideoConferenceState
             {
-                Id = @event.ConferenceId,
+                Id = @event.ConferenceId.ToString(),
                 StartTime = @event.StartTime,
                 EndTime = @event.EndTime,
                 UserId = @event.UserId,

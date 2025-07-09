@@ -1,6 +1,7 @@
 using EventServer.Aggregates.Partners;
 using EventServer.Aggregates.Payments;
 using EventServer.Aggregates.Users;
+using EventServer.Aggregates.VideoConference;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using JasperFx.Events;
@@ -60,6 +61,7 @@ public class Program
                 opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<PaymentProjection>(ProjectionLifecycle.Inline);
+                opts.Projections.Add<VideoConferenceProjection>(ProjectionLifecycle.Inline);
             })
 //            .OptimizeArtifactWorkflow()
             .UseLightweightSessions()
@@ -94,6 +96,7 @@ public class Program
             await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(Partner));  // Changed from PartnerProjection to Partner
             await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(User));    // Assuming User is the document type
             await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(Payment)); // Assuming Payment is the document type
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(VideoConferenceState));
         }
 
         app.UseFastEndpoints().UseSwaggerGen();
@@ -107,6 +110,25 @@ public class Program
                 //                httpChain.WithMetadata(new CustomMetadata());
             });
             opts.UseFluentValidationProblemDetailMiddleware();
+        });
+        
+        // Add custom exception handler for KeyNotFoundException
+        app.UseExceptionHandler(appBuilder =>
+        {
+            appBuilder.Run(async context =>
+            {
+                var exceptionHandlerFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+                if (exceptionHandlerFeature?.Error is KeyNotFoundException)
+                {
+                    context.Response.StatusCode = 404;
+                    await context.Response.WriteAsync(exceptionHandlerFeature.Error.Message);
+                }
+                else
+                {
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsync("An error occurred");
+                }
+            });
         });
 
         // Define the minimal API endpoint

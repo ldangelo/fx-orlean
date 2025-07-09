@@ -1,6 +1,8 @@
 using EventServer.Aggregates.Payments.Commands;
 using EventServer.Aggregates.Payments.Events;
+using EventServer.Aggregates.VideoConference;
 using Fortium.Types;
+using Marten;
 using Microsoft.AspNetCore.Mvc;
 using Wolverine.Http;
 using Wolverine.Http.Marten;
@@ -12,11 +14,21 @@ namespace EventServer.Controllers;
 public static class PaymentController
 {
     [WolverinePost("/payments/authorize")]
-    public static (CreationResponse, IStartStream) AuthorizePayment(
-        AuthorizeConferencePaymentCommand command
+    public static async Task<(CreationResponse, IStartStream)> AuthorizePayment(
+        AuthorizeConferencePaymentCommand command,
+        IQuerySession session
     )
     {
         Log.Information("Authorizing payment {PaymentId} for conference {ConferenceId}", command.PaymentId, command.ConferenceId);
+        
+        var conferenceId = command.ConferenceId.ToString();
+        var conference = await session.LoadAsync<VideoConferenceState>(conferenceId);
+        
+        if (conference == null)
+        {
+            Log.Warning("Conference {ConferenceId} not found for payment authorization", command.ConferenceId);
+            throw new KeyNotFoundException($"Conference {command.ConferenceId} not found");
+        }
         
         var paymentId = command.PaymentId.ToString();
         var paymentAuthorizedEvent = new ConferencePaymentAuthorizedEvent(

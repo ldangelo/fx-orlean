@@ -66,14 +66,14 @@ public class PaymentProjection : SingleStreamProjection<Payment, string>
 
     ProjectEvent<ConferencePaymentAuthorizedEvent>((state, @event) =>
     {
-      var newState = state ?? new Payment
-      {
-        PaymentId = @event.PaymentId.ToString(),
-        Amount = @event.Amount,
-        Currency = @event.Currency,
-        Status = "Authorized",
-        ConferenceId = @event.ConferenceId.ToString()
-      };
+      var newState = state ?? new Payment();
+      
+      // Set properties explicitly
+      newState.PaymentId = @event.PaymentId.ToString();
+      newState.Amount = @event.Amount;
+      newState.Currency = @event.Currency;
+      newState.ConferenceId = @event.ConferenceId.ToString();
+      newState.Status = "Authorized";
 
       Log.Information(
               "PaymentProjection: Creating state for Payment {PaymentId} with Conference {ConferenceId}",

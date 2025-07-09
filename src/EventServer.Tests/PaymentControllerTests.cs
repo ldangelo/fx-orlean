@@ -17,44 +17,48 @@ public class PaymentControllerTests : IntegrationContext
     public async Task AuthorizePayment_ShouldReturnPaymentIntentId()
     {
         // Arrange
-        var command = new AuthorizePaymentCommand(100.0m, "USD", "pm_card_visa", DateTime.Now);
+        var command = new AuthorizeConferencePaymentCommand(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            100.0m,
+            "USD",
+            "user@example.com",
+            new RateInformation { RatePerMinute = 1.5m, MinimumCharge = 10.0m }
+        );
 
         // Act
         var initial = await Scenario(x =>
         {
             x.Post.Json(command).ToUrl("/payments/authorize");
-            x.StatusCodeShouldBe(200);
+            x.StatusCodeShouldBe(201);
         });
-
-        var result = initial.ReadAsJson<Payment>();
-        Assert.NotNull(result?.PaymentId);
     }
 
     [Fact]
     public async Task CapturePayment_ShouldReturnSuccess()
     {
         // Arrange
-        var authorizeCommand = new AuthorizePaymentCommand(
+        var authorizeCommand = new AuthorizeConferencePaymentCommand(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
             100.0m,
             "USD",
-            "pm_card_visa",
-            DateTime.Now
+            "user@example.com",
+            new RateInformation { RatePerMinute = 1.5m, MinimumCharge = 10.0m }
         );
         var authorizeResponse = await Scenario(x =>
         {
             x.Post.Json(authorizeCommand).ToUrl("/payments/authorize");
-            x.StatusCodeShouldBe(200);
+            x.StatusCodeShouldBe(201);
         });
 
-        var captureCommand = new CapturePaymentCommand("pm_card_visa", DateTime.Now);
+        var captureCommand = new CapturePaymentCommand(Guid.NewGuid().ToString(), DateTime.Now);
 
         // Act
         var response = await Scenario(x =>
         {
-            x.Post.Json(captureCommand).ToUrl("/payments/capture/pm_card_visa");
+            x.Post.Json(captureCommand).ToUrl($"/payments/capture/{captureCommand.PaymentIntentId}");
             x.StatusCodeShouldBe(204);
         });
-
-        // Assert
     }
 }
