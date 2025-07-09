@@ -6,13 +6,25 @@ namespace EventServer.Aggregates.VideoConference;
 
 public class VideoConferenceState
 {
-    public required string Id { get; set; }
-    public required DateTime StartTime { get; set; }
-    public required DateTime EndTime { get; set; }
-    public required string UserId { get; set; }
-    public required string PartnerId { get; set; }
-    public required RateInformation RateInformation { get; set; }
-    public decimal EstimatedCost => RateInformation?.CalculateCost(StartTime, EndTime) ?? 0;
+    public string Id { get; set; } = string.Empty;
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public string PartnerId { get; set; } = string.Empty;
+    public RateInformation? RateInformation { get; set; }
+    
+    public decimal EstimatedCost 
+    {
+        get 
+        {
+            if (RateInformation == null)
+            {
+                return 0;
+            }
+            
+            return RateInformation.CalculateCost(StartTime, EndTime);
+        }
+    }
 }
 
 public class VideoConferenceProjection : SingleStreamProjection<VideoConferenceState, string>
@@ -21,15 +33,18 @@ public class VideoConferenceProjection : SingleStreamProjection<VideoConferenceS
     {
         ProjectEvent<VideoConferenceCreatedEvent>((state, @event) =>
         {
-            state = state ?? new VideoConferenceState
+            if (state == null)
             {
-                Id = @event.ConferenceId.ToString(),
-                StartTime = @event.StartTime,
-                EndTime = @event.EndTime,
-                UserId = @event.UserId,
-                PartnerId = @event.PartnerId,
-                RateInformation = @event.RateInformation
-            };
+                state = new VideoConferenceState
+                {
+                    Id = @event.ConferenceId.ToString(),
+                    StartTime = @event.StartTime,
+                    EndTime = @event.EndTime,
+                    UserId = @event.UserId,
+                    PartnerId = @event.PartnerId,
+                    RateInformation = @event.RateInformation
+                };
+            }
             
             return state;
         });

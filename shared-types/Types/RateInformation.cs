@@ -2,6 +2,7 @@ using System;
 
 namespace Fortium.Types
 {
+    [Serializable]
     public class RateInformation
     {
         public decimal RatePerMinute { get; set; }
