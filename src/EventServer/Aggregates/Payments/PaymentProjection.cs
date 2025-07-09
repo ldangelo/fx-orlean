@@ -6,7 +6,7 @@ using Wolverine.Attributes;
 
 namespace EventServer.Aggregates.Payments;
 
-public class PaymentProjection : SingleStreamProjection<Payment>
+public class PaymentProjection : SingleStreamProjection<Payment, string>
 {
     public static Payment Apply(PaymentAuthorizedEvent @event, Payment payment)
     {

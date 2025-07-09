@@ -24,7 +24,7 @@ public class PartnerAggregateHandler
         );
         var partner = stream.Aggregate;
 
-        if (partner.IsLoggedIn())
+        if (partner != null && partner.IsLoggedIn())
         {
             Log.Debug($"Partner {command.EmailAddress} is already logged in.");
             throw new InvalidOperationException(
