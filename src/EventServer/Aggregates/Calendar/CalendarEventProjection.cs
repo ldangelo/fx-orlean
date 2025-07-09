@@ -4,7 +4,7 @@ using Marten.Events.Aggregation;
 
 namespace EventServer.Aggregates.Calendar;
 
-public class CalendarEventProjection : SingleStreamProjection<CalendarEvent>
+public class CalendarEventProjection : SingleStreamProjection<CalendarEvent, string>
 {
     public static CalendarEvent Apply(CalendarEventCreatedEvent @event, CalendarEvent calendarEvent)
     {

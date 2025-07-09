@@ -3,11 +3,10 @@ using EventServer.Aggregates.Payments;
 using EventServer.Aggregates.Users;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using JasperFx.Events;
+using JasperFx.Events.Projections;
 using Marten;
-using Marten.Events;
-using Marten.Events.Projections;
 using Serilog;
-using Weasel.Core;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
@@ -19,7 +18,7 @@ namespace EventServer;
 public class Program
 {
     [Obsolete]
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false, true)
@@ -46,31 +45,27 @@ public class Program
             .Services.AddMarten(opts =>
             {
                 opts.Connection(builder.Configuration.GetConnectionString("EventStore")!);
-                opts.AutoCreateSchemaObjects = AutoCreate.All;
                 opts.UseNewtonsoftForSerialization();
 
                 opts.Events.StreamIdentity = StreamIdentity.AsString;
-                opts.Events.AppendMode = EventAppendMode.Quick;
-
-                opts.Projections.UseIdentityMapForAggregates = true;
 
                 opts.Projections.Add<PartnerProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<PaymentProjection>(ProjectionLifecycle.Inline);
             })
-            .OptimizeArtifactWorkflow()
+//            .OptimizeArtifactWorkflow()
             .UseLightweightSessions()
             .IntegrateWithWolverine() // forward martin events too wolverine outbox
             .EventForwardingToWolverine();
         //            .AddAsyncDaemon(DaemonMode.HotCold);
 
 
-        builder
+        await builder
             .Host.UseWolverine(opts =>
             {
                 opts.UseFluentValidation();
                 opts.Policies.AutoApplyTransactions();
-                opts.OptimizeArtifactWorkflow();
+//                opts.OptimizeArtifactWorkflow();
             })
             .StartAsync();
 
@@ -89,8 +84,9 @@ public class Program
             app.MapOpenApi();
 
             var store = app.Services.GetRequiredService<IDocumentStore>();
-            store.Advanced.Clean.DeleteAllDocuments();
-            store.Advanced.Clean.DeleteAllEventData();
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(PartnerProjection));
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(UserProjection));
+            await store.Advanced.Clean.DeleteDocumentsByTypeAsync(typeof(PaymentProjection));
         }
 
         app.UseFastEndpoints().UseSwaggerGen();

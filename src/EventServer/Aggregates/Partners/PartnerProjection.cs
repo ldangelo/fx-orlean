@@ -1,32 +1,12 @@
 using EventServer.Aggregates.Partners.Events;
 using Fortium.Types;
-using JasperFx.CodeGeneration;
-using JasperFx.CodeGeneration.Frames;
-using Marten.Events;
 using Marten.Events.Aggregation;
-using Marten.Schema;
-using Marten.Schema.Identity;
 using Serilog;
 using Wolverine.Attributes;
 
 namespace EventServer.Aggregates.Partners;
 
-public class PartnerIdGeneration : IIdGeneration
-{
-    public IEnumerable<Type> KeyTypes => new Type[] { typeof(string) };
-
-    public bool RequiresSequences => false;
-
-    public void GenerateCode(GeneratedMethod method, DocumentMapping mapping)
-    {
-        var document = new Use(mapping.DocumentType);
-
-        method.Frames.Code($"_setter({{0}}, \"newId\");", document);
-        method.Frames.Code($"return {{0}}.{mapping.CodeGen?.AccessId};", document);
-    }
-}
-
-public class PartnerProjection : SingleStreamProjection<Partner>
+public class PartnerProjection : SingleStreamProjection<Partner, string>
 {
     public static Partner Apply(PartnerCreatedEvent @event, Partner partner)
     {

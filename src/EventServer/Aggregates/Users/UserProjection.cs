@@ -6,7 +6,7 @@ using Serilog;
 
 namespace EventServer.Aggregates.Users;
 
-public class UserProjection : SingleStreamProjection<User>
+public class UserProjection : SingleStreamProjection<User, string>
 {
     public static User Apply(UserCreatedEvent @event, User user)
     {

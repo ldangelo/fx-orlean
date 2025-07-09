@@ -13,7 +13,7 @@ public class StartUpTask : IHostedService
         _store = store;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         Log.Information("Starting up");
 
@@ -57,9 +57,10 @@ public class StartUpTask : IHostedService
             "Fortium Partners", "CEO", "Founder and CEO of Fortium Partners"));
         burke.AvailabilityNext30Days = 160;
 
-        _store.BulkInsert<Partner>([leo, burke]);
-
-        return Task.CompletedTask;
+        using var session = _store.LightweightSession();
+        session.Store(leo);
+        session.Store(burke);
+        await session.SaveChangesAsync();
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
