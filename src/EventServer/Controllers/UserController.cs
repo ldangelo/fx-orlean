@@ -1,3 +1,4 @@
+using EventServer.Aggregates.Users;
 using EventServer.Aggregates.Users.Commands;
 using EventServer.Aggregates.Users.Events;
 using Fortium.Types;
@@ -23,13 +24,18 @@ public static class UserController
         return (response, start);
     }
 
-    [WolverinePost("/users/video/{userId}")]
+    [WolverinePost("/users/video/{EmailAddress}")]
     [EmptyResponse]
     public static VideoConferenceAddedToUserEvent AddConference(
         [FromBody] AddVideoConferenceToUserCommand command,
         [Aggregate] User user
     )
     {
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+        
         Log.Information(
             "Adding video conference {conferenceId} to user {emailAddress}",
             command.ConferenceId,
@@ -38,13 +44,18 @@ public static class UserController
         return new VideoConferenceAddedToUserEvent(command.EmailAddress, command.ConferenceId);
     }
 
-    [WolverinePost("/users/login/{userId}")]
+    [WolverinePost("/users/login/{EmailAddress}")]
     [EmptyResponse]
     public static UserLoggedInEvent UserLogin(
         [FromBody] UserLoggedInCommand command,
         [Aggregate] User user
     )
     {
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+
         Log.Information(
             "Logging User In {date} to user {emailAddress}",
             command.LoginDate,
@@ -53,13 +64,18 @@ public static class UserController
         return new UserLoggedInEvent(command.EmailAddress, command.LoginDate);
     }
 
-    [WolverinePost("/users/logout/{userId}")]
+    [WolverinePost("/users/logout/{EmailAddress}")]
     [EmptyResponse]
     public static UserLoggedOutEvent UserLogout(
         [FromBody] UserLoggedOutCommand command,
         [Aggregate] User user
     )
     {
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+
         Log.Information(
             "Logging User out {date} to user {emailAddress}",
             command.LogoutDate,
@@ -72,19 +88,38 @@ public static class UserController
      * GetUser: Get's a user by email address
      */
     [WolverineGet("/users/{EmailAddress}")]
-    public static User GetUser([Document("EmailAddress")] User user)
+    public static IResult GetUser([Document("EmailAddress")] User user)
     {
+        if (user == null)
+        {
+            Log.Warning("User not found");
+            return Results.NotFound();
+        }
+
         Log.Information("Getting user {emailAddress}", user.EmailAddress);
-        return user;
+        return Results.Ok(user);
     }
 
-    [WolverinePost("/users/profile/{userId}")]
+    [WolverinePost("/users/profile/{EmailAddress}")]
     [EmptyResponse]
     public static UserProfileUpdatedEvent UpdateUserProfile(
         [FromBody] UpdateUserProfileCommand command,
-        [Aggregate] User user
+        [Aggregate("EmailAddress")] User user
     )
     {
+        if (user == null)
+        {
+            Log.Warning("User not found: {emailAddress}", command.EmailAddress);
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+
+        var validator = new UpdateUserProfileCommandValidator();
+        var result = validator.Validate(command);
+        if (!result.IsValid)
+        {
+            throw new ValidationException("Invalid profile update command", result.Errors);
+        }
+
         Log.Information("Updating profile for user {emailAddress}", command.EmailAddress);
         return new UserProfileUpdatedEvent(
             command.EmailAddress,
@@ -95,13 +130,26 @@ public static class UserController
         );
     }
 
-    [WolverinePost("/users/address/{userId}")]
+    [WolverinePost("/users/address/{EmailAddress}")]
     [EmptyResponse]
     public static UserAddressUpdatedEvent UpdateUserAddress(
         [FromBody] UpdateUserAddressCommand command,
-        [Aggregate] User user
+        [Aggregate("EmailAddress")] User user
     )
     {
+        if (user == null)
+        {
+            Log.Warning("User not found: {emailAddress}", command.EmailAddress);
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+
+        var validator = new UpdateUserAddressCommandValidator();
+        var result = validator.Validate(command);
+        if (!result.IsValid)
+        {
+            throw new ValidationException("Invalid address update command", result.Errors);
+        }
+
         Log.Information("Updating address for user {emailAddress}", command.EmailAddress);
         return new UserAddressUpdatedEvent(
             command.EmailAddress,
@@ -114,13 +162,26 @@ public static class UserController
         );
     }
 
-    [WolverinePost("/users/preferences/{userId}")]
+    [WolverinePost("/users/preferences/{EmailAddress}")]
     [EmptyResponse]
     public static UserPreferencesUpdatedEvent UpdateUserPreferences(
         [FromBody] UpdateUserPreferencesCommand command,
-        [Aggregate] User user
+        [Aggregate("EmailAddress")] User user
     )
     {
+        if (user == null)
+        {
+            Log.Warning("User not found: {emailAddress}", command.EmailAddress);
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+
+        var validator = new UpdateUserPreferencesCommandValidator();
+        var result = validator.Validate(command);
+        if (!result.IsValid)
+        {
+            throw new ValidationException("Invalid preferences update command", result.Errors);
+        }
+
         Log.Information("Updating preferences for user {emailAddress}", command.EmailAddress);
         return new UserPreferencesUpdatedEvent(
             command.EmailAddress,

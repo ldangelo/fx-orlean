@@ -72,7 +72,7 @@ public class ConferencePaymentTests : IntegrationContext
             x.StatusCodeShouldBe(200);
         });
 
-        var payment = result.ReadAsJson<PaymentState>();
+        var payment = result.ReadAsJson<Payment>();
         Assert.Equal("Authorized", payment.Status);
     }
 
