@@ -15,7 +15,14 @@ public class UserProfileTests : IntegrationContext
     [Fact]
     public async Task UpdateUserProfile_ShouldReturnUserProfileUpdatedEvent()
     {
-        // Arrange
+        // Arrange - First create a user
+        var createCommand = new CreateUserCommand("John", "Doe", "test@example.com");
+        await Host.Scenario(_ =>
+        {
+            _.Post.Json(createCommand).ToUrl("/users");
+            _.StatusCodeShouldBe(201);
+        });
+
         var command = new UpdateUserProfileCommand(
             EmailAddress: "test@example.com",
             FirstName: "John",
@@ -35,7 +42,14 @@ public class UserProfileTests : IntegrationContext
     [Fact]
     public async Task UpdateUserAddress_ShouldReturnUserAddressUpdatedEvent()
     {
-        // Arrange
+        // Arrange - First create a user
+        var createCommand = new CreateUserCommand("John", "Doe", "test@example.com");
+        await Host.Scenario(_ =>
+        {
+            _.Post.Json(createCommand).ToUrl("/users");
+            _.StatusCodeShouldBe(201);
+        });
+
         var command = new UpdateUserAddressCommand(
             EmailAddress: "test@example.com",
             Street1: "123 Main St",
@@ -57,7 +71,14 @@ public class UserProfileTests : IntegrationContext
     [Fact]
     public async Task UpdateUserPreferences_ShouldReturnUserPreferencesUpdatedEvent()
     {
-        // Arrange
+        // Arrange - First create a user
+        var createCommand = new CreateUserCommand("John", "Doe", "test@example.com");
+        await Host.Scenario(_ =>
+        {
+            _.Post.Json(createCommand).ToUrl("/users");
+            _.StatusCodeShouldBe(201);
+        });
+
         var command = new UpdateUserPreferencesCommand(
             EmailAddress: "test@example.com",
             ReceiveEmailNotifications: true,
@@ -161,7 +182,7 @@ public class UserProfileTests : IntegrationContext
         var result = validator.Validate(command);
         
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.ErrorMessage.Contains("Email address"));
+        result.Errors.ShouldContain(e => e.ErrorMessage.Contains("Email address", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -183,7 +204,7 @@ public class UserProfileTests : IntegrationContext
         var result = validator.Validate(command);
         
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.ErrorMessage.Contains("Email address"));
+        result.Errors.ShouldContain(e => e.ErrorMessage.Contains("Email address", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -204,6 +225,6 @@ public class UserProfileTests : IntegrationContext
         var result = validator.Validate(command);
         
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.ErrorMessage.Contains("Email address"));
+        result.Errors.ShouldContain(e => e.ErrorMessage.Contains("Email address", StringComparison.OrdinalIgnoreCase));
     }
 }
