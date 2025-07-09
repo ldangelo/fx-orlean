@@ -14,7 +14,7 @@ namespace EventServer.Controllers;
 public static class VideoConferenceController
 {
     [WolverinePost("/conferences")]
-    public static (CreationResponse, IStartStream) CreateVideoConference(CreateVideoConferenceCommand command) 
+    public static (CreationResponse, IStartStream) CreateVideoConference(CreateVideoConferenceCommand command)
     {
         Log.Information("Creating video conference {Id}.", command.ConferenceId);
         
@@ -24,7 +24,7 @@ public static class VideoConferenceController
         }
 
         var start = MartenOps.StartStream<VideoConferenceState>(
-            command.ConferenceId.ToString(), 
+            command.ConferenceId.ToString(),
             new VideoConferenceCreatedEvent(
                 command.ConferenceId,
                 command.StartTime, 
@@ -36,6 +36,28 @@ public static class VideoConferenceController
         );
         
         return (new CreationResponse($"/conferences/{command.ConferenceId}"), start);
+    }
+
+    [WolverinePost("/videos")]
+    public static (CreationResponse, IStartStream) CreateVideoConferenceVideo(CreateVideoConferenceCommand command)
+    {
+        return CreateVideoConference(command);
+    }
+
+    [WolverineGet("/videos/{conferenceId}")]
+    public static IResult GetVideoConference(
+        [FromRoute] Guid conferenceId,
+        [Document] VideoConferenceState conference)
+    {
+        if (conference == null)
+        {
+            Log.Warning("Video conference {conferenceId} not found", conferenceId);
+            return Results.NotFound();
+        }
+
+        Log.Information("Getting video conference {conferenceId}", conferenceId);
+        
+        return Results.Ok(conference);
     }
 
     [WolverineGet("/conferences/{conferenceId}")]

@@ -5,42 +5,41 @@ using Microsoft.AspNetCore.Mvc;
 using Wolverine.Http;
 using Wolverine.Http.Marten;
 using Wolverine.Marten;
+using Serilog;
 
 namespace EventServer.Controllers;
 
 public static class PaymentController
 {
     [WolverinePost("/payments/authorize")]
-    public static (Payment, IStartStream) AuthorizePayment(
-        AuthorizePaymentCommand command
+    public static (CreationResponse, IStartStream) AuthorizePayment(
+        AuthorizeConferencePaymentCommand command
     )
     {
-        var paymentAuthorizedEvent = new PaymentAuthorizedEvent(
-            command.PaymentMethodId,
+        Log.Information("Authorizing payment {PaymentId} for conference {ConferenceId}", command.PaymentId, command.ConferenceId);
+        
+        var paymentId = command.PaymentId.ToString();
+        var paymentAuthorizedEvent = new ConferencePaymentAuthorizedEvent(
+            command.PaymentId,
+            command.ConferenceId,
             command.Amount,
-            command.Currency
+            command.Currency,
+            command.UserId,
+            command.RateInformation
         );
         var startStream = MartenOps.StartStream<Payment>(
-            command.PaymentMethodId,
+            paymentId,
             paymentAuthorizedEvent
         );
 
-        var payment = new Payment
-        {
-            PaymentId = command.PaymentMethodId,
-            Amount = command.Amount,
-            Currency = command.Currency,
-            Status = "Authorized"
-        };
-
-        return (payment, startStream);
+        return (new CreationResponse($"/payments/{paymentId}"), startStream);
     }
 
     [WolverinePost("/payments/capture/{payment_id}")]  // Using snake_case for consistency with payment ID in tests
     [EmptyResponse]
     public static PaymentCapturedEvent CapturePayment(
         [FromRoute] string payment_id,
-        [Aggregate] Payment payment
+        [Aggregate("payment_id")] Payment payment
     )
     {
         if (payment == null)
@@ -49,5 +48,18 @@ public static class PaymentController
         }
 
         return new PaymentCapturedEvent(payment_id, DateTime.UtcNow);
+    }
+
+    [WolverineGet("/payments/{paymentId}")]
+    public static IResult GetPayment([Document("paymentId")] Payment payment)
+    {
+        if (payment == null)
+        {
+            Log.Warning("Payment not found for ID: {paymentId}");
+            return Results.NotFound();
+        }
+
+        Log.Information("Retrieved payment: {PaymentId}, Status: {Status}, Amount: {Amount}", payment.PaymentId, payment.Status, payment.Amount);
+        return Results.Ok(payment);
     }
 }

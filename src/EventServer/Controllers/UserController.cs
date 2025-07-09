@@ -28,7 +28,7 @@ public static class UserController
     [EmptyResponse]
     public static VideoConferenceAddedToUserEvent AddConference(
         [FromBody] AddVideoConferenceToUserCommand command,
-        [Aggregate] User user
+        [Aggregate("EmailAddress")] User user
     )
     {
         if (user == null)
@@ -48,7 +48,7 @@ public static class UserController
     [EmptyResponse]
     public static UserLoggedInEvent UserLogin(
         [FromBody] UserLoggedInCommand command,
-        [Aggregate] User user
+        [Aggregate("EmailAddress")] User user
     )
     {
         if (user == null)
@@ -68,7 +68,7 @@ public static class UserController
     [EmptyResponse]
     public static UserLoggedOutEvent UserLogout(
         [FromBody] UserLoggedOutCommand command,
-        [Aggregate] User user
+        [Aggregate("EmailAddress")] User user
     )
     {
         if (user == null)

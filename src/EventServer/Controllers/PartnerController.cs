@@ -76,7 +76,7 @@ public static class PartnerController
     [EmptyResponse]
     public static PartnerLoggedInEvent GetPartners(
         [FromBody] PartnerLoggedInCommand command,
-        [Aggregate] Partner partner
+        [Aggregate("partnerId")] Partner partner
     )
     {
         Log.Information(
@@ -92,7 +92,7 @@ public static class PartnerController
     [EmptyResponse]
     public static PartnerLoggedOutEvent LogOutPartners(
         [FromBody] PartnerLoggedOutCommand command,
-        [Aggregate] Partner partner
+        [Aggregate("partnerId")] Partner partner
     )
     {
         Log.Information("Logging partner {Id} out.", command.EmailAddress);
@@ -104,7 +104,7 @@ public static class PartnerController
     [EmptyResponse]
     public static PartnerBioUpdatedEvent UpdatePartnerBio(
         [FromBody] SetPartnerBioCommand command,
-        [Aggregate] Partner partner
+        [Aggregate("partnerId")] Partner partner
     )
     {
         Log.Information("Updating partner {Id} bio {bio}", command.EmailAddress, command.Bio);
@@ -116,7 +116,7 @@ public static class PartnerController
     [EmptyResponse]
     public static PartnerSkillAddedEvent UpdatePartnerSkills(
         [FromBody] AddPartnerSkillCommand command,
-        [Aggregate] Partner partner
+        [Aggregate("partnerId")] Partner partner
     )
     {
         Log.Information(
@@ -132,7 +132,7 @@ public static class PartnerController
     [EmptyResponse]
     public static SetPartnerPrimaryPhoneEvent UpdatePartnerPrimaryPhone(
         [FromBody] SetPartnerPrimaryPhoneCommand command,
-        [Aggregate] Partner partner
+        [Aggregate("partnerId")] Partner partner
     )
     {
         Log.Information(
@@ -148,7 +148,7 @@ public static class PartnerController
     [EmptyResponse]
     public static SetPartnerPhotoUrlEvent UpdatePartnerPrimaryPhone(
         [FromBody] SetPartnerPhotoUrlCommand command,
-        [Aggregate] Partner partner
+        [Aggregate("partnerId")] Partner partner
     )
     {
         Log.Information("Updating partner {Id} url {url}", command.EmailAddress, command.PhotoUrl);
