@@ -40,8 +40,8 @@ public class Program
         builder.Services.AddControllers();
         builder.Environment.ApplicationName = "EventServer";
 
-//        if (builder.Environment.IsDevelopment())
-//            builder.Services.AddHostedService<StartUpTask>();
+        if (builder.Environment.IsDevelopment())
+            builder.Services.AddHostedService<StartUpTask>();
         //
         // add wolverine/marten
         builder

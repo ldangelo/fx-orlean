@@ -17,12 +17,11 @@ public class StartUpTask : IHostedService
     {
         Log.Information("Starting up");
 
-        //
-        // There is a race condition that occurs when starting up on a
-        // 'fresh' schmea.  Effectively marten is still creating the schema while we
-        // are trying to insert records into it.  We need to wait for the schema to be written
-        // before trying to insert
-        Thread.Sleep(30);
+        // Ensure the schema is created before inserting data
+        await _store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
+        
+        // Wait a bit more to ensure all async operations are complete
+        await Task.Delay(1000, cancellationToken);
         var leo = new Partner();
 
         leo.FirstName = "Leo";
@@ -63,10 +62,44 @@ public class StartUpTask : IHostedService
             "Fortium Partners", "CEO", "Founder and CEO of Fortium Partners"));
         burke.AvailabilityNext30Days = 160;
 
-        using var session = _store.LightweightSession();
-        session.Store(leo);
-        session.Store(burke);
-        await session.SaveChangesAsync();
+        try
+        {
+            using var session = _store.LightweightSession();
+            
+            // Check if partners already exist to avoid duplicates
+            var existingLeo = await session.Query<Partner>()
+                .FirstOrDefaultAsync(p => p.EmailAddress == leo.EmailAddress, cancellationToken);
+            var existingBurke = await session.Query<Partner>()
+                .FirstOrDefaultAsync(p => p.EmailAddress == burke.EmailAddress, cancellationToken);
+            
+            if (existingLeo == null)
+            {
+                session.Store(leo);
+                Log.Information("Storing partner: {EmailAddress}", leo.EmailAddress);
+            }
+            else
+            {
+                Log.Information("Partner {EmailAddress} already exists, skipping", leo.EmailAddress);
+            }
+            
+            if (existingBurke == null)
+            {
+                session.Store(burke);
+                Log.Information("Storing partner: {EmailAddress}", burke.EmailAddress);
+            }
+            else
+            {
+                Log.Information("Partner {EmailAddress} already exists, skipping", burke.EmailAddress);
+            }
+            
+            await session.SaveChangesAsync(cancellationToken);
+            Log.Information("Startup data initialization completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error during startup data initialization");
+            throw;
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

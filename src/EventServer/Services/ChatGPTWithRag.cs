@@ -5,6 +5,15 @@ using Newtonsoft.Json;
 using OpenAI.Chat;
 using Serilog;
 
+public class ChatGPTResponse
+{
+    [JsonProperty("ranked_partners")]
+    public List<Partner> RankedPartners { get; set; } = new();
+    
+    [JsonProperty("partners")]
+    public List<Partner> Partners { get; set; } = new();
+}
+
 public class ChatGPTWithRAG
 {
   private const string SamplePartnerJson = @"[
@@ -121,7 +130,8 @@ Do not halucinate.
 
     Log.Information("ChatGPTWithRag: Response {response}", responseString);
 
-    var result = JsonConvert.DeserializeObject<List<Partner>>(responseString);
+    var resultWrapper = JsonConvert.DeserializeObject<ChatGPTResponse>(responseString);
+    var result = resultWrapper?.RankedPartners ?? resultWrapper?.Partners ?? new List<Partner>();
 
     Log.Information("Result: {result}", result?.ToString() ?? "null");
 

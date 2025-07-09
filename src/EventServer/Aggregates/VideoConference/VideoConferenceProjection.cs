@@ -29,24 +29,16 @@ public class VideoConferenceState
 
 public class VideoConferenceProjection : SingleStreamProjection<VideoConferenceState, string>
 {
-    public VideoConferenceProjection()
+    public static VideoConferenceState Create(VideoConferenceCreatedEvent @event)
     {
-        ProjectEvent<VideoConferenceCreatedEvent>((state, @event) =>
+        return new VideoConferenceState
         {
-            if (state == null)
-            {
-                state = new VideoConferenceState
-                {
-                    Id = @event.ConferenceId.ToString(),
-                    StartTime = @event.StartTime,
-                    EndTime = @event.EndTime,
-                    UserId = @event.UserId,
-                    PartnerId = @event.PartnerId,
-                    RateInformation = @event.RateInformation
-                };
-            }
-            
-            return state;
-        });
+            Id = @event.ConferenceId.ToString(),
+            StartTime = @event.StartTime,
+            EndTime = @event.EndTime,
+            UserId = @event.UserId,
+            PartnerId = @event.PartnerId,
+            RateInformation = @event.RateInformation
+        };
     }
 }
