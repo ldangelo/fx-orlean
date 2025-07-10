@@ -92,13 +92,13 @@ builder
           var remoteSignOutPath = options.RemoteSignOutPath;
           var errorPath = config["ErrorPath"] ?? "/authentication-failed";
 
-          Console.WriteLine("OIDC Configuration:");
-          Console.WriteLine($"Authority: {options.Authority}");
-          Console.WriteLine($"ClientId: {options.ClientId}");
-          Console.WriteLine($"CallbackPath: {callbackPath}");
-          Console.WriteLine($"SignedOutCallbackPath: {signedOutCallbackPath}");
-          Console.WriteLine($"RemoteSignOutPath: {remoteSignOutPath}");
-          Console.WriteLine($"ErrorPath: {errorPath}");
+          Log.Information("OIDC Configuration:");
+          Log.Information("Authority: {Authority}", options.Authority);
+          Log.Information("ClientId: {ClientId}", options.ClientId);
+          Log.Information("CallbackPath: {CallbackPath}", callbackPath);
+          Log.Information("SignedOutCallbackPath: {SignedOutCallbackPath}", signedOutCallbackPath);
+          Log.Information("RemoteSignOutPath: {RemoteSignOutPath}", remoteSignOutPath);
+          Log.Information("ErrorPath: {ErrorPath}", errorPath);
 
           // Get host and scheme from configuration or use default
           var scheme = "http"; // Default fallback
@@ -118,17 +118,17 @@ builder
             scheme = "https";
           }
 
-          Console.WriteLine($"Application host: {host}");
-          Console.WriteLine($"Redirect URI: {scheme}://{host}{callbackPath}");
-          Console.WriteLine($"Signout Redirect URI: {scheme}://{host}{signedOutCallbackPath}");
-          Console.WriteLine($"Error Redirect URI: {scheme}://{host}{errorPath}");
+          Log.Information("Application host: {Host}", host);
+          Log.Information("Redirect URI: {RedirectUri}", $"{scheme}://{host}{callbackPath}");
+          Log.Information("Signout Redirect URI: {SignoutRedirectUri}", $"{scheme}://{host}{signedOutCallbackPath}");
+          Log.Information("Error Redirect URI: {ErrorRedirectUri}", $"{scheme}://{host}{errorPath}");
 
           // Add scopes
           foreach (
               var scope in config.GetSection("Scope").Get<string[]>() ?? Array.Empty<string>()
           )
           {
-            Console.WriteLine($"Adding Scope: {scope}");
+            Log.Information("Adding Scope: {Scope}", scope);
             options.Scope.Add(scope);
           }
 
