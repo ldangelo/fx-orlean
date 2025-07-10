@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using FxExpert.Blazor;
 using FxExpert.Blazor.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -152,7 +153,7 @@ builder
             OnRedirectToIdentityProvider = context =>
             {
               // Handle any redirects to identity provider
-              Console.WriteLine($"Redirecting to: {context.ProtocolMessage.AuthorizationEndpoint}");
+              Log.Information("Redirecting to: {AuthorizationEndpoint}", context.ProtocolMessage.AuthorizationEndpoint);
               return Task.CompletedTask;
             },
             OnTokenValidated = context =>
@@ -162,15 +163,15 @@ builder
               if (identity == null)
                 return Task.CompletedTask;
 
-              Console.WriteLine("OnTokenValidated: Token validated successfully");
-              Console.WriteLine($"Identity Name: {identity.Name}");
+              Log.Information("OnTokenValidated: Token validated successfully");
+              Log.Information("Identity Name: {IdentityName}", identity.Name);
 
               // Log all claims in the token
-              Console.WriteLine("Claims in the token:");
+              Log.Information("Claims in the token:");
               if (context.Principal != null)
               {
                 foreach (var claim in context.Principal.Claims)
-                  Console.WriteLine($"Claim Type: {claim.Type}, Value: {claim.Value}");
+                  Log.Information("Claim Type: {ClaimType}, Value: {ClaimValue}", claim.Type, claim.Value);
               }
 
               // Look for Keycloak-specific role claims
@@ -178,9 +179,7 @@ builder
               var resourceAccessClaim = context.Principal?.FindFirst("resource_access");
               if (resourceAccessClaim != null)
               {
-                Console.WriteLine(
-                        $"Found resource_access claim: {resourceAccessClaim.Value}"
-                    );
+                Log.Information("Found resource_access claim: {ResourceAccessClaim}", resourceAccessClaim.Value);
 
                 // Parse the JSON and extract roles
                 try
@@ -201,7 +200,7 @@ builder
                           ) ?? Array.Empty<string>();
                       foreach (var role in roles)
                       {
-                        Console.WriteLine($"Adding client role: {role}");
+                        Log.Information("Adding client role: {Role}", role);
                         identity.AddClaim(new Claim("Role", role));
                       }
                     }
@@ -209,7 +208,7 @@ builder
                 }
                 catch (Exception ex)
                 {
-                  Console.WriteLine($"Error parsing resource_access claim: {ex.Message}");
+                  Log.Error(ex, "Error parsing resource_access claim");
                 }
               }
 
@@ -217,7 +216,7 @@ builder
               var realmAccessClaim = context.Principal?.FindFirst("realm_access");
               if (realmAccessClaim != null)
               {
-                Console.WriteLine($"Found realm_access claim: {realmAccessClaim.Value}");
+                Log.Information("Found realm_access claim: {RealmAccessClaim}", realmAccessClaim.Value);
 
                 try
                 {
@@ -231,20 +230,20 @@ builder
                         ) ?? Array.Empty<string>();
                     foreach (var role in roles)
                     {
-                      Console.WriteLine($"Adding realm role: {role}");
+                      Log.Information("Adding realm role: {Role}", role);
                       identity.AddClaim(new Claim(ClaimTypes.Role, role));
                     }
                   }
                 }
                 catch (Exception ex)
                 {
-                  Console.WriteLine($"Error parsing realm_access claim: {ex.Message}");
+                  Log.Error(ex, "Error parsing realm_access claim");
                 }
               }
 
               // 3. Fall back to the specified role claim type
               var roleClaimType = config["TokenValidationParameters:RoleClaimType"] ?? "role";
-              Console.WriteLine($"Looking for role claims with type: {roleClaimType}");
+              Log.Information("Looking for role claims with type: {RoleClaimType}", roleClaimType);
 
               var newRoleClaims = context.Principal?.Claims
                       .Where(claim => claim.Type.Contains(roleClaimType))
@@ -253,16 +252,14 @@ builder
 
               foreach (var newRoleClaim in newRoleClaims)
               {
-                Console.WriteLine(
-                        $"Adding role from {roleClaimType} claim: {newRoleClaim.Value}"
-                    );
+                Log.Information("Adding role from {RoleClaimType} claim: {RoleValue}", roleClaimType, newRoleClaim.Value);
                 identity.AddClaim(newRoleClaim);
               }
 
               // Display the final roles
-              Console.WriteLine("Final roles after mapping:");
+              Log.Information("Final roles after mapping:");
               foreach (var claim in identity.Claims)
-                Console.WriteLine($"Role: {claim.Type}:{claim.Value}");
+                Log.Information("Role: {RoleType}:{RoleValue}", claim.Type, claim.Value);
 
               return Task.CompletedTask;
             },
