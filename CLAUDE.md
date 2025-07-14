@@ -91,3 +91,6 @@ Real-time availability checks
 - Events represent state changes that have occurred
 - Main aggregates: Partners, Users, VideoConferences, Payments, Calendar
 - UI uses Blazor with MudBlazor component library
+
+## Instructions
+read ai_docs/task-master.md
