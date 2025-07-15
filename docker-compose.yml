@@ -34,11 +34,9 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HTTP_PORT: 8080
-      KC_HOSTNAME_URL: http://localhost:8085
-      KC_HOSTNAME_ADMIN_URL: http://localhost:8085
-      KC_HOSTNAME_STRICT_BACKCHANNEL: true
-      KC_HTTP_RELATIVE_PATH: /
       KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
     extra_hosts:
@@ -93,17 +91,27 @@ services:
     command: ["-config.file=/etc/loki/local-config.yaml"]
     ports:
       - "3100:3100"
-volumes:
-  prometheus:
-    driver: local
-  tempo:
-    driver: local
-networks:
-  data-network:
-    driver: bridge
-
   eventserver:
     image: eventserver
     build:
       context: .
       dockerfile: src/EventServer/Dockerfile
+    depends_on:
+      - postgres
+    networks:
+      - data-network
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__EventStore=Host=postgres;Port=5432;Username=postgres;Password=itsasecret;Database=eventserver
+
+volumes:
+  prometheus:
+    driver: local
+  tempo:
+    driver: local
+
+networks:
+  data-network:
+    driver: bridge

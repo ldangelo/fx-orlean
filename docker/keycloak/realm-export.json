@@ -1694,7 +1694,7 @@
         "filteredByClaim": "false",
         "syncMode": "LEGACY",
         "userIp": "true",
-        "clientSecret": "**********",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET}",
         "caseSensitiveOriginalUsername": "false"
       }
     }
