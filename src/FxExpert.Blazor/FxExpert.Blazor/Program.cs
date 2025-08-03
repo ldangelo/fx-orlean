@@ -22,6 +22,10 @@ Log.Information("Starting up");
 builder.Services.AddMudServices();
 builder.Services.AddTransient<AntiforgeryHandler>();
 
+// Add theme services
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, FxExpert.Blazor.Client.Services.UserThemeService>();
+
 // Add services to the container.
 builder
     .Services.AddRazorComponents()
@@ -35,7 +39,7 @@ builder
         "EventServer",
         client =>
             client.BaseAddress = new Uri(
-                builder.Configuration["EventServer"] ?? "http://localhost:5032"
+                builder.Configuration["EventServer"] ?? "http://localhost:8080"
             )
     )
     .AddHttpMessageHandler<AntiforgeryHandler>();
@@ -58,7 +62,10 @@ builder
         {
           options.Cookie.HttpOnly = true;
           options.Cookie.SameSite = SameSiteMode.Lax;
-          options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+          // Use secure cookies in production, but allow non-secure in development
+          options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() 
+              ? CookieSecurePolicy.SameAsRequest 
+              : CookieSecurePolicy.Always;
         }
     )
     .AddOpenIdConnect(
@@ -301,7 +308,8 @@ else
   app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Use HTTPS redirection (commented out for development testing)
+// app.UseHttpsRedirection();
 
 app.UseAuthentication(); // Adds OIDC authentication middleware.
 app.UseAuthorization(); // Adds authorization middleware.

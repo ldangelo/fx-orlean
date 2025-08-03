@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject FxExpert.Blazor.Client.Services.IThemeService ThemeService
+@implements IDisposable
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -89,7 +91,9 @@
             </div>
         }
 
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="ml-3"/>
+        <MudTooltip Text="@GetThemeTooltip()">
+            <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="ml-3"/>
+        </MudTooltip>
         <MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" OnClick="@ToggleDebug"
                        Class="ml-3"/>
     </MudAppBar>
@@ -145,16 +149,51 @@
     private MudTheme? _theme;
     private bool _debugMode = true; // Set to true to show debug info
     private AuthenticationState? context;
+    private FxExpert.Blazor.Client.Services.ThemeMode _currentTheme = FxExpert.Blazor.Client.Services.ThemeMode.Light;
 
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
         context = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _theme = new MudTheme
         {
             PaletteLight = _lightPalette,
             PaletteDark = _darkPalette
         };
+        
+        // Subscribe to theme changes
+        ThemeService.ThemeChanged += OnThemeChanged;
+        
+        // Subscribe to authentication changes
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        
+        // Load theme based on authentication state
+        await LoadThemeForCurrentUser();
+        
+        // Start monitoring system theme changes
+        await ThemeService.StartSystemThemeMonitoringAsync();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        var newAuthState = await task;
+        context = newAuthState;
+        await LoadThemeForCurrentUser();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadThemeForCurrentUser()
+    {
+        var userEmail = context?.User?.Identity?.Name;
+        
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            // User is authenticated - load their theme preference
+            await ThemeService.LoadUserThemeAsync(userEmail);
+        }
+        
+        // Load current theme (either from user account or local storage)
+        _currentTheme = await ThemeService.GetCurrentThemeAsync();
+        await UpdateThemeDisplay();
     }
 
     private void Login()
@@ -172,14 +211,45 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    private void DarkModeToggle()
+    private async Task DarkModeToggle()
     {
-        _isDarkMode = !_isDarkMode;
+        // Cycle through theme modes: Light -> Dark -> System -> Light
+        var nextTheme = _currentTheme switch
+        {
+            FxExpert.Blazor.Client.Services.ThemeMode.Light => FxExpert.Blazor.Client.Services.ThemeMode.Dark,
+            FxExpert.Blazor.Client.Services.ThemeMode.Dark => FxExpert.Blazor.Client.Services.ThemeMode.System,
+            FxExpert.Blazor.Client.Services.ThemeMode.System => FxExpert.Blazor.Client.Services.ThemeMode.Light,
+            _ => FxExpert.Blazor.Client.Services.ThemeMode.Light
+        };
+        
+        await ThemeService.SetThemeAsync(nextTheme);
+    }
+    
+    private async void OnThemeChanged(object? sender, FxExpert.Blazor.Client.Services.ThemeMode newTheme)
+    {
+        _currentTheme = newTheme;
+        await UpdateThemeDisplay();
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task UpdateThemeDisplay()
+    {
+        var effectiveTheme = await ThemeService.GetEffectiveThemeAsync(_currentTheme);
+        _isDarkMode = effectiveTheme == "Dark";
     }
 
     private void ToggleDebug()
     {
         _debugMode = !_debugMode;
+    }
+    
+    public void Dispose()
+    {
+        ThemeService.ThemeChanged -= OnThemeChanged;
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        
+        // Stop monitoring system theme changes
+        _ = ThemeService.StopSystemThemeMonitoringAsync();
     }
 
     private readonly PaletteLight _lightPalette = new()
@@ -231,10 +301,20 @@
         OverlayLight = "#1e1e1e80"
     };
 
-    public string DarkLightModeButtonIcon => _isDarkMode switch
+    public string DarkLightModeButtonIcon => _currentTheme switch
     {
-        true => Icons.Material.Rounded.LightMode,
-        false => Icons.Material.Outlined.DarkMode
+        FxExpert.Blazor.Client.Services.ThemeMode.Light => Icons.Material.Outlined.DarkMode,
+        FxExpert.Blazor.Client.Services.ThemeMode.Dark => Icons.Material.Rounded.LightMode,
+        FxExpert.Blazor.Client.Services.ThemeMode.System => Icons.Material.Filled.SettingsBrightness,
+        _ => Icons.Material.Outlined.DarkMode
+    };
+    
+    public string GetThemeTooltip() => _currentTheme switch
+    {
+        FxExpert.Blazor.Client.Services.ThemeMode.Light => "Switch to Dark Mode",
+        FxExpert.Blazor.Client.Services.ThemeMode.Dark => "Switch to System Mode",
+        FxExpert.Blazor.Client.Services.ThemeMode.System => "Switch to Light Mode",
+        _ => "Switch Theme Mode"
     };
 
 }
