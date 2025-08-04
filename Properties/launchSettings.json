@@ -4,7 +4,7 @@
     "EventServer": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -13,8 +13,8 @@
     "FxExpert.Blazor": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "http://localhost:8500",
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:8501",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -42,3 +42,8 @@ public record UserPreferencesUpdatedEvent(
     string? PreferredLanguage,
     string? TimeZone,
     string? Theme): IUserEvent;
+
+[Serializable]
+public record UserThemeUpdatedEvent(
+    string EmailAddress,
+    string Theme): IUserEvent;

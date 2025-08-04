@@ -45,6 +45,11 @@ public record UpdateUserPreferencesCommand(
     string? TimeZone,
     string? Theme): IUserCommand {}
 
+[Serializable]
+public record UpdateUserThemeCommand(
+    string EmailAddress,
+    string Theme): IUserCommand {}
+
 public class CreateUserCommandValdator : AbstractValidator<CreateUserCommand>
 {
     public CreateUserCommandValdator()
@@ -114,5 +119,24 @@ public class UpdateUserPreferencesCommandValidator
             .NotEmpty()
             .EmailAddress()
             .WithMessage("Email address is required and must be valid.");
+    }
+}
+
+public class UpdateUserThemeCommandValidator
+    : AbstractValidator<UpdateUserThemeCommand>
+{
+    public UpdateUserThemeCommandValidator()
+    {
+        RuleFor(command => command.EmailAddress)
+            .NotNull()
+            .NotEmpty()
+            .EmailAddress()
+            .WithMessage("Email address is required and must be valid.");
+            
+        RuleFor(command => command.Theme)
+            .NotNull()
+            .NotEmpty()
+            .Must(theme => theme == "Light" || theme == "Dark" || theme == "System")
+            .WithMessage("Theme must be 'Light', 'Dark', or 'System'.");
     }
 }

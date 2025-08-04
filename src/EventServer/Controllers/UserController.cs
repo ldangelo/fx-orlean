@@ -192,4 +192,42 @@ public static class UserController
             command.Theme
         );
     }
+
+    [WolverinePost("/users/theme/{EmailAddress}")]
+    [EmptyResponse]
+    public static UserThemeUpdatedEvent UpdateUserTheme(
+        [FromBody] UpdateUserThemeCommand command,
+        [Aggregate("EmailAddress")] User user
+    )
+    {
+        if (user == null)
+        {
+            Log.Warning("User not found: {emailAddress}", command.EmailAddress);
+            throw new KeyNotFoundException($"User not found: {command.EmailAddress}");
+        }
+
+        var validator = new UpdateUserThemeCommandValidator();
+        var result = validator.Validate(command);
+        if (!result.IsValid)
+        {
+            throw new ValidationException("Invalid theme update command", result.Errors);
+        }
+
+        Log.Information("Updating theme to {theme} for user {emailAddress}", command.Theme, command.EmailAddress);
+        return new UserThemeUpdatedEvent(command.EmailAddress, command.Theme);
+    }
+
+    [WolverineGet("/users/theme/{EmailAddress}")]
+    public static IResult GetUserTheme([Document("EmailAddress")] User user)
+    {
+        if (user == null)
+        {
+            Log.Warning("User not found");
+            return Results.NotFound();
+        }
+
+        var theme = user.Preferences?.Theme ?? "Light";
+        Log.Information("Getting theme {theme} for user {emailAddress}", theme, user.EmailAddress);
+        return Results.Ok(new { Theme = theme });
+    }
 }

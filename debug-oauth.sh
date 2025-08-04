@@ -19,8 +19,8 @@ echo "Current Blazor CallbackPath: /signin-oidc"
 echo ""
 
 echo "4. Checking Google OAuth configuration..."
-echo "Google Client ID in Keycloak: ${GOOGLE_CLIENT_ID}"
-echo "Google Client ID in EventServer: ${GOOGLE_CLIENT_ID}"
+echo "Google Client ID in Keycloak: \${GOOGLE_CLIENT_ID}"
+echo "Google Client ID in EventServer: \${GOOGLE_CLIENT_ID}"
 echo ""
 
 echo "5. Testing endpoints..."

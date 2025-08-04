@@ -11,7 +11,9 @@
       "mcp__node__get_issue",
       "mcp__node__get_projects",
       "mcp__node__search_issues",
-      "mcp__node__update_issue"
+      "mcp__node__update_issue",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": []
   }

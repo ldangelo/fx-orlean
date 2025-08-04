@@ -5,6 +5,6 @@ run-eventserver:
   wezterm cli spawn --cwd . dotnet watch --project src/EventServer/EventServer.csproj
 
 run-fxexpert: 
-  wezterm cli spawn --cwd . dotnet watch --project src/FxExpert.Blazor/FxExpert.Blazor/FxExpert.Blazor.csproj
+  wezterm cli spawn --cwd . dotnet watch --project src/FxExpert.Blazor/FxExpert.Blazor/FxExpert.Blazor.csproj --launch-profile https
 
 run: run-eventserver run-fxexpert

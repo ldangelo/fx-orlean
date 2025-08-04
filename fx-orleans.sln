@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert.Blazor", "src\FxEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert.Blazor.Client", "src\FxExpert.Blazor\FxExpert.Blazor.Client\FxExpert.Blazor.Client.csproj", "{BE33EB97-9408-4BBA-B717-5A11EFDBEBF3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{87544A1B-10C0-4D24-935B-C1A99D022CF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FxExpert.Blazor.Client.Tests", "src\FxExpert.Blazor.Client.Tests\FxExpert.Blazor.Client.Tests.csproj", "{B73BCDA7-71B7-4D03-AD8E-547CE031E68D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,5 +100,12 @@ Global
 		{BE33EB97-9408-4BBA-B717-5A11EFDBEBF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE33EB97-9408-4BBA-B717-5A11EFDBEBF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE33EB97-9408-4BBA-B717-5A11EFDBEBF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B73BCDA7-71B7-4D03-AD8E-547CE031E68D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B73BCDA7-71B7-4D03-AD8E-547CE031E68D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B73BCDA7-71B7-4D03-AD8E-547CE031E68D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B73BCDA7-71B7-4D03-AD8E-547CE031E68D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B73BCDA7-71B7-4D03-AD8E-547CE031E68D} = {87544A1B-10C0-4D24-935B-C1A99D022CF7}
 	EndGlobalSection
 EndGlobal

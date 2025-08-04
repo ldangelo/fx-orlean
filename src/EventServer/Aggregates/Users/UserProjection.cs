@@ -94,4 +94,16 @@ public class UserProjection : SingleStreamProjection<User, string>
         
         return user;
     }
+    
+    public static User Apply(UserThemeUpdatedEvent @event, User user)
+    {
+        Log.Information("User Projection: Applying {type} to {EmailAddress}", typeof(UserThemeUpdatedEvent), @event.EmailAddress);
+        if (user.Preferences == null) {
+            user.Preferences = new UserPreferences();
+        }
+        user.Preferences.Theme = @event.Theme;
+        user.UpdateDate = DateTime.Now;
+        
+        return user;
+    }
 }

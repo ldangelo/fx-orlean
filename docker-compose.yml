@@ -101,7 +101,7 @@ services:
     networks:
       - data-network
     ports:
-      - "8080:8080"
+      - "5032:5032"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__EventStore=Host=postgres;Port=5432;Username=postgres;Password=itsasecret;Database=eventserver
