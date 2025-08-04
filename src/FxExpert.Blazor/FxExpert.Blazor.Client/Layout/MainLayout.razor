@@ -1,7 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@rendermode InteractiveAuto
+@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject FxExpert.Blazor.Client.Services.IThemeService ThemeService
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
@@ -50,7 +52,7 @@
                             <MudMenuItem Href="/profile">My Profile</MudMenuItem>
                             <MudMenuItem Href="/meetings">My Meetings</MudMenuItem>
                         }
-                        <MudMenuItem Href="auth/logout">Logout</MudMenuItem>
+                        <MudMenuItem OnClick="@LogoutAsync">Logout</MudMenuItem>
                     </MudMenu>
                 </Authorized>
                 <NotAuthorized>
@@ -166,11 +168,25 @@
         // Subscribe to authentication changes
         AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         
-        // Load theme based on authentication state
-        await LoadThemeForCurrentUser();
+        // Theme loading will be done in OnAfterRenderAsync to avoid JavaScript interop timing issues
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Load theme based on authentication state after first render
+            // This must be done after render to avoid JavaScript interop timing issues
+            await LoadThemeForCurrentUser();
+            
+            // Start monitoring system theme changes after first render
+            await ThemeService.StartSystemThemeMonitoringAsync();
+            
+            // Trigger UI update after theme is loaded
+            StateHasChanged();
+        }
         
-        // Start monitoring system theme changes
-        await ThemeService.StartSystemThemeMonitoringAsync();
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
@@ -201,9 +217,19 @@
         NavigationManager.NavigateTo("/signin-oidc?ReturnUrl=" + Uri.EscapeDataString(NavigationManager.Uri), true);
     }
 
-    private void Logout()
+    private async Task LogoutAsync()
     {
-        NavigationManager.NavigateTo("/signout-oidc", true);
+        try
+        {
+            // Use JavaScript to submit logout form via POST
+            await JSRuntime.InvokeVoidAsync("AuthHelpers.submitLogoutForm", "/");
+        }
+        catch (Exception ex)
+        {
+            // Fallback to direct navigation if JavaScript fails
+            Console.WriteLine($"JavaScript logout failed: {ex.Message}");
+            NavigationManager.NavigateTo("/auth/logout", forceLoad: true);
+        }
     }
 
     private void DrawerToggle()
