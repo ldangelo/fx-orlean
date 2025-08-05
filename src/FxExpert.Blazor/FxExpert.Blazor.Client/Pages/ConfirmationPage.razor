@@ -1,6 +1,8 @@
 @page "/confirmation/{PartnerEmail}"
+@page "/confirmation/{PartnerEmail}/{ConferenceId}"
 @using System.Text.Json
 @inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 
 
@@ -29,8 +31,16 @@
             </MudListItem>
 
             <MudListItem Icon="@Icons.Material.Filled.CalendarToday">
-                <MudText Typo="Typo.body1"><b>Date &
-                        Time:</b> @DateTime.Now.AddDays(3).ToString("dddd, MMMM d, yyyy") at 10:00 AM EST
+                <MudText Typo="Typo.body1">
+                    <b>Date & Time:</b> 
+                    @if (_conference != null)
+                    {
+                        <text>@_conference.StartTime.ToString("dddd, MMMM d, yyyy") at @_conference.StartTime.ToString("h:mm tt") EST</text>
+                    }
+                    else
+                    {
+                        <text>@DateTime.Now.AddDays(3).ToString("dddd, MMMM d, yyyy") at 10:00 AM EST</text>
+                    }
                 </MudText>
             </MudListItem>
 
@@ -45,7 +55,17 @@
             </MudListItem>
 
             <MudListItem Icon="@Icons.Material.Filled.CreditCard">
-                <MudText Typo="Typo.body1"><b>Payment:</b> $800.00 (will be processed before the meeting)</MudText>
+                <MudText Typo="Typo.body1">
+                    <b>Payment:</b> 
+                    @if (_conference != null)
+                    {
+                        @($"${_conference.Amount:F2} (will be processed before the meeting)")
+                    }
+                    else
+                    {
+                        @("$800.00 (will be processed before the meeting)")
+                    }
+                </MudText>
             </MudListItem>
         </MudList>
 
@@ -70,8 +90,10 @@
 
 @code {
     [Parameter] public string PartnerEmail { get; set; } = string.Empty;
+    [Parameter] public string? ConferenceId { get; set; }
 
     private Partner? _partner;
+    private VideoConferenceDetails? _conference;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,6 +131,39 @@
                 Console.WriteLine($"Error loading partner data: {ex.Message}");
             }
         }
+
+        // Load conference details if conference ID is provided
+        if (!string.IsNullOrEmpty(ConferenceId) && Guid.TryParse(ConferenceId, out var conferenceGuid))
+        {
+            try
+            {
+                var eventServerClient = HttpClientFactory.CreateClient("EventServer");
+                var conferenceResponse = await eventServerClient.GetAsync($"/conferences/{conferenceGuid}");
+                
+                if (conferenceResponse.IsSuccessStatusCode)
+                {
+                    var conferenceContent = await conferenceResponse.Content.ReadAsStringAsync();
+                    _conference = JsonSerializer.Deserialize<VideoConferenceDetails>(
+                        conferenceContent,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading conference data: {ex.Message}");
+            }
+        }
+    }
+
+    public class VideoConferenceDetails
+    {
+        public Guid ConferenceId { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public string PartnerId { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
     }
 
 }

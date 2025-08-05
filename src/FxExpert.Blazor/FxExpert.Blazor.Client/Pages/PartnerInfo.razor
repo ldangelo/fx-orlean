@@ -1,7 +1,12 @@
 @page "/partner/{PartnerEmail}/{ProblemDescription}/{ProblemIndustry}/{ProblemPriority}"
 @using System.Text.Json
+@using Microsoft.AspNetCore.Components.Authorization
+@using FxExpert.Blazor.Client.Components
+@using FxExpert.Blazor.Client.Models
 @inject NavigationManager NavigationManager
 @inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Expert Profile</PageTitle>
 
@@ -150,50 +155,89 @@
                     <MudPaper Elevation="3" Class="pa-4 mt-4">
                         <MudText Typo="Typo.h5" shrinkLabel Class="mb-3">Schedule a Consultation</MudText>
 
-                        <MudGrid>
-                            <MudItem xs="12" md="6">
-                                <MudDatePicker Label="Select Date"
-                                               @bind-Date="_selectedDate"
-                                               Placeholder="Select a date"
-                                               disableToolbar="true"
-                                               Variant="Variant.Outlined"
-                                               fullWidth/>
-                            </MudItem>
+                        @if (_bookingStep == BookingStep.Schedule)
+                        {
+                            <MudGrid>
+                                <MudItem xs="12" md="6">
+                                    <MudDatePicker Label="Select Date"
+                                                   @bind-Date="_selectedDate"
+                                                   Placeholder="Select a date"
+                                                   disableToolbar="true"
+                                                   Variant="Variant.Outlined"
+                                                   fullWidth/>
+                                </MudItem>
 
-                            <MudItem xs="12" md="6">
-                                <MudSelect T="string" @bind-Value="_selectedTime" Label="Select Time"
-                                           Variant="Variant.Outlined" fullWidth>
-                                    <MudSelectItem Value="@("9:00 AM")">9:00 AM</MudSelectItem>
-                                    <MudSelectItem Value="@("10:00 AM")">10:00 AM</MudSelectItem>
-                                    <MudSelectItem Value="@("11:00 AM")">11:00 AM</MudSelectItem>
-                                    <MudSelectItem Value="@("1:00 PM")">1:00 PM</MudSelectItem>
-                                    <MudSelectItem Value="@("2:00 PM")">2:00 PM</MudSelectItem>
-                                    <MudSelectItem Value="@("3:00 PM")">3:00 PM</MudSelectItem>
-                                    <MudSelectItem Value="@("4:00 PM")">4:00 PM</MudSelectItem>
-                                </MudSelect>
-                            </MudItem>
+                                <MudItem xs="12" md="6">
+                                    <MudSelect T="string" @bind-Value="_selectedTime" Label="Select Time"
+                                               Variant="Variant.Outlined" fullWidth>
+                                        <MudSelectItem Value="@("9:00 AM")">9:00 AM</MudSelectItem>
+                                        <MudSelectItem Value="@("10:00 AM")">10:00 AM</MudSelectItem>
+                                        <MudSelectItem Value="@("11:00 AM")">11:00 AM</MudSelectItem>
+                                        <MudSelectItem Value="@("1:00 PM")">1:00 PM</MudSelectItem>
+                                        <MudSelectItem Value="@("2:00 PM")">2:00 PM</MudSelectItem>
+                                        <MudSelectItem Value="@("3:00 PM")">3:00 PM</MudSelectItem>
+                                        <MudSelectItem Value="@("4:00 PM")">4:00 PM</MudSelectItem>
+                                    </MudSelect>
+                                </MudItem>
 
-                            <MudItem xs="12">
-                                <MudTextField @bind-Value="_meetingTopic"
-                                              shrinkLabel
-                                              T="string"
-                                              Label="Meeting Topic"
-                                              Lines="5"
-                                              Placeholder="What is the purpose of this meeting request?"
-                                              Variant="Variant.Outlined"
-                                              fullWidth/>
-                            </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="_meetingTopic"
+                                                  shrinkLabel
+                                                  T="string"
+                                                  Label="Meeting Topic"
+                                                  Lines="5"
+                                                  Placeholder="What is the purpose of this meeting request?"
+                                                  Variant="Variant.Outlined"
+                                                  fullWidth/>
+                                </MudItem>
 
-                            <MudItem xs="12">
-                                <MudButton Variant="Variant.Filled"
-                                           Color="Color.Primary"
-                                           FullWidth
-                                           OnClick="ScheduleConsultation"
-                                           Disabled="!CanSchedule">
-                                    Confirm Booking
-                                </MudButton>
-                            </MudItem>
-                        </MudGrid>
+                                <MudItem xs="12">
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               FullWidth
+                                               OnClick="ProceedToPayment"
+                                               Disabled="!CanSchedule">
+                                        Proceed to Payment
+                                    </MudButton>
+                                </MudItem>
+                            </MudGrid>
+                        }
+                        else if (_bookingStep == BookingStep.Payment)
+                        {
+                            <MudGrid>
+                                <MudItem xs="12">
+                                    <MudAlert Severity="Severity.Info" Class="mb-4">
+                                        <MudText Typo="Typo.body1">
+                                            <b>Consultation Details:</b><br/>
+                                            Date: @_selectedDate?.ToString("dddd, MMMM d, yyyy")<br/>
+                                            Time: @_selectedTime<br/>
+                                            Duration: 60 minutes<br/>
+                                            Cost: $800.00
+                                        </MudText>
+                                    </MudAlert>
+                                </MudItem>
+                                
+                                <MudItem xs="12">
+                                    <FxExpert.Blazor.Client.Components.PaymentForm Amount="800.00m" 
+                                                                                    OnPaymentAuthorized="HandlePaymentAuthorized" />
+                                </MudItem>
+                                
+                                <MudItem xs="12">
+                                    <MudButton Variant="Variant.Text"
+                                               OnClick="BackToSchedule"
+                                               StartIcon="@Icons.Material.Filled.ArrowBack">
+                                        Back to Schedule
+                                    </MudButton>
+                                </MudItem>
+                            </MudGrid>
+                        }
+
+                        @if (!string.IsNullOrEmpty(_bookingError))
+                        {
+                            <MudAlert Severity="Severity.Error" Class="mt-3">
+                                @_bookingError
+                            </MudAlert>
+                        }
                     </MudPaper>
                 }
             </MudItem>
@@ -213,6 +257,16 @@
     private DateTime? _selectedDate;
     private string _selectedTime = string.Empty;
     private string _meetingTopic = string.Empty;
+    private bool _isBooking = false;
+    private string _bookingError = string.Empty;
+    private BookingStep _bookingStep = BookingStep.Schedule;
+    private string? _paymentIntentId;
+
+    private enum BookingStep
+    {
+        Schedule,
+        Payment
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -296,35 +350,159 @@
     private bool CanSchedule =>
         _selectedDate.HasValue &&
         !string.IsNullOrWhiteSpace(_selectedTime) &&
-        !string.IsNullOrWhiteSpace(_meetingTopic);
+        !string.IsNullOrWhiteSpace(_meetingTopic) &&
+        !_isBooking;
 
-    private Task ScheduleConsultation()
+    private async Task ScheduleConsultation()
     {
-        // In a real application, you would call your API to schedule the meeting
-        // For now, we'll just navigate to a confirmation page or show a success message
+        _isBooking = true;
+        _bookingError = string.Empty;
 
         try
         {
-            // Example payload for scheduling a meeting
-            var meetingRequest = new
+            if (!_selectedDate.HasValue || string.IsNullOrWhiteSpace(_selectedTime) || _partner == null)
             {
-                PartnerEmail = _partner?.EmailAddress,
-                MeetingDate = _selectedDate,
-                MeetingTime = _selectedTime,
-                Topic = _meetingTopic
+                _bookingError = "Please select a date and time for your consultation.";
+                return;
+            }
+
+            // Parse the selected time and combine with date
+            var startTime = ParseDateTime(_selectedDate.Value, _selectedTime);
+            var endTime = startTime.AddMinutes(60); // 60-minute session
+
+            // Create video conference
+            var conferenceId = Guid.NewGuid();
+            var videoConferenceRequest = new
+            {
+                ConferenceId = conferenceId,
+                StartTime = startTime,
+                EndTime = endTime,
+                UserId = await GetCurrentUserEmailAsync(),
+                PartnerId = _partner.EmailAddress,
+                RateInformation = new
+                {
+                    RatePerMinute = 13.33m, // $800 / 60 minutes
+                    MinimumCharge = 800.00m,
+                    MinimumMinutes = 60,
+                    BillingIncrementMinutes = 1,
+                    EffectiveDate = DateTime.UtcNow,
+                    ExpirationDate = (DateTime?)null,
+                    IsActive = true
+                }
             };
 
-            // This is a placeholder - in a real app you would send this to your backend
-            // var response = await Http.PostAsJsonAsync("/api/calendar/schedule", meetingRequest);
+            // Get the EventServer HTTP client
+            var eventServerClient = HttpClientFactory.CreateClient("EventServer");
+            
+            // Call video conference API
+            var conferenceResponse = await eventServerClient.PostAsJsonAsync("/conferences", videoConferenceRequest);
+            
+            if (!conferenceResponse.IsSuccessStatusCode)
+            {
+                var errorContent = await conferenceResponse.Content.ReadAsStringAsync();
+                _bookingError = $"Failed to create conference: {errorContent}";
+                return;
+            }
 
-            // For now, we'll just show success and navigate to a confirmation page
-            NavigationManager.NavigateTo($"/confirmation/{Uri.EscapeDataString(_partner?.EmailAddress ?? "")}");
+            // Create calendar event
+            var calendarRequest = new
+            {
+                EventId = Guid.NewGuid().ToString(),
+                CalendarId = "primary", // Use primary calendar
+                Title = $"Consultation with {_partner.GetFullName()}",
+                Description = _meetingTopic,
+                StartTime = startTime,
+                EndTime = endTime,
+                PartnerId = _partner.EmailAddress,
+                UserId = await GetCurrentUserEmailAsync()
+            };
+
+            var calendarResponse = await eventServerClient.PostAsJsonAsync("/api/calendar/primary/events", calendarRequest);
+            
+            if (!calendarResponse.IsSuccessStatusCode)
+            {
+                var errorContent = await calendarResponse.Content.ReadAsStringAsync();
+                _bookingError = $"Conference created but calendar event failed: {errorContent}";
+                return;
+            }
+
+            // Success - navigate to confirmation with conference ID
+            NavigationManager.NavigateTo($"/confirmation/{Uri.EscapeDataString(_partner.EmailAddress)}/{conferenceId}");
         }
         catch (Exception ex)
         {
+            _bookingError = $"Booking failed: {ex.Message}";
             Console.WriteLine($"Error scheduling consultation: {ex.Message}");
         }
-        return Task.CompletedTask;
+        finally
+        {
+            _isBooking = false;
+        }
+    }
+
+    private DateTime ParseDateTime(DateTime date, string time)
+    {
+        // Parse time like "10:00 AM" and combine with date
+        if (DateTime.TryParse($"{date:yyyy-MM-dd} {time}", out var result))
+        {
+            return result;
+        }
+        
+        // Fallback to date with current time if parsing fails
+        return date.Date.AddHours(10); // Default to 10 AM
+    }
+
+    private async Task<string> GetCurrentUserEmailAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            // Try to get email from different claim types
+            var email = user.FindFirst("email")?.Value ??
+                       user.FindFirst("preferred_username")?.Value ??
+                       user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ??
+                       user.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+                       
+            if (!string.IsNullOrEmpty(email))
+                return email;
+        }
+        
+        // Fallback for unauthenticated users or missing claims
+        return "user@example.com";
+    }
+
+    private void ProceedToPayment()
+    {
+        if (!CanSchedule)
+        {
+            _bookingError = "Please fill in all required fields before proceeding to payment.";
+            return;
+        }
+        
+        _bookingStep = BookingStep.Payment;
+        _bookingError = string.Empty;
+    }
+
+    private void BackToSchedule()
+    {
+        _bookingStep = BookingStep.Schedule;
+        _bookingError = string.Empty;
+    }
+
+    private async Task HandlePaymentAuthorized(PaymentAuthorizationResult result)
+    {
+        if (!result.Success)
+        {
+            _bookingError = result.Error ?? "Payment authorization failed. Please try again.";
+            return;
+        }
+
+        _paymentIntentId = result.PaymentIntentId;
+        
+        // Now proceed with creating the booking since payment is authorized
+        await ScheduleConsultation();
     }
 
 }

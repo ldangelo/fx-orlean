@@ -26,6 +26,9 @@ builder.Services.AddTransient<AntiforgeryHandler>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, FxExpert.Blazor.Client.Services.UserThemeService>();
 
+// Add payment services
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IStripePaymentService, FxExpert.Blazor.Client.Services.StripePaymentService>();
+
 // Add services to the container.
 builder
     .Services.AddRazorComponents()

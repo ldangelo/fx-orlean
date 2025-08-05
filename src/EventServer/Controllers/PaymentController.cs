@@ -1,6 +1,7 @@
 using EventServer.Aggregates.Payments.Commands;
 using EventServer.Aggregates.Payments.Events;
 using EventServer.Aggregates.VideoConference;
+using EventServer.Services;
 using Fortium.Types;
 using Marten;
 using Microsoft.AspNetCore.Mvc;
@@ -74,4 +75,32 @@ public static class PaymentController
         Log.Information("Retrieved payment: {PaymentId}, Status: {Status}, Amount: {Amount}", payment.PaymentId, payment.Status, payment.Amount);
         return Results.Ok(payment);
     }
+
+    [WolverinePost("/payments/create-intent")]
+    public static async Task<IResult> CreatePaymentIntent(
+        [FromBody] CreatePaymentIntentRequest request,
+        [FromServices] IPaymentService paymentService
+    )
+    {
+        try
+        {
+            Log.Information("Creating payment intent for amount {Amount}", request.Amount);
+            
+            // Create PaymentIntent with Stripe - this will be used for authorization
+            var paymentIntentId = await paymentService.CreatePaymentIntentAsync(request.Amount, request.Currency ?? "usd");
+            
+            // Get client secret for frontend
+            var clientSecret = await paymentService.GetPaymentIntentClientSecretAsync(paymentIntentId);
+            
+            return Results.Ok(new CreatePaymentIntentResponse(paymentIntentId, clientSecret));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to create payment intent");
+            return Results.Problem("Failed to create payment intent");
+        }
+    }
 }
+
+public record CreatePaymentIntentRequest(decimal Amount, string? Currency = "usd");
+public record CreatePaymentIntentResponse(string PaymentIntentId, string ClientSecret);
