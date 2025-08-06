@@ -28,6 +28,7 @@ builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, Fx
 
 // Add payment services
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IStripePaymentService, FxExpert.Blazor.Client.Services.StripePaymentService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IPaymentConfigurationService, FxExpert.Blazor.Client.Services.PaymentConfigurationService>();
 
 // Add services to the container.
 builder

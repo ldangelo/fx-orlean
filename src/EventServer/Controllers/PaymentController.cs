@@ -100,7 +100,68 @@ public static class PaymentController
             return Results.Problem("Failed to create payment intent");
         }
     }
+
+    [WolverineGet("/api/payment/config/publishable-key")]
+    public static IResult GetStripePublishableKey()
+    {
+        try
+        {
+            var publishableKey = Environment.GetEnvironmentVariable("STRIPE_PUBLISHABLE_KEY");
+            
+            if (string.IsNullOrEmpty(publishableKey))
+            {
+                Log.Warning("Stripe publishable key not configured");
+                return Results.Problem("Payment configuration not available");
+            }
+
+            return Results.Ok(new PublishableKeyResponse(publishableKey));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get Stripe publishable key");
+            return Results.Problem("Failed to get payment configuration");
+        }
+    }
+
+    [WolverineGet("/api/payment/config/status")]
+    public static IResult GetPaymentConfigurationStatus()
+    {
+        try
+        {
+            var publishableKey = Environment.GetEnvironmentVariable("STRIPE_PUBLISHABLE_KEY");
+            var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+            
+            var status = new PaymentConfigurationStatus
+            {
+                PublishableKeyConfigured = !string.IsNullOrEmpty(publishableKey),
+                SecretKeyConfigured = !string.IsNullOrEmpty(secretKey),
+                PublishableKeyPrefix = publishableKey?.Substring(0, Math.Min(12, publishableKey.Length)) ?? "Not set",
+                SecretKeyPrefix = secretKey?.Substring(0, Math.Min(12, secretKey.Length)) ?? "Not set",
+                IsTestMode = publishableKey?.StartsWith("pk_test_") == true && secretKey?.StartsWith("sk_test_") == true
+            };
+
+            Log.Information("Payment configuration status: PublishableKey={PublishableKeyConfigured}, SecretKey={SecretKeyConfigured}, TestMode={IsTestMode}", 
+                status.PublishableKeyConfigured, status.SecretKeyConfigured, status.IsTestMode);
+
+            return Results.Ok(status);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get payment configuration status");
+            return Results.Problem("Failed to get payment configuration status");
+        }
+    }
 }
 
 public record CreatePaymentIntentRequest(decimal Amount, string? Currency = "usd");
 public record CreatePaymentIntentResponse(string PaymentIntentId, string ClientSecret);
+public record PublishableKeyResponse(string PublishableKey);
+
+public class PaymentConfigurationStatus
+{
+    public bool PublishableKeyConfigured { get; set; }
+    public bool SecretKeyConfigured { get; set; }
+    public string PublishableKeyPrefix { get; set; } = string.Empty;
+    public string SecretKeyPrefix { get; set; } = string.Empty;
+    public bool IsTestMode { get; set; }
+}

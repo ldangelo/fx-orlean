@@ -1,6 +1,7 @@
 @using FxExpert.Blazor.Client.Services
 @using FxExpert.Blazor.Client.Models
 @inject IStripePaymentService StripeService
+@inject IPaymentConfigurationService PaymentConfigService
 @inject IHttpClientFactory HttpClientFactory
 @implements IAsyncDisposable
 
@@ -76,8 +77,17 @@
             IsLoading = true;
             ErrorMessage = null;
 
+            // Get publishable key from configuration
+            var publishableKey = await PaymentConfigService.GetStripePublishableKeyAsync();
+            
+            if (string.IsNullOrEmpty(publishableKey))
+            {
+                ErrorMessage = "Payment system not configured. Please try again later.";
+                return;
+            }
+
             // Initialize Stripe with publishable key
-            var stripeInitialized = await StripeService.InitializeAsync("pk_test_51234..."); // TODO: Move to configuration
+            var stripeInitialized = await StripeService.InitializeAsync(publishableKey);
             
             if (!stripeInitialized)
             {
