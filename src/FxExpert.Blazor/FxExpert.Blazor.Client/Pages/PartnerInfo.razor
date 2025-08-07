@@ -404,6 +404,38 @@
                 return;
             }
 
+            // Create payment authorization record if payment was authorized
+            if (!string.IsNullOrEmpty(_paymentIntentId))
+            {
+                var paymentAuthRequest = new
+                {
+                    PaymentId = Guid.NewGuid(),
+                    ConferenceId = conferenceId,
+                    Amount = 800.00m,
+                    Currency = "usd",
+                    UserId = await GetCurrentUserEmailAsync(),
+                    RateInformation = new
+                    {
+                        RatePerMinute = 13.33m,
+                        MinimumCharge = 800.00m,
+                        MinimumMinutes = 60,
+                        BillingIncrementMinutes = 1,
+                        EffectiveDate = DateTime.UtcNow,
+                        ExpirationDate = (DateTime?)null,
+                        IsActive = true
+                    }
+                };
+
+                var paymentResponse = await eventServerClient.PostAsJsonAsync("/payments/authorize", paymentAuthRequest);
+                
+                if (!paymentResponse.IsSuccessStatusCode)
+                {
+                    var paymentError = await paymentResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Warning: Payment authorization record failed: {paymentError}");
+                    // Don't fail the booking, but log the issue
+                }
+            }
+
             // Create calendar event
             var calendarRequest = new
             {
