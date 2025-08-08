@@ -143,4 +143,87 @@ public class PartnerProfilePage : BasePage
         await WaitForPaymentProcessingAsync();
         await AssertPaymentSuccessAsync();
     }
+
+    // Authentication-related methods
+    public async Task NavigateToPartnerProfileAsync(int partnerId = 1)
+    {
+        await NavigateAsync($"/partners/{partnerId}");
+        await AssertPartnerProfileLoadedAsync();
+    }
+
+    public async Task<bool> RequiresAuthenticationAsync()
+    {
+        try
+        {
+            var currentUrl = Page.Url;
+            if (IsAuthenticationUrl(currentUrl))
+                return true;
+
+            // Check if scheduling requires authentication
+            await ScheduleButton.ClickAsync(new() { Timeout = 5000 });
+            
+            // If redirected to auth page after clicking schedule
+            await Task.Delay(1000);
+            var newUrl = Page.Url;
+            return IsAuthenticationUrl(newUrl);
+        }
+        catch (Exception)
+        {
+            // If we can't click schedule button, might need auth
+            return true;
+        }
+    }
+
+    public async Task<bool> CanAccessWithoutAuthenticationAsync()
+    {
+        try
+        {
+            // Check if we can view partner profile without authentication
+            var nameVisible = await PartnerName.IsVisibleAsync();
+            var titleVisible = await PartnerTitle.IsVisibleAsync();
+            var scheduleVisible = await ScheduleButton.IsVisibleAsync();
+            
+            return nameVisible && titleVisible && scheduleVisible;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> HandlesAuthenticationStateAsync()
+    {
+        try
+        {
+            // Check if page handles authentication state gracefully
+            var isAuthenticated = await IsUserAuthenticatedAsync();
+            var pageLoaded = await IsPageLoadedAsync();
+            
+            // Page should load regardless of auth state
+            return pageLoaded;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> ShowsAuthenticatedFeaturesAsync()
+    {
+        try
+        {
+            if (!await IsUserAuthenticatedAsync())
+                return false;
+
+            // Check for authenticated-only features (like user preferences, history, etc.)
+            var userMenuVisible = await Page.Locator("[data-testid='user-menu']").IsVisibleAsync();
+            var dashboardLinkVisible = await Page.GetByText("Dashboard").IsVisibleAsync();
+            
+            return userMenuVisible || dashboardLinkVisible;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 }

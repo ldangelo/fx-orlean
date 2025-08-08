@@ -27,7 +27,7 @@
             {
                 <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
                     <MudTabPanel Text="Personal Information">
-                        <EditForm Model="@profileModel" OnValidSubmit="SaveProfileAsync">
+                        <EditForm Model="@profileModel" OnValidSubmit="SaveProfileAsync" FormName="ProfileForm">
                             <DataAnnotationsValidator />
                             
                             <MudCard>
@@ -39,7 +39,7 @@
                                         For="@(() => profileModel.LastName)" />
                                     
                                     <MudTextField Label="Email Address" @bind-Value="profileModel.EmailAddress" 
-                                        ReadOnly="true" For="@(() => profileModel.EmailAddress)" />
+                                        For="@(() => profileModel.EmailAddress)" />
                                     
                                     <MudTextField Label="Phone Number" @bind-Value="profileModel.PhoneNumber" 
                                         For="@(() => profileModel.PhoneNumber)" />
@@ -56,7 +56,7 @@
                     </MudTabPanel>
                     
                     <MudTabPanel Text="Address">
-                        <EditForm Model="@addressModel" OnValidSubmit="SaveAddressAsync">
+                        <EditForm Model="@addressModel" OnValidSubmit="SaveAddressAsync" FormName="AddressForm">
                             <DataAnnotationsValidator />
                             
                             <MudCard>
@@ -93,7 +93,7 @@
                     </MudTabPanel>
                     
                     <MudTabPanel Text="Preferences">
-                        <EditForm Model="@preferencesModel" OnValidSubmit="SavePreferencesAsync">
+                        <EditForm Model="@preferencesModel" OnValidSubmit="SavePreferencesAsync" FormName="PreferencesForm">
                             <DataAnnotationsValidator />
                             
                             <MudCard>
@@ -225,8 +225,19 @@
     {
         try
         {
+            Console.WriteLine($"📥 Loading user data for: {userEmail}");
+            
             // Load user profile data
             var userData = await UserService.GetUserProfileAsync(userEmail);
+            
+            if (userData == null)
+            {
+                Console.WriteLine("⚠️ No user data returned from service");
+            }
+            else
+            {
+                Console.WriteLine($"✅ User data loaded: {userData.FirstName} {userData.LastName}");
+            }
             
             if (userData != null)
             {
@@ -267,6 +278,12 @@
     {
         try
         {
+            Console.WriteLine($"🚀 Starting profile save for user: {userEmail}");
+            Console.WriteLine($"   Profile data: FirstName='{profileModel.FirstName}', LastName='{profileModel.LastName}'");
+            
+            // Ensure user exists before trying to update
+            await UserService.EnsureUserExistsAsync(userEmail, profileModel.FirstName, profileModel.LastName);
+            
             var success = await UserService.UpdateUserProfileAsync(
                 userEmail,
                 profileModel.FirstName,
@@ -277,16 +294,27 @@
             
             if (success)
             {
+                Console.WriteLine("✅ Profile update completed successfully");
                 Snackbar.Add("Profile updated successfully", Severity.Success);
             }
             else
             {
-                Snackbar.Add("Failed to update profile", Severity.Error);
+                Console.WriteLine("❌ Profile update failed - success returned false");
+                Snackbar.Add("Failed to update profile - no detailed error available", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error updating profile: {ex.Message}", Severity.Error);
+            Console.WriteLine($"❌ Exception during profile save: {ex.Message}");
+            Console.WriteLine($"   Exception type: {ex.GetType().Name}");
+            
+            var detailedMessage = $"Profile Update Failed: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                detailedMessage += $" (Inner: {ex.InnerException.Message})";
+            }
+            
+            Snackbar.Add(detailedMessage, Severity.Error);
         }
     }
     
@@ -294,6 +322,11 @@
     {
         try
         {
+            Console.WriteLine($"🚀 Starting address save for user: {userEmail}");
+            
+            // Ensure user exists before trying to update
+            await UserService.EnsureUserExistsAsync(userEmail, profileModel.FirstName ?? "Unknown", profileModel.LastName ?? "User");
+            
             var success = await UserService.UpdateUserAddressAsync(
                 userEmail,
                 addressModel.Street1,
@@ -306,16 +339,26 @@
             
             if (success)
             {
+                Console.WriteLine("✅ Address update completed successfully");
                 Snackbar.Add("Address updated successfully", Severity.Success);
             }
             else
             {
-                Snackbar.Add("Failed to update address", Severity.Error);
+                Console.WriteLine("❌ Address update failed - success returned false");
+                Snackbar.Add("Failed to update address - no detailed error available", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error updating address: {ex.Message}", Severity.Error);
+            Console.WriteLine($"❌ Exception during address save: {ex.Message}");
+            
+            var detailedMessage = $"Address Update Failed: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                detailedMessage += $" (Inner: {ex.InnerException.Message})";
+            }
+            
+            Snackbar.Add(detailedMessage, Severity.Error);
         }
     }
     
@@ -323,6 +366,11 @@
     {
         try
         {
+            Console.WriteLine($"🚀 Starting preferences save for user: {userEmail}");
+            
+            // Ensure user exists before trying to update
+            await UserService.EnsureUserExistsAsync(userEmail, profileModel.FirstName ?? "Unknown", profileModel.LastName ?? "User");
+            
             var success = await UserService.UpdateUserPreferencesAsync(
                 userEmail,
                 preferencesModel.ReceiveEmailNotifications,
@@ -334,16 +382,26 @@
             
             if (success)
             {
+                Console.WriteLine("✅ Preferences update completed successfully");
                 Snackbar.Add("Preferences updated successfully", Severity.Success);
             }
             else
             {
-                Snackbar.Add("Failed to update preferences", Severity.Error);
+                Console.WriteLine("❌ Preferences update failed - success returned false");
+                Snackbar.Add("Failed to update preferences - no detailed error available", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error updating preferences: {ex.Message}", Severity.Error);
+            Console.WriteLine($"❌ Exception during preferences save: {ex.Message}");
+            
+            var detailedMessage = $"Preferences Update Failed: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                detailedMessage += $" (Inner: {ex.InnerException.Message})";
+            }
+            
+            Snackbar.Add(detailedMessage, Severity.Error);
         }
     }
 }

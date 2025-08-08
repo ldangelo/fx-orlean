@@ -26,17 +26,17 @@ The following features have been implemented:
 
 ### Must-Have Features (Current MVP Focus)
 
-- [ ] **Complete Booking System** - Full calendar booking with partner availability `L` 🔄
-- [ ] **Payment Authorization Flow** - $800 session pre-authorization before meetings `M` 🔄
-- [ ] **Google Meet Integration** - Automatic meeting link generation and calendar invites `M`
-- [ ] **Confirmation Email System** - Automated emails for booking confirmations `S`
-- [ ] **Session Management** - Partners can start meetings and access client info `M`
+- [x] **Complete Booking System** - Full calendar booking with partner availability `L` 🔄
+- [x] **Payment Authorization Flow** - $800 session pre-authorization before meetings `M` 🔄
+- [x] **Google Meet Integration** - Automatic meeting link generation and calendar invites `M`
+- [x] **Confirmation Email System** - Automated emails for booking confirmations `S`
+- [x] **Session Management** - Partners can start meetings and access client info `M`
 
 ### Should-Have Features
 
-- [ ] **Partner Availability Management** - Real-time availability calendar updates `M`
-- [ ] **Basic Note-Taking** - Partner session notes with client association `S`
-- [ ] **Payment Capture** - Complete payment after successful session `S`
+- [x] **Partner Availability Management** - Real-time availability calendar updates `M`
+- [x] **Basic Note-Taking** - Partner session notes with client association `S`
+- [x] **Payment Capture** - Complete payment after successful session `S`
 
 ### Dependencies
 

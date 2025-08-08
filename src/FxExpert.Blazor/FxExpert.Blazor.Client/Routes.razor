@@ -1,22 +1,24 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                @if (context.User.Identity?.IsAuthenticated == true)
-                {
-                    <MudContainer Class="mt-16 text-center">
-                        <MudText Typo="Typo.h5" Color="Color.Error">
-                            You do not have permission to access this page.
-                        </MudText>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">Return Home</MudButton>
-                    </MudContainer>
-                }
-                else
-                {
-                    <RedirectToLogin/>
-                }
-            </NotAuthorized>
-        </AuthorizeRouteView>
+        <Microsoft.AspNetCore.Components.Web.ErrorBoundary>
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated == true)
+                    {
+                        <MudContainer Class="mt-16 text-center">
+                            <MudText Typo="Typo.h5" Color="Color.Error">
+                                You do not have permission to access this page.
+                            </MudText>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">Return Home</MudButton>
+                        </MudContainer>
+                    }
+                    else
+                    {
+                        <RedirectToLogin/>
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Microsoft.AspNetCore.Components.Web.ErrorBoundary>
         <FocusOnNavigate RouteData="routeData" Selector="h1"/>
     </Found>
     <NotFound>

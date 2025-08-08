@@ -12,13 +12,13 @@
     <ItemGroup>
         <PackageReference Include="Google.Apis.Calendar.v3" Version="1.69.0.3746" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.3" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.7" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.8" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0-preview.1.25080.5" />
         <PackageReference Include="MudExRichTextEditor" Version="8.5.2" />
         <PackageReference Include="Serilog" Version="4.3.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
         <PackageReference Include="System.Formats.Asn1" Version="9.0.0" />
         <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.0" />
         <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.0" />

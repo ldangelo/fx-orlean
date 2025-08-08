@@ -158,4 +158,52 @@ public class HomePage : BasePage
         await AssertPageTitleContainsAsync("Fortium");
         await ProblemDescriptionField.WaitForAsync();
     }
+
+    // Authentication-related methods
+    public async Task NavigateToHomeAsync()
+    {
+        await NavigateAsync("/");
+        await AssertHomePageLoadedAsync();
+    }
+
+    public async Task<bool> RequiresAuthenticationAsync()
+    {
+        try
+        {
+            // Check if page redirects to authentication
+            var currentUrl = Page.Url;
+            return IsAuthenticationUrl(currentUrl) || await SignInButton.IsVisibleAsync();
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> ShowsAuthenticatedContentAsync()
+    {
+        try
+        {
+            // Check for user menu or authenticated indicators
+            return await UserMenuButton.IsVisibleAsync() || await IsUserAuthenticatedAsync();
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> CanSubmitWithoutAuthenticationAsync()
+    {
+        try
+        {
+            // Check if submit button is enabled without authentication
+            await ProblemDescriptionField.FillAsync("Test problem description");
+            return await SubmitButton.IsEnabledAsync();
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 }
