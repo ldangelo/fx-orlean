@@ -1,0 +1,37 @@
+{
+  "use": {
+    "headless": false,
+    "viewport": { "width": 1280, "height": 720 },
+    "ignoreHTTPSErrors": true,
+    "screenshot": "only-on-failure",
+    "video": "retain-on-failure",
+    "trace": "retain-on-failure",
+    "launchOptions": {
+      "headless": false,
+      "slowMo": 100
+    }
+  },
+  "projects": [
+    {
+      "name": "chromium",
+      "use": {
+        "channel": "chromium",
+        "headless": false,
+        "launchOptions": {
+          "headless": false,
+          "slowMo": 100,
+          "args": ["--disable-web-security", "--disable-blink-features=AutomationControlled"]
+        }
+      }
+    }
+  ],
+  "testDir": "./Tests",
+  "timeout": 180000,
+  "expect": {
+    "timeout": 30000
+  },
+  "reportSlowTests": {
+    "max": 5,
+    "threshold": 60000
+  }
+}

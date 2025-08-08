@@ -762,7 +762,7 @@
       "attributes": {
         "client.secret.creation.time": "1736864673",
         "client.introspection.response.allow.jwt.claim.enabled": "false",
-        "post.logout.redirect.uris": "https://localhost:8501/signout-callback-oidc",
+        "post.logout.redirect.uris": "https://localhost:8501/",
         "oauth2.device.authorization.grant.enabled": "false",
         "backchannel.logout.revoke.offline.tokens": "false",
         "use.refresh.tokens": "true",

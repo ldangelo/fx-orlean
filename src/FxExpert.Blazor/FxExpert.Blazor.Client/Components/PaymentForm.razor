@@ -1,0 +1,205 @@
+@using FxExpert.Blazor.Client.Services
+@using FxExpert.Blazor.Client.Models
+@inject IStripePaymentService StripeService
+@inject IPaymentConfigurationService PaymentConfigService
+@inject IHttpClientFactory HttpClientFactory
+@implements IAsyncDisposable
+
+<MudPaper Elevation="3" Class="pa-4">
+    <MudText Typo="Typo.h5" Class="mb-4">Payment Information</MudText>
+    
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-3">
+            @ErrorMessage
+        </MudAlert>
+    }
+
+    @if (IsLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="my-4">Setting up secure payment...</MudText>
+    }
+    else if (!string.IsNullOrEmpty(ClientSecret))
+    {
+        <MudStack>
+            <MudText Typo="Typo.body1" Class="mb-3">
+                <b>Amount:</b> $@Amount.ToString("F2")
+            </MudText>
+            
+            <MudText Typo="Typo.body2" Class="mb-4">
+                Enter your payment information below. Your card will be authorized for $@Amount.ToString("F2") but not charged until your consultation is complete.
+            </MudText>
+
+            <!-- Stripe payment element will be mounted here -->
+            <div id="@PaymentElementId" class="stripe-payment-element" style="min-height: 200px;"></div>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Success"
+                       FullWidth
+                       OnClick="ProcessPayment"
+                       Disabled="IsProcessing"
+                       Class="mt-4">
+                @if (IsProcessing)
+                {
+                    <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true"/>
+                    <span>Processing Payment...</span>
+                }
+                else
+                {
+                    <span>Authorize Payment</span>
+                }
+            </MudButton>
+        </MudStack>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public decimal Amount { get; set; }
+    [Parameter] public EventCallback<PaymentAuthorizationResult> OnPaymentAuthorized { get; set; }
+    
+    private string PaymentElementId = $"payment-element-{Guid.NewGuid():N}";
+    private string? ClientSecret;
+    private string? PaymentIntentId;
+    private bool IsLoading = true;
+    private bool IsProcessing = false;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetupPayment();
+    }
+
+    private async Task SetupPayment()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            // Get publishable key from configuration
+            var publishableKey = await PaymentConfigService.GetStripePublishableKeyAsync();
+            
+            if (string.IsNullOrEmpty(publishableKey))
+            {
+                ErrorMessage = "Payment system not configured. Please try again later.";
+                return;
+            }
+
+            // Initialize Stripe with publishable key
+            var stripeInitialized = await StripeService.InitializeAsync(publishableKey);
+            
+            if (!stripeInitialized)
+            {
+                ErrorMessage = "Failed to initialize payment system. Please try again.";
+                return;
+            }
+
+            // Create payment intent on backend
+            var eventServerClient = HttpClientFactory.CreateClient("EventServer");
+            var response = await eventServerClient.PostAsJsonAsync("/payments/create-intent", new
+            {
+                Amount = Amount,
+                Currency = "usd"
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ErrorMessage = $"Failed to setup payment: {errorContent}";
+                return;
+            }
+
+            var paymentIntent = await response.Content.ReadFromJsonAsync<CreatePaymentIntentResponse>();
+            if (paymentIntent == null)
+            {
+                ErrorMessage = "Invalid payment response from server.";
+                return;
+            }
+
+            PaymentIntentId = paymentIntent.PaymentIntentId;
+            ClientSecret = paymentIntent.ClientSecret;
+
+            // Wait a moment for the DOM to update
+            await Task.Delay(100);
+
+            // Create payment form elements
+            var formCreated = await StripeService.CreatePaymentFormAsync(PaymentElementId, ClientSecret);
+            
+            if (!formCreated)
+            {
+                ErrorMessage = "Failed to create payment form. Please refresh and try again.";
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Payment setup failed: {ex.Message}";
+            Console.WriteLine($"Payment setup error: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessPayment()
+    {
+        try
+        {
+            IsProcessing = true;
+            ErrorMessage = null;
+
+            // Confirm payment with Stripe
+            var result = await StripeService.ConfirmPaymentAsync("about:blank"); // Return URL not used with redirect: 'if_required'
+            
+            if (!result.Success)
+            {
+                ErrorMessage = result.Error ?? "Payment authorization failed. Please try again.";
+                return;
+            }
+
+            // Notify parent component of successful authorization
+            await OnPaymentAuthorized.InvokeAsync(new PaymentAuthorizationResult
+            {
+                Success = true,
+                PaymentIntentId = result.PaymentIntentId ?? PaymentIntentId,
+                Status = result.Status
+            });
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Payment processing failed: {ex.Message}";
+            Console.WriteLine($"Payment processing error: {ex.Message}");
+        }
+        finally
+        {
+            IsProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await StripeService.DestroyAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error disposing payment form: {ex.Message}");
+        }
+    }
+
+    private record CreatePaymentIntentResponse(string PaymentIntentId, string ClientSecret);
+}
+
+<style>
+    .stripe-payment-element {
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 16px;
+        background-color: #fff;
+    }
+</style>

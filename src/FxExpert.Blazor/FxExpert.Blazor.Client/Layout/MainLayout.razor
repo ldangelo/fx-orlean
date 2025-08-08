@@ -39,8 +39,7 @@
         <CascadingAuthenticationState>
             <AuthorizeView>
                 <Authorized>
-                    <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true"
-                             direction="direction.bottom" offsetY="true">
+                    <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true">
                         <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
                         <MudDivider/>
                         @if (context.User.IsInRole("Partner"))
@@ -94,10 +93,17 @@
         }
 
         <MudTooltip Text="@GetThemeTooltip()">
-            <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" Class="ml-3"/>
+            <MudIconButton Icon="@(DarkLightModeButtonIcon)" 
+                           Color="Color.Inherit" 
+                           OnClick="@DarkModeToggle" 
+                           Class="ml-3"
+                           Size="Size.Medium"/>
         </MudTooltip>
-        <MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" OnClick="@ToggleDebug"
-                       Class="ml-3"/>
+        <MudIconButton Icon="@Icons.Material.Filled.BugReport" 
+                       Color="Color.Inherit" 
+                       OnClick="@ToggleDebug"
+                       Class="ml-3"
+                       Size="Size.Medium"/>
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2" Variant="@DrawerVariant.Temporary"
@@ -221,8 +227,10 @@
     {
         try
         {
+            Console.WriteLine("LogoutAsync called");
             // Use JavaScript to submit logout form via POST
             await JSRuntime.InvokeVoidAsync("AuthHelpers.submitLogoutForm", "/");
+            Console.WriteLine("JavaScript logout completed");
         }
         catch (Exception ex)
         {
@@ -239,23 +247,41 @@
 
     private async Task DarkModeToggle()
     {
-        // Cycle through theme modes: Light -> Dark -> System -> Light
-        var nextTheme = _currentTheme switch
+        try 
         {
-            FxExpert.Blazor.Client.Services.ThemeMode.Light => FxExpert.Blazor.Client.Services.ThemeMode.Dark,
-            FxExpert.Blazor.Client.Services.ThemeMode.Dark => FxExpert.Blazor.Client.Services.ThemeMode.System,
-            FxExpert.Blazor.Client.Services.ThemeMode.System => FxExpert.Blazor.Client.Services.ThemeMode.Light,
-            _ => FxExpert.Blazor.Client.Services.ThemeMode.Light
-        };
-        
-        await ThemeService.SetThemeAsync(nextTheme);
+            Console.WriteLine($"DarkModeToggle called: current theme = {_currentTheme}");
+            
+            // Cycle through theme modes: Light -> Dark -> System -> Light
+            var nextTheme = _currentTheme switch
+            {
+                FxExpert.Blazor.Client.Services.ThemeMode.Light => FxExpert.Blazor.Client.Services.ThemeMode.Dark,
+                FxExpert.Blazor.Client.Services.ThemeMode.Dark => FxExpert.Blazor.Client.Services.ThemeMode.System,
+                FxExpert.Blazor.Client.Services.ThemeMode.System => FxExpert.Blazor.Client.Services.ThemeMode.Light,
+                _ => FxExpert.Blazor.Client.Services.ThemeMode.Light
+            };
+            
+            Console.WriteLine($"DarkModeToggle switching to: {nextTheme}");
+            await ThemeService.SetThemeAsync(nextTheme);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DarkModeToggle error: {ex.Message}");
+        }
     }
     
     private async void OnThemeChanged(object? sender, FxExpert.Blazor.Client.Services.ThemeMode newTheme)
     {
-        _currentTheme = newTheme;
-        await UpdateThemeDisplay();
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            Console.WriteLine($"OnThemeChanged: {newTheme}");
+            _currentTheme = newTheme;
+            await UpdateThemeDisplay();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"OnThemeChanged error: {ex.Message}");
+        }
     }
     
     private async Task UpdateThemeDisplay()
@@ -266,7 +292,17 @@
 
     private void ToggleDebug()
     {
-        _debugMode = !_debugMode;
+        try 
+        {
+            Console.WriteLine($"ToggleDebug called: current _debugMode = {_debugMode}");
+            _debugMode = !_debugMode;
+            Console.WriteLine($"ToggleDebug changed: new _debugMode = {_debugMode}");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ToggleDebug error: {ex.Message}");
+        }
     }
     
     public void Dispose()

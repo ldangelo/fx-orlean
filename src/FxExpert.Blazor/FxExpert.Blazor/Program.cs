@@ -4,6 +4,7 @@ using FxExpert.Blazor;
 using FxExpert.Blazor.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
@@ -26,12 +27,41 @@ builder.Services.AddTransient<AntiforgeryHandler>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, FxExpert.Blazor.Client.Services.UserThemeService>();
 
+// Add payment services
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IStripePaymentService, FxExpert.Blazor.Client.Services.StripePaymentService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IPaymentConfigurationService, FxExpert.Blazor.Client.Services.PaymentConfigurationService>();
+
+// Add user services
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.UserService>(sp => 
+    new FxExpert.Blazor.Client.Services.UserService(
+        sp.GetRequiredService<IHttpClientFactory>().CreateClient("EventServer")));
+
+// Add connection health service
+builder.Services.AddScoped<FxExpert.Blazor.Services.ConnectionHealthService>();
+
 // Add services to the container.
 builder
     .Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
+    .AddInteractiveServerComponents(options =>
+    {
+        // Configure SignalR circuit options for better resilience
+        options.DetailedErrors = builder.Environment.IsDevelopment();
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(3);
+        options.DisconnectedCircuitMaxRetained = 100;
+        options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(1);
+    })
     .AddInteractiveWebAssemblyComponents()
     .AddAuthenticationStateSerialization();
+
+// Configure SignalR Hub options for better connection management
+builder.Services.Configure<HubOptions>(options =>
+{
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.MaximumParallelInvocationsPerClient = 1;
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+});
 
 // TODO: Enable HTTPS for the event server
 builder

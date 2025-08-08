@@ -1,6 +1,7 @@
 using EventServer.Aggregates.Payments.Commands;
 using EventServer.Aggregates.Payments.Events;
 using EventServer.Aggregates.VideoConference;
+using EventServer.Services;
 using Fortium.Types;
 using Marten;
 using Microsoft.AspNetCore.Mvc;
@@ -74,4 +75,93 @@ public static class PaymentController
         Log.Information("Retrieved payment: {PaymentId}, Status: {Status}, Amount: {Amount}", payment.PaymentId, payment.Status, payment.Amount);
         return Results.Ok(payment);
     }
+
+    [WolverinePost("/payments/create-intent")]
+    public static async Task<IResult> CreatePaymentIntent(
+        [FromBody] CreatePaymentIntentRequest request,
+        [FromServices] IPaymentService paymentService
+    )
+    {
+        try
+        {
+            Log.Information("Creating payment intent for amount {Amount}", request.Amount);
+            
+            // Create PaymentIntent with Stripe - this will be used for authorization
+            var paymentIntentId = await paymentService.CreatePaymentIntentAsync(request.Amount, request.Currency ?? "usd");
+            
+            // Get client secret for frontend
+            var clientSecret = await paymentService.GetPaymentIntentClientSecretAsync(paymentIntentId);
+            
+            return Results.Ok(new CreatePaymentIntentResponse(paymentIntentId, clientSecret));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to create payment intent");
+            return Results.Problem("Failed to create payment intent");
+        }
+    }
+
+    [WolverineGet("/api/payment/config/publishable-key")]
+    public static IResult GetStripePublishableKey()
+    {
+        try
+        {
+            var publishableKey = Environment.GetEnvironmentVariable("STRIPE_PUBLISHABLE_KEY");
+            
+            if (string.IsNullOrEmpty(publishableKey))
+            {
+                Log.Warning("Stripe publishable key not configured");
+                return Results.Problem("Payment configuration not available");
+            }
+
+            return Results.Ok(new PublishableKeyResponse(publishableKey));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get Stripe publishable key");
+            return Results.Problem("Failed to get payment configuration");
+        }
+    }
+
+    [WolverineGet("/api/payment/config/status")]
+    public static IResult GetPaymentConfigurationStatus()
+    {
+        try
+        {
+            var publishableKey = Environment.GetEnvironmentVariable("STRIPE_PUBLISHABLE_KEY");
+            var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+            
+            var status = new PaymentConfigurationStatus
+            {
+                PublishableKeyConfigured = !string.IsNullOrEmpty(publishableKey),
+                SecretKeyConfigured = !string.IsNullOrEmpty(secretKey),
+                PublishableKeyPrefix = publishableKey?.Substring(0, Math.Min(12, publishableKey.Length)) ?? "Not set",
+                SecretKeyPrefix = secretKey?.Substring(0, Math.Min(12, secretKey.Length)) ?? "Not set",
+                IsTestMode = publishableKey?.StartsWith("pk_test_") == true && secretKey?.StartsWith("sk_test_") == true
+            };
+
+            Log.Information("Payment configuration status: PublishableKey={PublishableKeyConfigured}, SecretKey={SecretKeyConfigured}, TestMode={IsTestMode}", 
+                status.PublishableKeyConfigured, status.SecretKeyConfigured, status.IsTestMode);
+
+            return Results.Ok(status);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to get payment configuration status");
+            return Results.Problem("Failed to get payment configuration status");
+        }
+    }
+}
+
+public record CreatePaymentIntentRequest(decimal Amount, string? Currency = "usd");
+public record CreatePaymentIntentResponse(string PaymentIntentId, string ClientSecret);
+public record PublishableKeyResponse(string PublishableKey);
+
+public class PaymentConfigurationStatus
+{
+    public bool PublishableKeyConfigured { get; set; }
+    public bool SecretKeyConfigured { get; set; }
+    public string PublishableKeyPrefix { get; set; } = string.Empty;
+    public string SecretKeyPrefix { get; set; } = string.Empty;
+    public bool IsTestMode { get; set; }
 }

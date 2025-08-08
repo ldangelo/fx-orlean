@@ -2,6 +2,7 @@ using EventServer.Aggregates.Partners;
 using EventServer.Aggregates.Payments;
 using EventServer.Aggregates.Users;
 using EventServer.Aggregates.VideoConference;
+using EventServer.Services;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using JasperFx.Events;
@@ -79,6 +80,7 @@ public class Program
             });
 
         builder.Services.AddSingleton<ChatGPTWithRAG>();
+        builder.Services.AddScoped<IPaymentService, PaymentService>();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddWolverineHttp();
