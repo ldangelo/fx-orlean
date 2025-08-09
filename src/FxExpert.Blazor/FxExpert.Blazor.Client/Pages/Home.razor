@@ -20,6 +20,26 @@
         text-align: center;
         margin-top: 20px;
     }
+
+    .partner-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border-radius: 12px;
+    }
+
+    .partner-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .text-muted {
+        color: var(--mud-palette-text-secondary) !important;
+    }
+
+    @media (max-width: 960px) {
+        .partner-card {
+            margin-bottom: 16px;
+        }
+    }
 </style>
 
 <!-- Hero Section -->
@@ -103,59 +123,207 @@
     @if (partners.Count > 0)
     {
         <MudDivider Class="my-6"/>
-        <MudText Typo="Typo.h4" Class="mb-4">Recommended Experts for Your Challenge</MudText>
+        
+        <!-- Results Header with Filter Toggle -->
+        <MudStack Direction="Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+            <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.h4">Recommended Experts</MudText>
+                <MudChip Color="Color.Info" Size="Size.Small">@filteredPartners.Count of @partners.Count experts</MudChip>
+                @if (hasActiveFilters)
+                {
+                    <MudChip Color="Color.Primary" Size="Size.Small">Filtered</MudChip>
+                }
+            </MudStack>
+            
+            <!-- Mobile Filter Toggle Button -->
+            <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                <MudButton Variant="Variant.Outlined" 
+                          StartIcon="@Icons.Material.Filled.FilterList"
+                          OnClick="@(() => showMobileFilters = !showMobileFilters)">
+                    @(showMobileFilters ? "Hide Filters" : "Show Filters")
+                </MudButton>
+            </MudHidden>
+        </MudStack>
 
+        <!-- Results Layout with Filter Sidebar -->
         <MudGrid>
-            @foreach (var partner in partners)
-            {
-                <MudItem xs="12" md="4">
-                    <MudCard Elevation="3" Class="h-100">
-                        <MudCardHeader>
-                            <CardHeaderAvatar>
-                                <MudAvatar
-                                    Color="Color.Primary">@(partner?.FirstName?.Substring(0, 1))@(partner?.LastName?.Substring(0, 1))</MudAvatar>
-                            </CardHeaderAvatar>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.h5">@(partner?.GetFullName())</MudText>
-                                <MudText Typo="Typo.subtitle1">@(partner?.Title)</MudText>
-                            </CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            <MudText Typo="Typo.body2" Class="mb-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1"/>
-                                @(partner?.EmailAddress)
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="mb-3">
-                                <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1"/>
-                                @(partner?.PrimaryPhone)
-                            </MudText>
-
-                            <MudText Typo="Typo.body2" Style="font-weight: bold" Class="mt-2">Why this expert
-                                matches
-                                your needs:
-                            </MudText>
-                            <MudText Typo="Typo.body2">@partner?.Reason</MudText>
-
-                            <MudChipSet T="string" Class="mt-3">
-                                @foreach (var skill in partner?.Skills ?? new List<PartnerSkill>())
-                                {
-                                    <MudChip Size="Size.Small" Color="Color.Primary"
-                                             Variant="Variant.Outlined">@skill.Skill</MudChip>
-                                }
-                            </MudChipSet>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="Color.Primary"
-                                       OnClick="@(() => ViewPartnerDetails(partner?.EmailAddress, problemDescription, Industry, Priority))">
-                                View Profile
-                            </MudButton>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary"
-                                       EndIcon="@Icons.Material.Filled.CalendarToday">Schedule
-                            </MudButton>
-                        </MudCardActions>
-                    </MudCard>
+            <!-- Desktop Filter Sidebar -->
+            <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudItem xs="12" md="3">
+                    <PartnerFilterComponent Partners="@partners" 
+                                          OnFiltersChanged="OnFiltersChanged"
+                                          OnFilterCriteriaChanged="OnFilterCriteriaChanged" />
                 </MudItem>
-            }
+            </MudHidden>
+            
+            <!-- Partner Results -->
+            <MudItem xs="12" md="@(showMobileFilters ? 12 : 9)">
+                <!-- Mobile Filter Section -->
+                <MudHidden Breakpoint="Breakpoint.MdAndUp">
+                    @if (showMobileFilters)
+                    {
+                        <MudPaper Class="pa-4 mb-4" Elevation="2">
+                            <PartnerFilterComponent Partners="@partners" 
+                                                  OnFiltersChanged="OnFiltersChanged"
+                                                  OnFilterCriteriaChanged="OnFilterCriteriaChanged" />
+                        </MudPaper>
+                    }
+                </MudHidden>
+                
+                <!-- Sort Options -->
+                <MudStack Direction="Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+                    <MudText Typo="Typo.subtitle2" Class="text-muted">
+                        @if (hasActiveFilters)
+                        {
+                            <span>Showing @filteredPartners.Count filtered results</span>
+                        }
+                        else
+                        {
+                            <span>AI-ranked results based on your problem statement</span>
+                        }
+                    </MudText>
+                    
+                    <MudSelect T="PartnerSortOption" 
+                             Value="@currentSortOption" 
+                             ValueChanged="OnSortChanged"
+                             Label="Sort by"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Style="min-width: 150px;">
+                        <MudSelectItem Value="PartnerSortOption.Relevance">AI Relevance</MudSelectItem>
+                        <MudSelectItem Value="PartnerSortOption.Name">Name</MudSelectItem>
+                        <MudSelectItem Value="PartnerSortOption.Location">Location</MudSelectItem>
+                        <MudSelectItem Value="PartnerSortOption.Experience">Experience</MudSelectItem>
+                        <MudSelectItem Value="PartnerSortOption.Availability">Availability</MudSelectItem>
+                        <MudSelectItem Value="PartnerSortOption.Rate">Rate</MudSelectItem>
+                    </MudSelect>
+                </MudStack>
+
+                <!-- Partner Cards -->
+                @if (filteredPartners.Count > 0)
+                {
+                    <MudGrid>
+                        @foreach (var partner in displayedPartners)
+                        {
+                            <MudItem xs="12" md="@(showMobileFilters ? 12 : 6)" lg="@(showMobileFilters ? 6 : 4)">
+                                <MudCard Elevation="3" Class="h-100 partner-card">
+                                    <MudCardHeader>
+                                        <CardHeaderAvatar>
+                                            <MudAvatar Color="Color.Primary">
+                                                @(partner?.FirstName?.Substring(0, 1))@(partner?.LastName?.Substring(0, 1))
+                                            </MudAvatar>
+                                        </CardHeaderAvatar>
+                                        <CardHeaderContent>
+                                            <MudText Typo="Typo.h6">@(partner?.GetFullName())</MudText>
+                                            <MudText Typo="Typo.subtitle2">@(partner?.Title)</MudText>
+                                            <MudText Typo="Typo.caption" Class="text-muted">
+                                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="mr-1"/>
+                                                @(partner?.GetLocation())
+                                            </MudText>
+                                        </CardHeaderContent>
+                                        <CardHeaderActions>
+                                            <!-- Availability Indicator -->
+                                            @{
+                                                var availabilityColor = partner?.AvailabilityNext30Days switch
+                                                {
+                                                    >= 5 => Color.Success,
+                                                    >= 3 => Color.Warning,
+                                                    >= 1 => Color.Info,
+                                                    _ => Color.Default
+                                                };
+                                                var availabilityText = partner?.AvailabilityNext30Days switch
+                                                {
+                                                    >= 5 => "Available This Week",
+                                                    >= 3 => "Available Next Week", 
+                                                    >= 1 => "Available This Month",
+                                                    _ => "Limited Availability"
+                                                };
+                                            }
+                                            <MudChip Size="Size.Small" Color="@availabilityColor" Variant="Variant.Text">
+                                                @availabilityText
+                                            </MudChip>
+                                        </CardHeaderActions>
+                                    </MudCardHeader>
+                                    <MudCardContent>
+                                        <!-- Contact Info -->
+                                        <MudText Typo="Typo.body2" Class="mb-1">
+                                            <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1"/>
+                                            @(partner?.EmailAddress)
+                                        </MudText>
+                                        <MudText Typo="Typo.body2" Class="mb-3">
+                                            <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1"/>
+                                            @(partner?.PrimaryPhone)
+                                        </MudText>
+
+                                        <!-- AI Matching Reason -->
+                                        @if (!string.IsNullOrEmpty(partner?.Reason) && !hasActiveFilters)
+                                        {
+                                            <MudText Typo="Typo.body2" Style="font-weight: 500" Class="mb-2">
+                                                <MudIcon Icon="@Icons.Material.Filled.Psychology" Size="Size.Small" Class="mr-1"/>
+                                                Why this expert matches:
+                                            </MudText>
+                                            <MudText Typo="Typo.body2" Class="mb-3">@partner?.Reason</MudText>
+                                        }
+
+                                        <!-- Skills -->
+                                        <MudText Typo="Typo.caption" Class="mb-1">Key Skills:</MudText>
+                                        <MudChipSet T="string" Class="mb-2">
+                                            @foreach (var skill in (partner?.Skills ?? new List<PartnerSkill>()).Take(4))
+                                            {
+                                                <MudChip Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
+                                                    @skill.Skill
+                                                    @if (skill.YearsOfExperience > 0)
+                                                    {
+                                                        <MudText Typo="Typo.caption" Class="ml-1">(@skill.YearsOfExperience yr)</MudText>
+                                                    }
+                                                </MudChip>
+                                            }
+                                            @if ((partner?.Skills?.Count ?? 0) > 4)
+                                            {
+                                                <MudChip Size="Size.Small" Color="Color.Default" Variant="Variant.Text">
+                                                    +@((partner?.Skills?.Count ?? 0) - 4) more
+                                                </MudChip>
+                                            }
+                                        </MudChipSet>
+
+                                        <!-- Rate -->
+                                        <MudText Typo="Typo.body2" Class="mt-2">
+                                            <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Small" Class="mr-1"/>
+                                            <strong>$@partner?.Rate/hour</strong>
+                                        </MudText>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary"
+                                                   OnClick="@(() => ViewPartnerDetails(partner?.EmailAddress, problemDescription, Industry, Priority))">
+                                            View Profile
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                                   EndIcon="@Icons.Material.Filled.CalendarToday">
+                                            Schedule
+                                        </MudButton>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+                else
+                {
+                    <!-- No Results Message -->
+                    <MudPaper Class="pa-8 text-center" Elevation="1">
+                        <MudIcon Icon="@Icons.Material.Filled.FilterList" Size="Size.Large" Color="Color.Tertiary" Class="mb-3"/>
+                        <MudText Typo="Typo.h6" Class="mb-2">No experts match your current filters</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted mb-4">
+                            Try adjusting your filter criteria to see more results
+                        </MudText>
+                        <MudButton Variant="Variant.Outlined" 
+                                   OnClick="ClearAllFilters"
+                                   StartIcon="@Icons.Material.Filled.Clear">
+                            Clear All Filters
+                        </MudButton>
+                    </MudPaper>
+                }
+            </MudItem>
         </MudGrid>
     }
 
@@ -165,15 +333,30 @@
     </div>
 </MudContainer>
 
+@using FxExpert.Blazor.Client.Components
+@using FxExpert.Blazor.Client.Models
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+
+@using FxExpert.Blazor.Client.Services
+@inject FilterService FilterService
 
 @code {
     private string problemDescription = string.Empty;
     private List<Partner> partners = new();
+    private List<Partner> filteredPartners = new();
+    private List<Partner> displayedPartners = new();
     private bool isBusy;
     private string Industry = string.Empty;
     private string Priority = string.Empty;
+    
+    // Filter state
+    private PartnerFilterCriteria currentFilters = new();
+    private bool hasActiveFilters = false;
+    private bool showMobileFilters = false;
+    
+    // Sorting state
+    private PartnerSortOption currentSortOption = PartnerSortOption.Relevance;
 
     private async Task SubmitProblem()
     {
@@ -188,6 +371,9 @@
             {
                 var result = await response.Content.ReadFromJsonAsync<List<Partner>>();
                 partners = result?.Where(p => p != null).ToList() ?? new List<Partner>();
+                
+                // Initialize filtered partners with all partners
+                await ApplyFilters();
 
                 Console.WriteLine($"Retrieved {partners.Count} partners.");
             }
@@ -216,6 +402,100 @@
             var encodedProblemPriority = Uri.EscapeDataString(problemPriority ?? string.Empty);
             NavigationManager.NavigateTo($"/partner/{encodedEmail}/{encodedProblemDescription}/{encodedProblemIndustry}/{encodedProblemPriority}");
         }
+    }
+
+    /// <summary>
+    /// Event handler when filters are changed - receives filtered partner list
+    /// </summary>
+    private async Task OnFiltersChanged(List<Partner> filteredPartnerList)
+    {
+        filteredPartners = filteredPartnerList ?? new List<Partner>();
+        await ApplySorting();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Event handler when filter criteria changes - updates active filter state
+    /// </summary>
+    private async Task OnFilterCriteriaChanged(PartnerFilterCriteria criteria)
+    {
+        currentFilters = criteria;
+        hasActiveFilters = HasActiveFilters(criteria);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Event handler for sort option changes
+    /// </summary>
+    private async Task OnSortChanged(PartnerSortOption sortOption)
+    {
+        currentSortOption = sortOption;
+        await ApplySorting();
+    }
+
+    /// <summary>
+    /// Applies current filters to the partner list
+    /// </summary>
+    private async Task ApplyFilters()
+    {
+        if (partners.Count == 0)
+        {
+            filteredPartners = new List<Partner>();
+            displayedPartners = new List<Partner>();
+            return;
+        }
+
+        // If no filters are active, show all partners
+        if (!hasActiveFilters)
+        {
+            filteredPartners = partners.ToList();
+        }
+        else
+        {
+            filteredPartners = await FilterService.FilterPartnersAsync(partners, currentFilters);
+        }
+
+        await ApplySorting();
+    }
+
+    /// <summary>
+    /// Applies current sorting to the filtered partners
+    /// </summary>
+    private async Task ApplySorting()
+    {
+        if (filteredPartners.Count == 0)
+        {
+            displayedPartners = new List<Partner>();
+            return;
+        }
+
+        displayedPartners = FilterService.SortPartners(filteredPartners, currentSortOption, true);
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Checks if any filters are currently active
+    /// </summary>
+    private bool HasActiveFilters(PartnerFilterCriteria criteria)
+    {
+        return (criteria.Cities?.Any() == true) ||
+               (criteria.States?.Any() == true) ||
+               (criteria.Regions?.Any() == true) ||
+               (criteria.Availability.HasValue) ||
+               (criteria.RequiredSkills?.Any() == true) ||
+               (criteria.MinExperienceLevel.HasValue) ||
+               (criteria.MinYearsExperience.HasValue && criteria.MinYearsExperience > 0);
+    }
+
+    /// <summary>
+    /// Clears all filters and shows all partners
+    /// </summary>
+    private async Task ClearAllFilters()
+    {
+        currentFilters = new PartnerFilterCriteria();
+        hasActiveFilters = false;
+        showMobileFilters = false;
+        await ApplyFilters();
     }
 
 }
