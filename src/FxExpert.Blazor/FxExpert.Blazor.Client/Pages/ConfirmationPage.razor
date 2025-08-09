@@ -1,5 +1,5 @@
 @page "/confirmation/{PartnerEmail}"
-@page "/confirmation/{PartnerEmail}/{ConferenceId}"
+@page "/confirmation/{PartnerEmail}/{BookingId}"
 @using System.Text.Json
 @inject HttpClient Http
 @inject IHttpClientFactory HttpClientFactory
@@ -30,12 +30,19 @@
                 </MudText>
             </MudListItem>
 
+            @if (!string.IsNullOrEmpty(_bookingDetails?.ConsultationTopic))
+            {
+                <MudListItem Icon="@Icons.Material.Filled.Topic">
+                    <MudText Typo="Typo.body1"><b>Topic:</b> @_bookingDetails.ConsultationTopic</MudText>
+                </MudListItem>
+            }
+
             <MudListItem Icon="@Icons.Material.Filled.CalendarToday">
                 <MudText Typo="Typo.body1">
                     <b>Date & Time:</b> 
-                    @if (_conference != null)
+                    @if (_bookingDetails != null)
                     {
-                        <text>@_conference.StartTime.ToString("dddd, MMMM d, yyyy") at @_conference.StartTime.ToString("h:mm tt") EST</text>
+                        <text>@_bookingDetails.StartTime.ToString("dddd, MMMM d, yyyy") at @_bookingDetails.StartTime.ToString("h:mm tt") EST</text>
                     }
                     else
                     {
@@ -45,8 +52,16 @@
             </MudListItem>
 
             <MudListItem Icon="@Icons.Material.Filled.VideoCall">
-                <MudText Typo="Typo.body1"><b>Meeting Link:</b> A Google Meet link will be included in your calendar
-                    invitation
+                <MudText Typo="Typo.body1">
+                    <b>Meeting Link:</b> 
+                    @if (!string.IsNullOrEmpty(_bookingDetails?.GoogleMeetLink))
+                    {
+                        <a href="@_bookingDetails.GoogleMeetLink" target="_blank">Join Google Meet</a>
+                    }
+                    else
+                    {
+                        <text>A Google Meet link will be included in your calendar invitation</text>
+                    }
                 </MudText>
             </MudListItem>
 
@@ -57,13 +72,13 @@
             <MudListItem Icon="@Icons.Material.Filled.CreditCard">
                 <MudText Typo="Typo.body1">
                     <b>Payment:</b> 
-                    @if (_conference != null)
+                    @if (_bookingDetails != null)
                     {
-                        @($"${_conference.Amount:F2} (will be processed before the meeting)")
+                        @($"${_bookingDetails.SessionFee:F2} (authorized - will be captured after the meeting)")
                     }
                     else
                     {
-                        @("$800.00 (will be processed before the meeting)")
+                        @("$800.00 (authorized - will be captured after the meeting)")
                     }
                 </MudText>
             </MudListItem>
@@ -90,10 +105,10 @@
 
 @code {
     [Parameter] public string PartnerEmail { get; set; } = string.Empty;
-    [Parameter] public string? ConferenceId { get; set; }
+    [Parameter] public string? BookingId { get; set; }
 
     private Partner? _partner;
-    private VideoConferenceDetails? _conference;
+    private BookingDetails? _bookingDetails;
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,38 +147,53 @@
             }
         }
 
-        // Load conference details if conference ID is provided
-        if (!string.IsNullOrEmpty(ConferenceId) && Guid.TryParse(ConferenceId, out var conferenceGuid))
+        // Load booking details if booking ID is provided
+        if (!string.IsNullOrEmpty(BookingId) && Guid.TryParse(BookingId, out var bookingGuid))
         {
             try
             {
                 var eventServerClient = HttpClientFactory.CreateClient("EventServer");
-                var conferenceResponse = await eventServerClient.GetAsync($"/conferences/{conferenceGuid}");
+                var bookingResponse = await eventServerClient.GetAsync($"/api/bookings/{bookingGuid}");
                 
-                if (conferenceResponse.IsSuccessStatusCode)
+                if (bookingResponse.IsSuccessStatusCode)
                 {
-                    var conferenceContent = await conferenceResponse.Content.ReadAsStringAsync();
-                    _conference = JsonSerializer.Deserialize<VideoConferenceDetails>(
-                        conferenceContent,
+                    var bookingContent = await bookingResponse.Content.ReadAsStringAsync();
+                    _bookingDetails = JsonSerializer.Deserialize<BookingDetails>(
+                        bookingContent,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                     );
+                    
+                    Console.WriteLine($"Loaded booking details: {bookingContent}");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to load booking details: {bookingResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading conference data: {ex.Message}");
+                Console.WriteLine($"Error loading booking data: {ex.Message}");
             }
         }
     }
 
-    public class VideoConferenceDetails
+    public class BookingDetails
     {
+        public Guid BookingId { get; set; }
         public Guid ConferenceId { get; set; }
+        public string ClientEmail { get; set; } = string.Empty;
+        public string PartnerEmail { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-        public string UserId { get; set; } = string.Empty;
-        public string PartnerId { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
+        public string ConsultationTopic { get; set; } = string.Empty;
+        public string ClientProblemDescription { get; set; } = string.Empty;
+        public string PaymentIntentId { get; set; } = string.Empty;
+        public string GoogleCalendarEventId { get; set; } = string.Empty;
+        public string GoogleMeetLink { get; set; } = string.Empty;
+        public decimal SessionFee { get; set; }
+        public decimal PartnerPayout { get; set; }
+        public decimal PlatformFee { get; set; }
+        public string Status { get; set; } = "Confirmed";
     }
 
 }

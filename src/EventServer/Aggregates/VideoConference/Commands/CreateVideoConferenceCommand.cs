@@ -19,6 +19,36 @@ public record CreateVideoConferenceCommand(
 {
 }
 
+/// <summary>
+/// Command to complete a booking with all integrations (payment, calendar, notifications)
+/// </summary>
+[Serializable]
+public record CompleteBookingCommand(
+    Guid BookingId,
+    Guid ConferenceId,
+    string ClientEmail,
+    string PartnerEmail,
+    DateTime StartTime,
+    DateTime EndTime,
+    string ConsultationTopic,
+    string ClientProblemDescription,
+    string PaymentIntentId,
+    decimal SessionFee = 800.00m
+) : IVideoConferenceCommand;
+
+/// <summary>
+/// Command to mark a session as completed by the partner
+/// </summary>
+[Serializable]
+public record CompleteSessionCommand(
+    Guid ConferenceId,
+    Guid BookingId,
+    string PartnerEmail,
+    string SessionNotes,
+    int SessionRating,
+    bool CapturePayment = true
+) : IVideoConferenceCommand;
+
 public class CreateVideoConferenceCommandValidator : AbstractValidator<CreateVideoConferenceCommand>
 {
     public CreateVideoConferenceCommandValidator()
