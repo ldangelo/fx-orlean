@@ -8,9 +8,9 @@ namespace FxExpert.Blazor.Client.Services;
 /// </summary>
 public class FilterService
 {
-    private readonly CalendarHttpService _calendarService;
+    private readonly ICalendarHttpService _calendarService;
     
-    public FilterService(CalendarHttpService calendarService)
+    public FilterService(ICalendarHttpService calendarService)
     {
         _calendarService = calendarService;
     }

@@ -7,7 +7,7 @@ namespace FxExpert.Blazor.Client.Services;
 /// <summary>
 /// HTTP client service for calendar operations
 /// </summary>
-public class CalendarHttpService
+public class CalendarHttpService : ICalendarHttpService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<CalendarHttpService> _logger;

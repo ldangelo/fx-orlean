@@ -1,0 +1,388 @@
+@using FxExpert.Blazor.Client.Services
+@using Fortium.Types
+@using System.Diagnostics
+@implements IDisposable
+@inject IOptimizedFilterService OptimizedFilterService
+@inject ILogger<PerformanceOptimizedFilterComponent> Logger
+
+<div class="performance-optimized-filters">
+    @* Performance Metrics Display (Development Only) *@
+    @if (ShowPerformanceMetrics)
+    {
+        <MudCard Class="mb-4" Elevation="2">
+            <MudCardContent>
+                <MudText Typo="Typo.h6">🚀 Performance Metrics</MudText>
+                <MudGrid>
+                    <MudItem xs="3">
+                        <MudText Typo="Typo.caption">Last Filter Time</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Primary">@LastFilterTimeMs ms</MudText>
+                    </MudItem>
+                    <MudItem xs="3">
+                        <MudText Typo="Typo.caption">Cache Hit Rate</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Success">@CacheHitRate.ToString("P1")</MudText>
+                    </MudItem>
+                    <MudItem xs="3">
+                        <MudText Typo="Typo.caption">Active Partners</MudText>
+                        <MudText Typo="Typo.body2">@TotalPartners</MudText>
+                    </MudItem>
+                    <MudItem xs="3">
+                        <MudText Typo="Typo.caption">Filtered Results</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@FilteredCount</MudText>
+                    </MudItem>
+                </MudGrid>
+                
+                @* Cache Statistics *@
+                <MudDivider Class="my-2" />
+                <MudText Typo="Typo.caption">Cache Statistics</MudText>
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body2">Filter Cache: @CacheStatistics.FilterCacheSize entries</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body2">Availability Cache: @CacheStatistics.AvailabilityCacheSize entries</MudText>
+                    </MudItem>
+                </MudGrid>
+                
+                <MudButton StartIcon="Icons.Material.Filled.Refresh" 
+                          Size="Size.Small" 
+                          Variant="Variant.Outlined"
+                          OnClick="RefreshMetrics"
+                          Class="mt-2">
+                    Refresh Metrics
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    }
+
+    @* Filter Interface *@
+    <MudCard Elevation="3">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">🔍 Advanced Partner Search</MudText>
+                @if (IsFiltering)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mt-2" />
+                }
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton StartIcon="Icons.Material.Filled.Speed" 
+                          Variant="Variant.Text"
+                          OnClick="() => ShowPerformanceMetrics = !ShowPerformanceMetrics">
+                    @(ShowPerformanceMetrics ? "Hide" : "Show") Metrics
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid>
+                @* Location Filters *@
+                <MudItem xs="12" md="6" lg="4">
+                    <MudTextField @bind-Value="FilterCriteria.City" 
+                                  Label="City" 
+                                  Placeholder="Enter city..."
+                                  Debounce="true" 
+                                  DebounceInterval="300"
+                                  OnDebounceIntervalElapsed="OnFilterChanged"
+                                  Clearable="true" />
+                </MudItem>
+                <MudItem xs="12" md="6" lg="4">
+                    <MudSelect @bind-Value="FilterCriteria.State" 
+                               Label="State" 
+                               Placeholder="Select state..."
+                               Clearable="true"
+                               OnSelectionChanged="OnFilterChanged">
+                        <MudSelectItem Value="@("CA")">California</MudSelectItem>
+                        <MudSelectItem Value="@("TX")">Texas</MudSelectItem>
+                        <MudSelectItem Value="@("NY")">New York</MudSelectItem>
+                        <MudSelectItem Value="@("FL")">Florida</MudSelectItem>
+                        <MudSelectItem Value="@("WA")">Washington</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6" lg="4">
+                    <MudSelect @bind-Value="FilterCriteria.Region" 
+                               Label="Region" 
+                               Placeholder="Select region..."
+                               Clearable="true"
+                               OnSelectionChanged="OnFilterChanged">
+                        <MudSelectItem Value="@("west-coast")">West Coast</MudSelectItem>
+                        <MudSelectItem Value="@("east-coast")">East Coast</MudSelectItem>
+                        <MudSelectItem Value="@("midwest")">Midwest</MudSelectItem>
+                        <MudSelectItem Value="@("south")">South</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                @* Skills Filter *@
+                <MudItem xs="12" md="6">
+                    <MudAutocomplete T="string" @bind-Value="CurrentSkill" 
+                                     Label="Required Skills" 
+                                     SearchFunc="SearchSkills"
+                                     AdornmentIcon="Icons.Material.Filled.Search"
+                                     OnAdornmentClick="AddSkill"
+                                     Placeholder="Type to search skills..."
+                                     Dense="true" />
+                    @if (FilterCriteria.RequiredSkills?.Count > 0)
+                    {
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            @foreach (var skill in FilterCriteria.RequiredSkills)
+                            {
+                                <MudChip T="string" Color="Color.Primary" 
+                                         Text="@skill" 
+                                         OnClose="() => RemoveSkill(skill)" />
+                            }
+                        </div>
+                    }
+                </MudItem>
+
+                @* Experience Filters *@
+                <MudItem xs="12" md="6" lg="3">
+                    <MudSelect @bind-Value="FilterCriteria.ExperienceLevel" 
+                               Label="Experience Level" 
+                               Clearable="true"
+                               OnSelectionChanged="OnFilterChanged">
+                        <MudSelectItem Value="@("Junior")">Junior</MudSelectItem>
+                        <MudSelectItem Value="@("Mid-Level")">Mid-Level</MudSelectItem>
+                        <MudSelectItem Value="@("Senior")">Senior</MudSelectItem>
+                        <MudSelectItem Value="@("Expert")">Expert</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6" lg="3">
+                    <MudNumericField @bind-Value="FilterCriteria.MinimumYearsOfExperience" 
+                                     Label="Min Years Experience" 
+                                     Min="0" Max="50"
+                                     Debounce="true" 
+                                     DebounceInterval="500"
+                                     OnDebounceIntervalElapsed="OnFilterChanged" />
+                </MudItem>
+
+                @* Availability Filter *@
+                <MudItem xs="12" md="6" lg="3">
+                    <MudNumericField @bind-Value="FilterCriteria.RequiredAvailability" 
+                                     Label="Min Available Slots" 
+                                     Min="0" Max="20"
+                                     Debounce="true" 
+                                     DebounceInterval="500"
+                                     OnDebounceIntervalElapsed="OnFilterChanged" />
+                </MudItem>
+
+                @* Sorting *@
+                <MudItem xs="12" md="6" lg="3">
+                    <MudSelect @bind-Value="FilterCriteria.SortBy" 
+                               Label="Sort By" 
+                               OnSelectionChanged="OnFilterChanged">
+                        <MudSelectItem Value="@("name")">Name</MudSelectItem>
+                        <MudSelectItem Value="@("experience")">Experience</MudSelectItem>
+                        <MudSelectItem Value="@("availability")">Availability</MudSelectItem>
+                        <MudSelectItem Value="@("location")">Location</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            @* Action Buttons *@
+            <MudGrid Class="mt-4">
+                <MudItem xs="12">
+                    <MudButton StartIcon="Icons.Material.Filled.Clear" 
+                               Variant="Variant.Outlined" 
+                               OnClick="ClearAllFilters"
+                               Disabled="IsFiltering">
+                        Clear All Filters
+                    </MudButton>
+                    <MudButton StartIcon="Icons.Material.Filled.Refresh" 
+                               Variant="Variant.Filled" 
+                               Color="Color.Primary"
+                               OnClick="RefreshAvailability"
+                               Disabled="IsFiltering"
+                               Class="ml-2">
+                        @if (IsRefreshingAvailability)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                            <span class="ml-2">Refreshing...</span>
+                        }
+                        else
+                        {
+                            <span>Refresh Availability</span>
+                        }
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+</div>
+
+@code {
+    [Parameter] public List<Partner> Partners { get; set; } = new();
+    [Parameter] public EventCallback<List<Partner>> OnPartnersFiltered { get; set; }
+    [Parameter] public bool ShowPerformanceMetrics { get; set; } = false;
+
+    private PartnerFilterCriteria FilterCriteria { get; set; } = new();
+    private string CurrentSkill { get; set; } = string.Empty;
+    private bool IsFiltering { get; set; }
+    private bool IsRefreshingAvailability { get; set; }
+    
+    // Performance tracking
+    private long LastFilterTimeMs { get; set; }
+    private double CacheHitRate { get; set; }
+    private int TotalPartners { get; set; }
+    private int FilteredCount { get; set; }
+    private FilterCacheStatistics CacheStatistics { get; set; } = new();
+    
+    // Debouncing
+    private CancellationTokenSource? _filterCancellationTokenSource;
+    private readonly SemaphoreSlim _filterSemaphore = new(1, 1);
+
+    // Available skills for autocomplete
+    private readonly List<string> AvailableSkills = new()
+    {
+        "Leadership", "Strategy", "Technology", "Azure", "AWS", "C#", ".NET", 
+        "Python", "JavaScript", "React", "Angular", "Vue", "DevOps", "Security",
+        "Architecture", "Project Management", "Agile", "Scrum", "Data Analytics",
+        "Machine Learning", "AI", "Blockchain", "Cybersecurity", "Cloud Computing"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        TotalPartners = Partners.Count;
+        FilterCriteria.SortBy = "name"; // Default sort
+        
+        // Initialize with unfiltered partners
+        await ApplyFilters();
+        
+        // Start performance monitoring
+        await RefreshMetrics();
+    }
+
+    private async Task OnFilterChanged()
+    {
+        await ApplyFilters();
+    }
+
+    private async Task ApplyFilters()
+    {
+        // Cancel any ongoing filter operation
+        _filterCancellationTokenSource?.Cancel();
+        _filterCancellationTokenSource = new CancellationTokenSource();
+
+        if (!await _filterSemaphore.WaitAsync(100))
+        {
+            // If we can't acquire the semaphore quickly, skip this filter request
+            return;
+        }
+
+        try
+        {
+            IsFiltering = true;
+            StateHasChanged();
+
+            var stopwatch = Stopwatch.StartNew();
+
+            var filteredPartners = await OptimizedFilterService.FilterPartnersAsync(
+                Partners, FilterCriteria, _filterCancellationTokenSource.Token);
+
+            stopwatch.Stop();
+            LastFilterTimeMs = stopwatch.ElapsedMilliseconds;
+            FilteredCount = filteredPartners.Count;
+
+            await OnPartnersFiltered.InvokeAsync(filteredPartners);
+            
+            Logger.LogInformation("Filter applied in {ElapsedMs}ms, {FilteredCount}/{TotalCount} partners",
+                LastFilterTimeMs, FilteredCount, TotalPartners);
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogDebug("Filter operation was cancelled");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error applying filters");
+        }
+        finally
+        {
+            IsFiltering = false;
+            _filterSemaphore.Release();
+            StateHasChanged();
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchSkills(string searchText)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return AvailableSkills.Take(5);
+
+        return AvailableSkills
+            .Where(skill => skill.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .Take(10);
+    }
+
+    private async Task AddSkill()
+    {
+        if (!string.IsNullOrWhiteSpace(CurrentSkill))
+        {
+            FilterCriteria.RequiredSkills ??= new List<string>();
+            
+            if (!FilterCriteria.RequiredSkills.Contains(CurrentSkill, StringComparer.OrdinalIgnoreCase))
+            {
+                FilterCriteria.RequiredSkills.Add(CurrentSkill);
+                CurrentSkill = string.Empty;
+                await OnFilterChanged();
+            }
+        }
+    }
+
+    private async Task RemoveSkill(string skill)
+    {
+        FilterCriteria.RequiredSkills?.Remove(skill);
+        await OnFilterChanged();
+    }
+
+    private async Task ClearAllFilters()
+    {
+        FilterCriteria = new PartnerFilterCriteria { SortBy = "name" };
+        CurrentSkill = string.Empty;
+        await OnFilterChanged();
+    }
+
+    private async Task RefreshAvailability()
+    {
+        try
+        {
+            IsRefreshingAvailability = true;
+            StateHasChanged();
+
+            var partnerEmails = Partners.Select(p => p.Email).ToList();
+            var refreshedAvailability = await OptimizedFilterService.RefreshPartnerAvailabilityAsync(partnerEmails);
+
+            Logger.LogInformation("Refreshed availability for {Count} partners", refreshedAvailability.Count);
+            
+            // Re-apply filters to update results with fresh availability data
+            await ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error refreshing availability");
+        }
+        finally
+        {
+            IsRefreshingAvailability = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshMetrics()
+    {
+        try
+        {
+            CacheStatistics = OptimizedFilterService.GetCacheStatistics();
+            CacheHitRate = CacheStatistics.CacheHitRate;
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Error refreshing performance metrics");
+        }
+    }
+
+    public void Dispose()
+    {
+        _filterCancellationTokenSource?.Dispose();
+        _filterSemaphore?.Dispose();
+    }
+}

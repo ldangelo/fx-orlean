@@ -24,8 +24,14 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.UserService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, FxExpert.Blazor.Client.Services.UserThemeService>();
+
+// Register filter services (both original and optimized)
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.FilterService>();
-builder.Services.AddScoped<FxExpert.Blazor.Client.Services.CalendarHttpService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.ICalendarHttpService, FxExpert.Blazor.Client.Services.CalendarHttpService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IOptimizedFilterService, FxExpert.Blazor.Client.Services.OptimizedFilterService>();
+
+// Register performance monitoring service
+builder.Services.AddSingleton<FxExpert.Blazor.Client.Services.IPerformanceMonitoringService, FxExpert.Blazor.Client.Services.PerformanceMonitoringService>();
 
 
 // Add authentication and authorization
