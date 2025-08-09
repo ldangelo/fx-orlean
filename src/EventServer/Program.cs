@@ -81,6 +81,10 @@ public class Program
 
         builder.Services.AddSingleton<ChatGPTWithRAG>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
+        builder.Services.AddScoped<GoogleCalendarService>();
+        builder.Services.AddScoped<EmailService>();
+        builder.Services.AddSingleton<ReminderService>();
+        builder.Services.AddHostedService<ReminderService>(provider => provider.GetRequiredService<ReminderService>());
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddWolverineHttp();

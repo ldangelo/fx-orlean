@@ -366,105 +366,60 @@
                 return;
             }
 
+            if (string.IsNullOrEmpty(_paymentIntentId))
+            {
+                _bookingError = "Payment authorization is required before booking.";
+                return;
+            }
+
             // Parse the selected time and combine with date
             var startTime = ParseDateTime(_selectedDate.Value, _selectedTime);
             var endTime = startTime.AddMinutes(60); // 60-minute session
 
-            // Create video conference
+            // Generate IDs for the booking
+            var bookingId = Guid.NewGuid();
             var conferenceId = Guid.NewGuid();
-            var videoConferenceRequest = new
+
+            // Create the integrated booking request using our new endpoint
+            var completeBookingRequest = new
             {
+                BookingId = bookingId,
                 ConferenceId = conferenceId,
+                ClientEmail = await GetCurrentUserEmailAsync(),
+                PartnerEmail = _partner.EmailAddress,
                 StartTime = startTime,
                 EndTime = endTime,
-                UserId = await GetCurrentUserEmailAsync(),
-                PartnerId = _partner.EmailAddress,
-                RateInformation = new
-                {
-                    RatePerMinute = 13.33m, // $800 / 60 minutes
-                    MinimumCharge = 800.00m,
-                    MinimumMinutes = 60,
-                    BillingIncrementMinutes = 1,
-                    EffectiveDate = DateTime.UtcNow,
-                    ExpirationDate = (DateTime?)null,
-                    IsActive = true
-                }
+                ConsultationTopic = _meetingTopic,
+                ClientProblemDescription = ProblemDescription,
+                PaymentIntentId = _paymentIntentId,
+                SessionFee = 800.00m
             };
 
             // Get the EventServer HTTP client
             var eventServerClient = HttpClientFactory.CreateClient("EventServer");
             
-            // Call video conference API
-            var conferenceResponse = await eventServerClient.PostAsJsonAsync("/conferences", videoConferenceRequest);
+            // Call the new integrated booking endpoint
+            var bookingResponse = await eventServerClient.PostAsJsonAsync("/api/bookings/complete", completeBookingRequest);
             
-            if (!conferenceResponse.IsSuccessStatusCode)
+            if (!bookingResponse.IsSuccessStatusCode)
             {
-                var errorContent = await conferenceResponse.Content.ReadAsStringAsync();
-                _bookingError = $"Failed to create conference: {errorContent}";
+                var errorContent = await bookingResponse.Content.ReadAsStringAsync();
+                _bookingError = $"Booking failed: {errorContent}";
+                Console.WriteLine($"Complete booking API error: {errorContent}");
                 return;
             }
 
-            // Create payment authorization record if payment was authorized
-            if (!string.IsNullOrEmpty(_paymentIntentId))
-            {
-                var paymentAuthRequest = new
-                {
-                    PaymentId = Guid.NewGuid(),
-                    ConferenceId = conferenceId,
-                    Amount = 800.00m,
-                    Currency = "usd",
-                    UserId = await GetCurrentUserEmailAsync(),
-                    RateInformation = new
-                    {
-                        RatePerMinute = 13.33m,
-                        MinimumCharge = 800.00m,
-                        MinimumMinutes = 60,
-                        BillingIncrementMinutes = 1,
-                        EffectiveDate = DateTime.UtcNow,
-                        ExpirationDate = (DateTime?)null,
-                        IsActive = true
-                    }
-                };
+            // Parse the successful booking response to get event details
+            var bookingResult = await bookingResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"Booking completed successfully: {bookingResult}");
 
-                var paymentResponse = await eventServerClient.PostAsJsonAsync("/payments/authorize", paymentAuthRequest);
-                
-                if (!paymentResponse.IsSuccessStatusCode)
-                {
-                    var paymentError = await paymentResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Warning: Payment authorization record failed: {paymentError}");
-                    // Don't fail the booking, but log the issue
-                }
-            }
-
-            // Create calendar event
-            var calendarRequest = new
-            {
-                EventId = Guid.NewGuid().ToString(),
-                CalendarId = "primary", // Use primary calendar
-                Title = $"Consultation with {_partner.GetFullName()}",
-                Description = _meetingTopic,
-                StartTime = startTime,
-                EndTime = endTime,
-                PartnerId = _partner.EmailAddress,
-                UserId = await GetCurrentUserEmailAsync()
-            };
-
-            var calendarResponse = await eventServerClient.PostAsJsonAsync("/api/calendar/primary/events", calendarRequest);
-            
-            if (!calendarResponse.IsSuccessStatusCode)
-            {
-                var errorContent = await calendarResponse.Content.ReadAsStringAsync();
-                _bookingError = $"Conference created but calendar event failed: {errorContent}";
-                return;
-            }
-
-            // Success - navigate to confirmation with conference ID
-            NavigationManager.NavigateTo($"/confirmation/{Uri.EscapeDataString(_partner.EmailAddress)}/{conferenceId}");
+            // Success - navigate to confirmation with booking details
+            NavigationManager.NavigateTo($"/confirmation/{Uri.EscapeDataString(_partner.EmailAddress)}/{bookingId}");
         }
         catch (Exception ex)
         {
             _bookingError = $"Booking failed: {ex.Message}";
-            Console.WriteLine($"Error scheduling consultation: {ex.Message}");
+            Console.WriteLine($"Error completing booking: {ex.Message}");
         }
         finally
         {
