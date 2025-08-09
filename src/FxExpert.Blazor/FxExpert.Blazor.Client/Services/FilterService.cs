@@ -8,6 +8,12 @@ namespace FxExpert.Blazor.Client.Services;
 /// </summary>
 public class FilterService
 {
+    private readonly CalendarHttpService _calendarService;
+    
+    public FilterService(CalendarHttpService calendarService)
+    {
+        _calendarService = calendarService;
+    }
     /// <summary>
     /// Filters partners based on the provided criteria
     /// </summary>
@@ -75,13 +81,123 @@ public class FilterService
             return partners;
 
         // For now, this is based on the AvailabilityNext30Days field
-        // In the future, this could integrate with Google Calendar API for real-time availability
+        // Real-time calendar checking can be enabled via RefreshPartnerAvailabilityAsync method
         return criteria.Availability switch
         {
             AvailabilityTimeframe.ThisWeek => partners.Where(p => p.AvailabilityNext30Days >= 5), // High availability
             AvailabilityTimeframe.NextWeek => partners.Where(p => p.AvailabilityNext30Days >= 3), // Medium availability
             AvailabilityTimeframe.ThisMonth => partners.Where(p => p.AvailabilityNext30Days >= 1), // Some availability
             _ => partners
+        };
+    }
+
+    /// <summary>
+    /// Refreshes availability data for partners using real-time calendar integration
+    /// This method updates partner availability data from Google Calendar
+    /// </summary>
+    /// <param name="partners">Partners to refresh availability for</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Partners with updated availability data</returns>
+    public async Task<List<Partner>> RefreshPartnerAvailabilityAsync(List<Partner> partners, CancellationToken cancellationToken = default)
+    {
+        if (!partners.Any())
+            return partners;
+
+        try
+        {
+            var partnerEmails = partners
+                .Where(p => !string.IsNullOrEmpty(p.Email))
+                .Select(p => p.Email!)
+                .ToList();
+
+            if (!partnerEmails.Any())
+                return partners;
+
+            // Get real-time availability from Google Calendar
+            var availabilityData = await _calendarService.RefreshMultiplePartnerAvailabilityAsync(partnerEmails, cancellationToken);
+
+            // Update partner availability data
+            foreach (var partner in partners)
+            {
+                if (!string.IsNullOrEmpty(partner.Email) && availabilityData.ContainsKey(partner.Email))
+                {
+                    partner.AvailabilityNext30Days = availabilityData[partner.Email];
+                }
+            }
+
+            return partners;
+        }
+        catch (Exception)
+        {
+            // Return original partners on error - don't fail the filtering operation
+            return partners;
+        }
+    }
+
+    /// <summary>
+    /// Applies real-time availability filtering using Google Calendar integration
+    /// </summary>
+    /// <param name="partners">Partners to filter</param>
+    /// <param name="criteria">Filter criteria</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Partners filtered by real-time availability</returns>
+    public async Task<List<Partner>> ApplyRealTimeAvailabilityFilterAsync(
+        IEnumerable<Partner> partners, 
+        PartnerFilterCriteria criteria, 
+        CancellationToken cancellationToken = default)
+    {
+        if (!criteria.Availability.HasValue)
+            return partners.ToList();
+
+        var filteredPartners = new List<Partner>();
+
+        foreach (var partner in partners)
+        {
+            if (string.IsNullOrEmpty(partner.Email))
+            {
+                // Skip partners without email - can't check calendar
+                continue;
+            }
+
+            try
+            {
+                // Check real-time availability using calendar service
+                var hasAvailability = await _calendarService.IsPartnerAvailableInTimeframeAsync(
+                    partner.Email, 
+                    criteria.Availability.Value, 
+                    cancellationToken);
+
+                if (hasAvailability)
+                {
+                    filteredPartners.Add(partner);
+                }
+            }
+            catch (Exception)
+            {
+                // On error, include the partner (avoid false negatives)
+                // Could also fall back to static availability data here
+                if (ShouldIncludePartnerOnError(partner, criteria.Availability.Value))
+                {
+                    filteredPartners.Add(partner);
+                }
+            }
+        }
+
+        return filteredPartners;
+    }
+
+    /// <summary>
+    /// Determines whether to include a partner when real-time availability checking fails
+    /// Uses fallback logic based on static availability data
+    /// </summary>
+    private bool ShouldIncludePartnerOnError(Partner partner, AvailabilityTimeframe timeframe)
+    {
+        return timeframe switch
+        {
+            AvailabilityTimeframe.ThisWeek => partner.AvailabilityNext30Days >= 5,
+            AvailabilityTimeframe.NextWeek => partner.AvailabilityNext30Days >= 3,
+            AvailabilityTimeframe.ThisMonth => partner.AvailabilityNext30Days >= 1,
+            _ => true
         };
     }
 

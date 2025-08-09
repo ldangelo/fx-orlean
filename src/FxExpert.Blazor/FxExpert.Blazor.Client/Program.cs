@@ -25,6 +25,7 @@ builder.Services.AddScoped<FxExpert.Blazor.Client.Services.UserService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, FxExpert.Blazor.Client.Services.UserThemeService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.FilterService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.CalendarHttpService>();
 
 
 // Add authentication and authorization
