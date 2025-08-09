@@ -24,6 +24,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.UserService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IUserThemeService, FxExpert.Blazor.Client.Services.UserThemeService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.FilterService>();
 
 
 // Add authentication and authorization
