@@ -314,7 +314,7 @@ public class PartnerFilteringPerformanceTests : IntegrationContext
         var failedRequests = results.Where(r => !r.Success).ToList();
         
         // Most requests should succeed
-        successfulRequests.Count.ShouldBeGreaterThan(results.Length * 0.8, 
+        successfulRequests.Count.ShouldBeGreaterThan((int)(results.Length * 0.8), 
             $"At least 80% of concurrent requests should succeed. Success: {successfulRequests.Count}, Failed: {failedRequests.Count}");
         
         // Overall time should be reasonable (not much longer than the longest individual request)

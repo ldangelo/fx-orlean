@@ -1,4 +1,5 @@
 using EventServer.Services;
+using Fortium.Types;
 using Shouldly;
 using Xunit.Abstractions;
 

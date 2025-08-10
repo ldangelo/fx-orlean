@@ -35,7 +35,7 @@
         color: var(--mud-palette-text-secondary) !important;
     }
 
-    @media (max-width: 960px) {
+    @@media (max-width: 960px) {
         .partner-card {
             margin-bottom: 16px;
         }
@@ -128,10 +128,10 @@
         <MudStack Direction="Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
             <MudStack Direction="Row" AlignItems="AlignItems.Center" Spacing="2">
                 <MudText Typo="Typo.h4">Recommended Experts</MudText>
-                <MudChip Color="Color.Info" Size="Size.Small">@filteredPartners.Count of @partners.Count experts</MudChip>
+                <MudChip T="string" Color="Color.Info" Size="Size.Small">@filteredPartners.Count of @partners.Count experts</MudChip>
                 @if (hasActiveFilters)
                 {
-                    <MudChip Color="Color.Primary" Size="Size.Small">Filtered</MudChip>
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">Filtered</MudChip>
                 }
             </MudStack>
             
@@ -239,7 +239,7 @@
                                                     _ => "Limited Availability"
                                                 };
                                             }
-                                            <MudChip Size="Size.Small" Color="@availabilityColor" Variant="Variant.Text">
+                                            <MudChip T="string" Size="Size.Small" Color="@availabilityColor" Variant="Variant.Text">
                                                 @availabilityText
                                             </MudChip>
                                         </CardHeaderActions>

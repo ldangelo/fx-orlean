@@ -119,16 +119,14 @@ public class OptimizedFilterService : IOptimizedFilterService
             .ToList();
 
         // Apply availability filter separately with controlled concurrency
-        if (criteria.RequiredAvailability.HasValue && criteria.RequiredAvailability > 0)
+        if (criteria.Availability.HasValue)
         {
             filteredPartners = await FilterByAvailabilityOptimized(filteredPartners, criteria, cancellationToken);
         }
 
         // Apply sorting with optimized comparison
-        if (!string.IsNullOrEmpty(criteria.SortBy))
-        {
-            filteredPartners = ApplySortingOptimized(filteredPartners, criteria.SortBy, criteria.SortDescending);
-        }
+        // Note: Sorting is now handled by the main FilterService.SortPartners method
+        // Remove this section since sorting is not part of PartnerFilterCriteria
 
         return filteredPartners;
     }
@@ -139,38 +137,47 @@ public class OptimizedFilterService : IOptimizedFilterService
     private bool ApplySynchronousFilters(Partner partner, PartnerFilterCriteria criteria)
     {
         // Location filters (fast string operations)
-        if (!string.IsNullOrEmpty(criteria.City) && 
-            (string.IsNullOrEmpty(partner.City) || !partner.City.Contains(criteria.City, StringComparison.OrdinalIgnoreCase)))
+        if (criteria.Cities?.Any() == true && 
+            (string.IsNullOrEmpty(partner.City) || !criteria.Cities.Any(city => 
+                partner.City.Contains(city, StringComparison.OrdinalIgnoreCase))))
             return false;
 
-        if (!string.IsNullOrEmpty(criteria.State) && 
-            (string.IsNullOrEmpty(partner.State) || !partner.State.Contains(criteria.State, StringComparison.OrdinalIgnoreCase)))
+        if (criteria.States?.Any() == true && 
+            (string.IsNullOrEmpty(partner.State) || !criteria.States.Any(state => 
+                partner.State.Contains(state, StringComparison.OrdinalIgnoreCase))))
             return false;
 
-        if (!string.IsNullOrEmpty(criteria.Region) && 
-            (string.IsNullOrEmpty(partner.Region) || !partner.Region.Contains(criteria.Region, StringComparison.OrdinalIgnoreCase)))
-            return false;
+        // Skip region filter as Partner doesn't have Region property
+        // Region logic can be added later if needed
 
         // Skills filter (optimized for multiple required skills)
         if (criteria.RequiredSkills?.Count > 0)
         {
-            var partnerSkillsLower = partner.Skills?.Select(s => s.ToLowerInvariant()).ToHashSet() ?? new HashSet<string>();
+            var partnerSkillsLower = partner.Skills?.Select(s => s.Skill.ToLowerInvariant()).ToHashSet() ?? new HashSet<string>();
             var requiredSkillsLower = criteria.RequiredSkills.Select(s => s.ToLowerInvariant());
             
-            if (!requiredSkillsLower.All(skill => partnerSkillsLower.Contains(skill)))
+            if (!requiredSkillsLower.All(skill => partnerSkillsLower.Any(partnerSkill => 
+                partnerSkill.Contains(skill, StringComparison.OrdinalIgnoreCase))))
                 return false;
         }
 
-        // Experience level filter
-        if (!string.IsNullOrEmpty(criteria.ExperienceLevel) && 
-            (string.IsNullOrEmpty(partner.ExperienceLevel) || 
-             !partner.ExperienceLevel.Equals(criteria.ExperienceLevel, StringComparison.OrdinalIgnoreCase)))
-            return false;
-
-        // Years of experience filter
-        if (criteria.MinimumYearsOfExperience.HasValue && 
-            partner.YearsOfExperience < criteria.MinimumYearsOfExperience.Value)
-            return false;
+        // Apply experience level filter
+        if (criteria.MinExperienceLevel.HasValue)
+        {
+            var hasRequiredExperience = partner.Skills?.Any(skill => 
+                skill.ExperienceLevel >= criteria.MinExperienceLevel) == true;
+            if (!hasRequiredExperience)
+                return false;
+        }
+        
+        // Apply minimum years experience filter
+        if (criteria.MinYearsExperience.HasValue && criteria.MinYearsExperience > 0)
+        {
+            var hasRequiredYears = partner.Skills?.Any(skill => 
+                skill.YearsOfExperience >= criteria.MinYearsExperience) == true;
+            if (!hasRequiredYears)
+                return false;
+        }
 
         return true;
     }
@@ -185,14 +192,14 @@ public class OptimizedFilterService : IOptimizedFilterService
     {
         var availablityTasks = partners.Select(async partner =>
         {
-            var availability = await GetCachedPartnerAvailabilityAsync(partner.Email, cancellationToken);
+            var availability = await GetCachedPartnerAvailabilityAsync(partner.EmailAddress, cancellationToken);
             return new { Partner = partner, Availability = availability };
         });
 
         var partnersWithAvailability = await Task.WhenAll(availablityTasks);
 
         return partnersWithAvailability
-            .Where(p => p.Availability >= criteria.RequiredAvailability.Value)
+            .Where(p => p.Availability >= GetMinAvailabilityForTimeframe(criteria.Availability.Value))
             .Select(p => p.Partner)
             .ToList();
     }
@@ -252,8 +259,8 @@ public class OptimizedFilterService : IOptimizedFilterService
                 ? partners.OrderByDescending(p => p.LastName).ThenByDescending(p => p.FirstName)
                 : partners.OrderBy(p => p.LastName).ThenBy(p => p.FirstName),
             "experience" => descending
-                ? partners.OrderByDescending(p => p.YearsOfExperience)
-                : partners.OrderBy(p => p.YearsOfExperience),
+                ? partners.OrderByDescending(p => p.Skills?.Max(s => s.YearsOfExperience) ?? 0)
+                : partners.OrderBy(p => p.Skills?.Max(s => s.YearsOfExperience) ?? 0),
             "location" => descending
                 ? partners.OrderByDescending(p => p.City).ThenByDescending(p => p.State)
                 : partners.OrderBy(p => p.City).ThenBy(p => p.State),
@@ -332,16 +339,29 @@ public class OptimizedFilterService : IOptimizedFilterService
     {
         var keyParts = new List<string>();
         
-        if (!string.IsNullOrEmpty(criteria.City)) keyParts.Add($"city:{criteria.City}");
-        if (!string.IsNullOrEmpty(criteria.State)) keyParts.Add($"state:{criteria.State}");
-        if (!string.IsNullOrEmpty(criteria.Region)) keyParts.Add($"region:{criteria.Region}");
+        if (criteria.Cities?.Any() == true) keyParts.Add($"cities:{string.Join(",", criteria.Cities.OrderBy(c => c))}");
+        if (criteria.States?.Any() == true) keyParts.Add($"states:{string.Join(",", criteria.States.OrderBy(s => s))}");
+        if (criteria.Regions?.Any() == true) keyParts.Add($"regions:{string.Join(",", criteria.Regions.OrderBy(r => r))}");
         if (criteria.RequiredSkills?.Count > 0) keyParts.Add($"skills:{string.Join(",", criteria.RequiredSkills.OrderBy(s => s))}");
-        if (!string.IsNullOrEmpty(criteria.ExperienceLevel)) keyParts.Add($"exp:{criteria.ExperienceLevel}");
-        if (criteria.MinimumYearsOfExperience.HasValue) keyParts.Add($"years:{criteria.MinimumYearsOfExperience}");
-        if (criteria.RequiredAvailability.HasValue) keyParts.Add($"avail:{criteria.RequiredAvailability}");
-        if (!string.IsNullOrEmpty(criteria.SortBy)) keyParts.Add($"sort:{criteria.SortBy}:{criteria.SortDescending}");
+        if (criteria.MinExperienceLevel.HasValue) keyParts.Add($"exp:{criteria.MinExperienceLevel}");
+        if (criteria.MinYearsExperience.HasValue) keyParts.Add($"years:{criteria.MinYearsExperience}");
+        if (criteria.Availability.HasValue) keyParts.Add($"avail:{criteria.Availability}");
 
         return string.Join("|", keyParts);
+    }
+
+    /// <summary>
+    /// Gets minimum availability threshold for timeframe
+    /// </summary>
+    private int GetMinAvailabilityForTimeframe(AvailabilityTimeframe timeframe)
+    {
+        return timeframe switch
+        {
+            AvailabilityTimeframe.ThisWeek => 5,   // High availability
+            AvailabilityTimeframe.NextWeek => 3,   // Medium availability  
+            AvailabilityTimeframe.ThisMonth => 1,  // Some availability
+            _ => 0
+        };
     }
 
     /// <summary>

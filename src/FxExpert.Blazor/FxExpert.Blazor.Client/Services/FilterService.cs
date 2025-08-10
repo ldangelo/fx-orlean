@@ -106,8 +106,8 @@ public class FilterService
         try
         {
             var partnerEmails = partners
-                .Where(p => !string.IsNullOrEmpty(p.Email))
-                .Select(p => p.Email!)
+                .Where(p => !string.IsNullOrEmpty(p.EmailAddress))
+                .Select(p => p.EmailAddress!)
                 .ToList();
 
             if (!partnerEmails.Any())
@@ -119,9 +119,9 @@ public class FilterService
             // Update partner availability data
             foreach (var partner in partners)
             {
-                if (!string.IsNullOrEmpty(partner.Email) && availabilityData.ContainsKey(partner.Email))
+                if (!string.IsNullOrEmpty(partner.EmailAddress) && availabilityData.ContainsKey(partner.EmailAddress))
                 {
-                    partner.AvailabilityNext30Days = availabilityData[partner.Email];
+                    partner.AvailabilityNext30Days = availabilityData[partner.EmailAddress];
                 }
             }
 
@@ -153,7 +153,7 @@ public class FilterService
 
         foreach (var partner in partners)
         {
-            if (string.IsNullOrEmpty(partner.Email))
+            if (string.IsNullOrEmpty(partner.EmailAddress))
             {
                 // Skip partners without email - can't check calendar
                 continue;
@@ -163,7 +163,7 @@ public class FilterService
             {
                 // Check real-time availability using calendar service
                 var hasAvailability = await _calendarService.IsPartnerAvailableInTimeframeAsync(
-                    partner.Email, 
+                    partner.EmailAddress, 
                     criteria.Availability.Value, 
                     cancellationToken);
 

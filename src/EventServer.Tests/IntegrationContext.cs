@@ -69,6 +69,8 @@ public abstract class IntegrationContext : IAsyncLifetime
     }
 
     public WolverineRuntime? Runtime { get; }
+    
+    protected ITestOutputHelper Output => _output;
 
     public IAlbaHost? Host => _fixture.Host;
     public IDocumentStore? Store => _fixture.Host?.Services.GetRequiredService<IDocumentStore>();
