@@ -1,5 +1,7 @@
 @page "/partner_home"
 @using System.Text.RegularExpressions
+@using FxExpert.Blazor.Client.Components
+@using Fortium.Types
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -112,83 +114,16 @@
             </MudGrid>
         </MudTabPanel>
 
-        <MudTabPanel Text="Scheduled Meetings">
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudPaper Class="pa-4">
-                        <MudText Typo="Typo.h6" Class="mb-4">Upcoming Meetings</MudText>
+        <MudTabPanel Text="Session History">
+            <SessionHistoryComponent UserEmail="@partner.EmailAddress" IsPartnerView="true" />
+        </MudTabPanel>
 
-                        @if (upcomingMeetings != null && upcomingMeetings.Any())
-                        {
-                            <MudTable T="CalendarEvent" Items="@upcomingMeetings" Hover="true"
-                                      Breakpoint="Breakpoint.Sm">
-                                <HeaderContent>
-                                    <MudTh>Title</MudTh>
-                                    <MudTh>Date & Time</MudTh>
-                                    <MudTh>Duration</MudTh>
-                                    <MudTh>Client</MudTh>
-                                    <MudTh>Actions</MudTh>
-                                </HeaderContent>
-                                <RowTemplate>
-                                    <MudTd DataLabel="Title">@context.Title</MudTd>
-                                    <MudTd
-                                        DataLabel="Date & Time">@context.Start.ToString("MMM dd, yyyy h:mm tt")</MudTd>
-                                    <MudTd DataLabel="Duration">@((context.End - context.Start).TotalMinutes) minutes
-                                    </MudTd>
-                                    <MudTd DataLabel="Client">@context.UserId</MudTd>
-                                    <MudTd>
-                                        <MudButton Variant="Variant.Outlined" Size="Size.Small"
-                                                   OnClick="@(() => ViewMeetingDetails(context))">
-                                            View Details
-                                        </MudButton>
-                                    </MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        }
-                        else
-                        {
-                            <MudAlert Severity="Severity.Info">You have no upcoming meetings scheduled.</MudAlert>
-                        }
-                    </MudPaper>
-                </MudItem>
-
-                <MudItem xs="12" Class="mt-4">
-                    <MudPaper Class="pa-4">
-                        <MudText Typo="Typo.h6" Class="mb-4">Past Meetings</MudText>
-
-                        @if (pastMeetings != null && pastMeetings.Any())
-                        {
-                            <MudTable Items="@pastMeetings" Hover="true" Breakpoint="Breakpoint.Sm">
-                                <HeaderContent>
-                                    <MudTh>Title</MudTh>
-                                    <MudTh>Date & Time</MudTh>
-                                    <MudTh>Duration</MudTh>
-                                    <MudTh>Client</MudTh>
-                                    <MudTh>Actions</MudTh>
-                                </HeaderContent>
-                                <RowTemplate>
-                                    <MudTd DataLabel="Title">@context.Title</MudTd>
-                                    <MudTd
-                                        DataLabel="Date & Time">@context.Start.ToString("MMM dd, yyyy h:mm tt")</MudTd>
-                                    <MudTd DataLabel="Duration">@((context.End - context.Start).TotalMinutes) minutes
-                                    </MudTd>
-                                    <MudTd DataLabel="Client">@context.UserId</MudTd>
-                                    <MudTd>
-                                        <MudButton Variant="Variant.Outlined" Size="Size.Small"
-                                                   OnClick="@(() => ViewMeetingDetails(context))">
-                                            View Details
-                                        </MudButton>
-                                    </MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        }
-                        else
-                        {
-                            <MudAlert Severity="Severity.Info">You have no past meetings.</MudAlert>
-                        }
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
+        <MudTabPanel Text="Upcoming Sessions">
+            <UpcomingSessionsComponent UserEmail="@partner.EmailAddress" 
+                                     IsPartnerView="true" 
+                                     MaxSessions="10"
+                                     OnViewAllRequested="@(() => {})"
+                                     OnSessionCompleted="HandleSessionCompleted" />
         </MudTabPanel>
     </MudTabs>
 </MudContainer>
@@ -501,6 +436,13 @@
             return "Please enter a valid URL";
 
         return string.Empty;
+    }
+
+    private async Task HandleSessionCompleted(SessionHistory session)
+    {
+        // TODO: Implement session completion flow
+        // This could open a dialog for partner to add notes and rating
+        Snackbar.Add($"Session completion for '{session.ConsultationTopic}' is in development", Severity.Info);
     }
 
 }

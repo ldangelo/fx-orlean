@@ -63,6 +63,8 @@ public class Program
                 opts.Projections.Add<UserProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<PaymentProjection>(ProjectionLifecycle.Inline);
                 opts.Projections.Add<VideoConferenceProjection>(ProjectionLifecycle.Inline);
+                opts.Projections.Add<SessionHistoryProjection>(ProjectionLifecycle.Inline);
+                opts.Projections.Add<PartnerSessionStatsProjection>(ProjectionLifecycle.Inline);
             })
 //            .OptimizeArtifactWorkflow()
             .UseLightweightSessions()

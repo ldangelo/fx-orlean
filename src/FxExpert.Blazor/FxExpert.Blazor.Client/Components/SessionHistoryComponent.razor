@@ -1,0 +1,602 @@
+@using System.Text.Json
+@using FxExpert.Blazor.Client.Models
+@using Fortium.Types
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<div class="session-history-container">
+    <!-- Header with Statistics -->
+    <MudPaper Class="pa-4 mb-4" Style="background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%);">
+        <MudGrid AlignItems="AlignItems.Center">
+            <MudItem xs="12" md="8">
+                <MudText Typo="Typo.h5" Style="color: white;">
+                    <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-2" />
+                    Session History
+                </MudText>
+                <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                    @if (_isPartnerView)
+                    {
+                        <span>Track your consultation sessions and earnings</span>
+                    }
+                    else
+                    {
+                        <span>Review your consultation sessions and bookings</span>
+                    }
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" md="4" Class="d-flex justify-end">
+                @if (_statistics != null)
+                {
+                    <MudStack Direction="Direction.Row" Spacing="2">
+                        <MudPaper Class="pa-2" Style="background-color: rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                            <MudText Typo="Typo.caption">Total Sessions</MudText>
+                            <MudText Typo="Typo.h6">@_statistics.TotalSessions</MudText>
+                        </MudPaper>
+                        @if (_isPartnerView)
+                        {
+                            <MudPaper Class="pa-2" Style="background-color: rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                                <MudText Typo="Typo.caption">Total Earnings</MudText>
+                                <MudText Typo="Typo.h6">$@_statistics.TotalPartnerPayouts.ToString("N0")</MudText>
+                            </MudPaper>
+                        }
+                    </MudStack>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <!-- Filters and Controls -->
+    <MudPaper Class="pa-4 mb-4">
+        <MudExpansionPanels>
+            <MudExpansionPanel Text="Filters & Search">
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudDatePicker @bind-Date="_startDate" 
+                                     Label="Start Date" 
+                                     Variant="Variant.Outlined"
+                                     Clearable="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudDatePicker @bind-Date="_endDate" 
+                                     Label="End Date" 
+                                     Variant="Variant.Outlined"
+                                     Clearable="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SessionStatus?" 
+                                 @bind-Value="_selectedStatus"
+                                 Label="Status"
+                                 Variant="Variant.Outlined"
+                                 Clearable="true">
+                            <MudSelectItem Value="SessionStatus.Scheduled">Scheduled</MudSelectItem>
+                            <MudSelectItem Value="SessionStatus.InProgress">In Progress</MudSelectItem>
+                            <MudSelectItem Value="SessionStatus.Completed">Completed</MudSelectItem>
+                            <MudSelectItem Value="SessionStatus.Cancelled">Cancelled</MudSelectItem>
+                            <MudSelectItem Value="SessionStatus.NoShow">No Show</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SessionHistorySortBy" 
+                                 @bind-Value="_sortBy"
+                                 Label="Sort By"
+                                 Variant="Variant.Outlined">
+                            <MudSelectItem Value="SessionHistorySortBy.StartTimeDesc">Latest First</MudSelectItem>
+                            <MudSelectItem Value="SessionHistorySortBy.StartTimeAsc">Oldest First</MudSelectItem>
+                            <MudSelectItem Value="SessionHistorySortBy.SessionFeeDesc">Highest Fee</MudSelectItem>
+                            <MudSelectItem Value="SessionHistorySortBy.SessionFeeAsc">Lowest Fee</MudSelectItem>
+                            <MudSelectItem Value="SessionHistorySortBy.StatusAsc">Status A-Z</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="8">
+                        <MudTextField @bind-Value="_searchTerm"
+                                    Label="Search topic or description"
+                                    Variant="Variant.Outlined"
+                                    Adornment="Adornment.End"
+                                    AdornmentIcon="@Icons.Material.Filled.Search"
+                                    Clearable="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="4" Class="d-flex align-end">
+                        <MudButton Variant="Variant.Filled" 
+                                 Color="Color.Primary" 
+                                 OnClick="ApplyFilters"
+                                 StartIcon="@Icons.Material.Filled.FilterList"
+                                 FullWidth="true">
+                            Apply Filters
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudPaper>
+
+    <!-- Session History Table -->
+    <MudPaper Class="pa-0">
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center pa-8">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else if (_sessionResult?.Sessions?.Any() == true)
+        {
+            <MudTable Items="_sessionResult.Sessions" 
+                      Hover="true" 
+                      Striped="true" 
+                      Dense="_isCompactView"
+                      Breakpoint="Breakpoint.Sm">
+                <ToolBarContent>
+                    <MudStack Direction="Direction.Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="full-width pa-2">
+                        <MudText Typo="Typo.h6">
+                            Sessions (@_sessionResult.TotalCount total)
+                        </MudText>
+                        <MudStack Direction="Direction.Row" Spacing="1">
+                            <MudIconButton Icon="@(_isCompactView ? Icons.Material.Filled.ViewComfy : Icons.Material.Filled.ViewCompact)"
+                                         OnClick="@(() => _isCompactView = !_isCompactView)"
+                                         Title="Toggle compact view" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                         OnClick="RefreshData"
+                                         Title="Refresh data" />
+                        </MudStack>
+                    </MudStack>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>
+                        <MudTableSortLabel SortBy="new Func<SessionHistory, object>(x => x.StartTime)">
+                            Date & Time
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>Topic</MudTh>
+                    @if (!_isPartnerView)
+                    {
+                        <MudTh>Partner</MudTh>
+                    }
+                    else
+                    {
+                        <MudTh>Client</MudTh>
+                    }
+                    <MudTh>Duration</MudTh>
+                    <MudTh>
+                        <MudTableSortLabel SortBy="new Func<SessionHistory, object>(x => x.SessionFee)">
+                            Fee
+                        </MudTableSortLabel>
+                    </MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date & Time">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2">
+                                @context.StartTime.ToString("MMM dd, yyyy")
+                            </MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">
+                                @context.StartTime.ToString("h:mm tt") - @context.EndTime.ToString("h:mm tt")
+                            </MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd DataLabel="Topic">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2" Style="font-weight: 500;">
+                                @TruncateText(context.ConsultationTopic, 40)
+                            </MudText>
+                            @if (!_isCompactView)
+                            {
+                                <MudText Typo="Typo.caption" Class="text-muted">
+                                    @TruncateText(context.ClientProblemDescription, 60)
+                                </MudText>
+                            }
+                        </MudStack>
+                    </MudTd>
+                    @if (!_isPartnerView)
+                    {
+                        <MudTd DataLabel="Partner">@GetEmailUsername(context.PartnerEmail)</MudTd>
+                    }
+                    else
+                    {
+                        <MudTd DataLabel="Client">@GetEmailUsername(context.ClientEmail)</MudTd>
+                    }
+                    <MudTd DataLabel="Duration">@context.DurationDisplay</MudTd>
+                    <MudTd DataLabel="Fee">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2">$@context.SessionFee.ToString("N0")</MudText>
+                            @if (_isPartnerView && !_isCompactView)
+                            {
+                                <MudText Typo="Typo.caption" Class="text-muted">
+                                    Payout: $@context.PartnerPayout.ToString("N0")
+                                </MudText>
+                            }
+                        </MudStack>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" 
+                               Color="GetStatusColor(context.Status)" 
+                               Size="Size.Small"
+                               Variant="Variant.Filled">
+                            @context.StatusDisplay
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudStack Direction="Direction.Row" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                         Size="Size.Small"
+                                         OnClick="@(() => ViewSessionDetails(context))"
+                                         Title="View details" />
+                            @if (context.IsUpcoming && !string.IsNullOrEmpty(context.GoogleMeetLink))
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.VideoCall"
+                                             Size="Size.Small"
+                                             OnClick="@(() => JoinMeeting(context.GoogleMeetLink))"
+                                             Title="Join meeting"
+                                             Color="Color.Success" />
+                            }
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+
+            <!-- Pagination -->
+            @if (_sessionResult.TotalPages > 1)
+            {
+                <div class="d-flex justify-center pa-4">
+                    <MudPagination Count="_sessionResult.TotalPages" 
+                                 Selected="_currentPage" 
+                                 SelectedChanged="OnPageChanged"
+                                 ShowFirstLast="true"
+                                 ShowPrevNext="true" />
+                </div>
+            }
+        }
+        else
+        {
+            <div class="d-flex flex-column align-center pa-8">
+                <MudIcon Icon="@Icons.Material.Filled.EventNote" 
+                       Style="font-size: 64px; color: var(--mud-palette-text-secondary);" />
+                <MudText Typo="Typo.h6" Class="mt-4 mb-2">No sessions found</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted text-center">
+                    @if (_hasFilters)
+                    {
+                        <span>No sessions match your current filters. Try adjusting your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>You don't have any consultation sessions yet.</span>
+                    }
+                </MudText>
+                @if (_hasFilters)
+                {
+                    <MudButton Variant="Variant.Text" 
+                             Color="Color.Primary" 
+                             OnClick="ClearFilters"
+                             StartIcon="@Icons.Material.Filled.Clear"
+                             Class="mt-2">
+                        Clear Filters
+                    </MudButton>
+                }
+            </div>
+        }
+    </MudPaper>
+</div>
+
+<!-- Session Details Dialog -->
+@if (_selectedSession != null)
+{
+    <MudDialog @bind-IsVisible="_showDetailsDialog" Options="_dialogOptions">
+        <TitleContent>
+            <MudText Typo="Typo.h6">Session Details</MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Consultation Topic</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">@_selectedSession.ConsultationTopic</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Status</MudText>
+                    <MudChip T="string" Color="GetStatusColor(_selectedSession.Status)" 
+                           Size="Size.Small" Class="mb-3">
+                        @_selectedSession.StatusDisplay
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Problem Description</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">@_selectedSession.ClientProblemDescription</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Session Time</MudText>
+                    <MudText Typo="Typo.body2">
+                        @_selectedSession.StartTime.ToString("dddd, MMMM dd, yyyy")
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        @_selectedSession.StartTime.ToString("h:mm tt") - @_selectedSession.EndTime.ToString("h:mm tt")
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Duration & Fee</MudText>
+                    <MudText Typo="Typo.body2">@_selectedSession.DurationDisplay</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        Session Fee: $@_selectedSession.SessionFee.ToString("N0")
+                        @if (_isPartnerView)
+                        {
+                            <br />
+                            <span>Your Payout: $@_selectedSession.PartnerPayout.ToString("N0")</span>
+                        }
+                    </MudText>
+                </MudItem>
+                @if (!string.IsNullOrEmpty(_selectedSession.SessionNotes))
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Session Notes</MudText>
+                        <MudText Typo="Typo.body2" Class="mb-3">@_selectedSession.SessionNotes</MudText>
+                    </MudItem>
+                }
+                @if (_selectedSession.SessionRating.HasValue)
+                {
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Session Rating</MudText>
+                        <MudRating ReadOnly="true" 
+                                 SelectedValue="_selectedSession.SessionRating.Value" 
+                                 MaxValue="5" />
+                    </MudItem>
+                }
+                @if (_selectedSession.PaymentCaptured == true)
+                {
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Payment Status</MudText>
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small">
+                            Payment Completed
+                        </MudChip>
+                        @if (_selectedSession.PaymentCapturedAt.HasValue)
+                        {
+                            <MudText Typo="Typo.caption" Class="d-block">
+                                Processed: @_selectedSession.PaymentCapturedAt.Value.ToString("MMM dd, yyyy h:mm tt")
+                            </MudText>
+                        }
+                    </MudItem>
+                }
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="@(() => _showDetailsDialog = false)">Close</MudButton>
+            @if (_selectedSession.IsUpcoming && !string.IsNullOrEmpty(_selectedSession.GoogleMeetLink))
+            {
+                <MudButton Variant="Variant.Filled" 
+                         Color="Color.Primary"
+                         StartIcon="@Icons.Material.Filled.VideoCall"
+                         OnClick="@(() => JoinMeeting(_selectedSession.GoogleMeetLink))">
+                    Join Meeting
+                </MudButton>
+            }
+        </DialogActions>
+    </MudDialog>
+}
+
+<style>
+    .session-history-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .full-width {
+        width: 100%;
+    }
+    
+    .text-muted {
+        color: var(--mud-palette-text-secondary) !important;
+    }
+</style>
+
+@code {
+    [Parameter] public string UserEmail { get; set; } = string.Empty;
+    [Parameter] public bool IsPartnerView { get; set; } = false;
+    [Parameter] public EventCallback<SessionHistory> OnSessionSelected { get; set; }
+
+    // State management
+    private bool _isPartnerView => IsPartnerView;
+    private bool _isLoading = true;
+    private bool _isCompactView = false;
+    private bool _showDetailsDialog = false;
+    
+    // Data
+    private SessionHistoryResult? _sessionResult;
+    private SessionStatistics? _statistics;
+    private SessionHistory? _selectedSession;
+    
+    // Filters
+    private DateTime? _startDate;
+    private DateTime? _endDate;
+    private SessionStatus? _selectedStatus;
+    private string _searchTerm = string.Empty;
+    private SessionHistorySortBy _sortBy = SessionHistorySortBy.StartTimeDesc;
+    private int _currentPage = 1;
+    private int _pageSize = 15;
+    
+    // Dialog options
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true
+    };
+    
+    // Computed properties
+    private bool _hasFilters => _startDate.HasValue || _endDate.HasValue || 
+                              _selectedStatus.HasValue || !string.IsNullOrWhiteSpace(_searchTerm);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(UserEmail))
+        {
+            await LoadData();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(UserEmail))
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Load session history and statistics in parallel
+            var historyTask = LoadSessionHistory();
+            var statsTask = LoadSessionStatistics();
+
+            await Task.WhenAll(historyTask, statsTask);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading session data: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadSessionHistory()
+    {
+        try
+        {
+            var url = _isPartnerView 
+                ? $"/api/sessions/partner/{UserEmail}" 
+                : $"/api/sessions/client/{UserEmail}";
+
+            var queryParams = new List<string>();
+            
+            if (_startDate.HasValue)
+                queryParams.Add($"startDate={_startDate.Value:yyyy-MM-dd}");
+            if (_endDate.HasValue)
+                queryParams.Add($"endDate={_endDate.Value:yyyy-MM-dd}");
+            if (_selectedStatus.HasValue)
+                queryParams.Add($"status={_selectedStatus.Value}");
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+                queryParams.Add($"searchTerm={Uri.EscapeDataString(_searchTerm)}");
+            
+            queryParams.Add($"pageNumber={_currentPage}");
+            queryParams.Add($"pageSize={_pageSize}");
+            queryParams.Add($"sortBy={_sortBy}");
+
+            if (queryParams.Any())
+                url += "?" + string.Join("&", queryParams);
+
+            var response = await Http.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                _sessionResult = await response.Content.ReadFromJsonAsync<SessionHistoryResult>();
+            }
+            else
+            {
+                Snackbar.Add("Failed to load session history", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading session history: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadSessionStatistics()
+    {
+        try
+        {
+            var url = _isPartnerView 
+                ? $"/api/sessions/partner/{UserEmail}/stats" 
+                : $"/api/sessions/client/{UserEmail}/stats";
+
+            var response = await Http.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                _statistics = await response.Content.ReadFromJsonAsync<SessionStatistics>();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Statistics are optional, don't show error for this
+            Console.WriteLine($"Error loading statistics: {ex.Message}");
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        _currentPage = 1; // Reset to first page when filters change
+        await LoadSessionHistory();
+    }
+
+    private async Task ClearFilters()
+    {
+        _startDate = null;
+        _endDate = null;
+        _selectedStatus = null;
+        _searchTerm = string.Empty;
+        _sortBy = SessionHistorySortBy.StartTimeDesc;
+        _currentPage = 1;
+        await LoadSessionHistory();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        Snackbar.Add("Data refreshed", Severity.Success);
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _currentPage = page;
+        await LoadSessionHistory();
+    }
+
+    private void ViewSessionDetails(SessionHistory session)
+    {
+        _selectedSession = session;
+        _showDetailsDialog = true;
+        OnSessionSelected.InvokeAsync(session);
+    }
+
+    private async Task JoinMeeting(string meetLink)
+    {
+        await JSRuntime.InvokeVoidAsync("open", meetLink, "_blank");
+    }
+
+    private Color GetStatusColor(SessionStatus status)
+    {
+        return status switch
+        {
+            SessionStatus.Scheduled => Color.Primary,
+            SessionStatus.InProgress => Color.Info,
+            SessionStatus.Completed => Color.Success,
+            SessionStatus.Cancelled => Color.Warning,
+            SessionStatus.NoShow => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private string TruncateText(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+            return text ?? "";
+            
+        return text.Substring(0, maxLength) + "...";
+    }
+
+    private string GetEmailUsername(string email)
+    {
+        if (string.IsNullOrEmpty(email))
+            return "";
+            
+        var atIndex = email.IndexOf('@');
+        return atIndex > 0 ? email.Substring(0, atIndex) : email;
+    }
+}

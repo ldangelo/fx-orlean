@@ -1,0 +1,234 @@
+@page "/client/sessions"
+@using FxExpert.Blazor.Client.Components
+@using Fortium.Types
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>My Sessions - FX Expert</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-4">
+    <!-- Page Header -->
+    <MudStack Direction="Direction.Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+        <div>
+            <MudText Typo="Typo.h4" Class="mb-1">My Consultation Sessions</MudText>
+            <MudText Typo="Typo.body1" Class="text-muted">
+                Track your consultation history and upcoming sessions
+            </MudText>
+        </div>
+        <MudButton Variant="Variant.Filled" 
+                 Color="Color.Primary"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 OnClick="BookNewConsultation">
+            Book New Consultation
+        </MudButton>
+    </MudStack>
+
+    <!-- Dashboard Cards -->
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Style="height: 120px; background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-primary-darken) 100%); color: white;">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h4">@(_statistics?.UpcomingSessions ?? 0)</MudText>
+                    <MudText Typo="Typo.body2">Upcoming Sessions</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity: 0.8;">Next 30 days</MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Style="height: 120px; background: linear-gradient(135deg, var(--mud-palette-success) 0%, var(--mud-palette-success-darken) 100%); color: white;">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h4">@(_statistics?.CompletedSessions ?? 0)</MudText>
+                    <MudText Typo="Typo.body2">Completed Sessions</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity: 0.8;">All time</MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Style="height: 120px; background: linear-gradient(135deg, var(--mud-palette-info) 0%, var(--mud-palette-info-darken) 100%); color: white;">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h4">$@(_statistics?.TotalRevenue.ToString("N0") ?? "0")</MudText>
+                    <MudText Typo="Typo.body2">Total Invested</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity: 0.8;">All consultations</MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="pa-4" Style="height: 120px; background: linear-gradient(135deg, var(--mud-palette-warning) 0%, var(--mud-palette-warning-darken) 100%); color: white;">
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.h4">@(_statistics?.AverageRating.ToString("F1") ?? "0.0")</MudText>
+                    <MudText Typo="Typo.body2">Average Rating</MudText>
+                    <MudText Typo="Typo.caption" Style="opacity: 0.8;">From @(_statistics?.TotalRatedSessions ?? 0) ratings</MudText>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Main Content Tabs -->
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-0">
+        <MudTabPanel Text="Upcoming Sessions" Icon="@Icons.Material.Filled.Schedule">
+            <MudPaper Class="pa-4">
+                <UpcomingSessionsComponent UserEmail="@_userEmail" 
+                                         IsPartnerView="false" 
+                                         MaxSessions="20"
+                                         OnViewAllRequested="@(() => _selectedTab = 1)"
+                                         OnBookNewRequested="BookNewConsultation" />
+            </MudPaper>
+        </MudTabPanel>
+
+        <MudTabPanel Text="All Sessions" Icon="@Icons.Material.Filled.History">
+            <SessionHistoryComponent UserEmail="@_userEmail" IsPartnerView="false" />
+        </MudTabPanel>
+
+        <MudTabPanel Text="Session Insights" Icon="@Icons.Material.Filled.Analytics">
+            <MudPaper Class="pa-4">
+                @if (_statistics != null)
+                {
+                    <MudText Typo="Typo.h6" Class="mb-4">Your Consultation Insights</MudText>
+                    
+                    <MudGrid>
+                        <!-- Monthly Trends -->
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="pa-4" Elevation="1">
+                                <MudText Typo="Typo.h6" Class="mb-3">Monthly Activity</MudText>
+                                <MudStack Spacing="3">
+                                    <div>
+                                        <MudText Typo="Typo.subtitle2">This Month</MudText>
+                                        <MudText Typo="Typo.body2">
+                                            @_statistics.SessionsThisMonth sessions · $@_statistics.RevenueThisMonth.ToString("N0") invested
+                                        </MudText>
+                                    </div>
+                                    <div>
+                                        <MudText Typo="Typo.subtitle2">Last Month</MudText>
+                                        <MudText Typo="Typo.body2">
+                                            @_statistics.SessionsLastMonth sessions · $@_statistics.RevenueLastMonth.ToString("N0") invested
+                                        </MudText>
+                                    </div>
+                                    @if (_statistics.MonthOverMonthGrowth != 0)
+                                    {
+                                        <div>
+                                            <MudChip T="string" Color="@(_statistics.MonthOverMonthGrowth > 0 ? Color.Success : Color.Error)"
+                                                   Size="Size.Small">
+                                                @(_statistics.MonthOverMonthGrowth > 0 ? "+" : "")@_statistics.MonthOverMonthGrowth% vs last month
+                                            </MudChip>
+                                        </div>
+                                    }
+                                </MudStack>
+                            </MudPaper>
+                        </MudItem>
+
+                        <!-- Session Breakdown -->
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="pa-4" Elevation="1">
+                                <MudText Typo="Typo.h6" Class="mb-3">Session Breakdown</MudText>
+                                <MudStack Spacing="2">
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2">Total Sessions</MudText>
+                                        <MudText Typo="Typo.body2">@_statistics.TotalSessions</MudText>
+                                    </div>
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.body2">Completed</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Success">@_statistics.CompletedSessions</MudText>
+                                    </div>
+                                    @if (_statistics.CancelledSessions > 0)
+                                    {
+                                        <div class="d-flex justify-space-between">
+                                            <MudText Typo="Typo.body2">Cancelled</MudText>
+                                            <MudText Typo="Typo.body2" Color="Color.Warning">@_statistics.CancelledSessions</MudText>
+                                        </div>
+                                    }
+                                    <MudDivider />
+                                    <div class="d-flex justify-space-between">
+                                        <MudText Typo="Typo.subtitle2">Average Session Fee</MudText>
+                                        <MudText Typo="Typo.subtitle2">$@_statistics.AverageSessionFee.ToString("N0")</MudText>
+                                    </div>
+                                </MudStack>
+                            </MudPaper>
+                        </MudItem>
+
+                        <!-- Rating History -->
+                        @if (_statistics.TotalRatedSessions > 0)
+                        {
+                            <MudItem xs="12" md="6">
+                                <MudPaper Class="pa-4" Elevation="1">
+                                    <MudText Typo="Typo.h6" Class="mb-3">Session Quality</MudText>
+                                    <MudStack Spacing="2">
+                                        <div>
+                                            <MudText Typo="Typo.subtitle2">Average Rating</MudText>
+                                            <MudStack Direction="Direction.Row" AlignItems="AlignItems.Center" Spacing="2">
+                                                <MudRating ReadOnly="true" SelectedValue="(int)Math.Round(_statistics.AverageRating)" MaxValue="5" />
+                                                <MudText Typo="Typo.body2">@_statistics.AverageRating.ToString("F1") / 5.0</MudText>
+                                            </MudStack>
+                                        </div>
+                                        <MudText Typo="Typo.body2" Class="text-muted">
+                                            Based on @_statistics.TotalRatedSessions rated sessions
+                                        </MudText>
+                                    </MudStack>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+                else
+                {
+                    <div class="d-flex justify-center pa-8">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+            </MudPaper>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+<style>
+    .text-muted {
+        color: var(--mud-palette-text-secondary) !important;
+    }
+</style>
+
+@code {
+    private string _userEmail = string.Empty;
+    private SessionStatistics? _statistics;
+    private int _selectedTab = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true && !string.IsNullOrEmpty(user.Identity.Name))
+        {
+            _userEmail = user.Identity.Name;
+            await LoadStatistics();
+        }
+        else
+        {
+            Navigation.NavigateTo("/authentication/login");
+        }
+    }
+
+    private async Task LoadStatistics()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"/api/sessions/client/{_userEmail}/stats");
+            if (response.IsSuccessStatusCode)
+            {
+                _statistics = await response.Content.ReadFromJsonAsync<SessionStatistics>();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Statistics are optional, don't show error
+            Console.WriteLine($"Error loading statistics: {ex.Message}");
+        }
+    }
+
+    private void BookNewConsultation()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

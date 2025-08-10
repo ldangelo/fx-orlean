@@ -1,0 +1,391 @@
+@using Fortium.Types
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-4">
+    <MudStack Spacing="3">
+        <!-- Header -->
+        <MudStack Direction="Direction.Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Schedule" Class="mr-2" />
+                Upcoming Sessions
+            </MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                         Size="Size.Small"
+                         OnClick="RefreshSessions"
+                         Title="Refresh sessions" />
+        </MudStack>
+
+        <!-- Loading State -->
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center pa-4">
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+                <MudText Typo="Typo.body2" Class="ml-2">Loading sessions...</MudText>
+            </div>
+        }
+        else if (_upcomingSessions?.Any() == true)
+        {
+            <!-- Sessions List -->
+            <MudList T="SessionHistory" Clickable="false">
+                @foreach (var session in _upcomingSessions.Take(MaxSessions))
+                {
+                    <MudListItem>
+                        <div class="d-flex flex-column" style="width: 100%;">
+                            <!-- Session Header -->
+                            <MudStack Direction="Direction.Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-2">
+                                <div style="flex: 1;">
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">
+                                        @session.ConsultationTopic
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Class="text-muted">
+                                        @if (IsPartnerView)
+                                        {
+                                            <span>Client: @GetEmailUsername(session.ClientEmail)</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Partner: @GetEmailUsername(session.PartnerEmail)</span>
+                                        }
+                                    </MudText>
+                                </div>
+                                
+                                <!-- Time Badge -->
+                                <MudChip T="string" 
+                                       Color="GetTimeUrgencyColor(session.StartTime)" 
+                                       Size="Size.Small"
+                                       Variant="Variant.Filled">
+                                    @FormatTimeUntil(session.StartTime)
+                                </MudChip>
+                            </MudStack>
+
+                            <!-- Session Details -->
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudStack Direction="Direction.Row" AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">
+                                            @session.StartTime.ToString("MMM dd, h:mm tt")
+                                        </MudText>
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudStack Direction="Direction.Row" AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudIcon Icon="@Icons.Material.Filled.Timer" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">@session.DurationDisplay</MudText>
+                                    </MudStack>
+                                </MudItem>
+                            </MudGrid>
+
+                            <!-- Action Buttons -->
+                            <MudStack Direction="Direction.Row" Spacing="1" Class="mt-3">
+                                <MudButton Variant="Variant.Text" 
+                                         Size="Size.Small"
+                                         StartIcon="@Icons.Material.Filled.Visibility"
+                                         OnClick="@(() => ViewSessionDetails(session))">
+                                    Details
+                                </MudButton>
+                                
+                                @if (!string.IsNullOrEmpty(session.GoogleMeetLink))
+                                {
+                                    <MudButton Variant="Variant.Filled" 
+                                             Color="Color.Success"
+                                             Size="Size.Small"
+                                             StartIcon="@Icons.Material.Filled.VideoCall"
+                                             OnClick="@(() => JoinMeeting(session.GoogleMeetLink))"
+                                             Disabled="@(!CanJoinMeeting(session.StartTime))">
+                                        @(CanJoinMeeting(session.StartTime) ? "Join Now" : "Join Meeting")
+                                    </MudButton>
+                                }
+                                
+                                @if (IsPartnerView && session.IsInProgress)
+                                {
+                                    <MudButton Variant="Variant.Outlined" 
+                                             Color="Color.Primary"
+                                             Size="Size.Small"
+                                             StartIcon="@Icons.Material.Filled.RateReview"
+                                             OnClick="@(() => CompleteSession(session))">
+                                        Complete
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </div>
+                    </MudListItem>
+                    
+                    @if (session != _upcomingSessions.Last() && _upcomingSessions.IndexOf(session) < MaxSessions - 1)
+                    {
+                        <MudDivider />
+                    }
+                }
+            </MudList>
+
+            <!-- Show More Link -->
+            @if (_upcomingSessions.Count > MaxSessions)
+            {
+                <div class="d-flex justify-center">
+                    <MudButton Variant="Variant.Text" 
+                             Color="Color.Primary"
+                             OnClick="@(() => OnViewAllRequested.InvokeAsync())"
+                             StartIcon="@Icons.Material.Filled.ExpandMore">
+                        View All @_upcomingSessions.Count Sessions
+                    </MudButton>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="d-flex flex-column align-center pa-6">
+                <MudIcon Icon="@Icons.Material.Filled.EventNote" 
+                       Style="font-size: 48px; color: var(--mud-palette-text-secondary);" />
+                <MudText Typo="Typo.subtitle1" Class="mt-2 mb-1">No upcoming sessions</MudText>
+                <MudText Typo="Typo.body2" Class="text-muted text-center">
+                    @if (IsPartnerView)
+                    {
+                        <span>Your next consultation sessions will appear here.</span>
+                    }
+                    else
+                    {
+                        <span>Book a consultation to see your upcoming sessions.</span>
+                    }
+                </MudText>
+                @if (!IsPartnerView)
+                {
+                    <MudButton Variant="Variant.Filled" 
+                             Color="Color.Primary"
+                             Class="mt-3"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             OnClick="@(() => OnBookNewRequested.InvokeAsync())">
+                        Book a Consultation
+                    </MudButton>
+                }
+            </div>
+        }
+    </MudStack>
+</MudPaper>
+
+<!-- Session Details Dialog -->
+@if (_selectedSession != null)
+{
+    <MudDialog @bind-IsVisible="_showDetailsDialog" Options="_dialogOptions">
+        <TitleContent>
+            <MudText Typo="Typo.h6">Upcoming Session Details</MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Topic</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">@_selectedSession.ConsultationTopic</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Problem Description</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">@_selectedSession.ClientProblemDescription</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Session Time</MudText>
+                    <MudText Typo="Typo.body2">
+                        @_selectedSession.StartTime.ToString("dddd, MMMM dd, yyyy")
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        @_selectedSession.StartTime.ToString("h:mm tt") - @_selectedSession.EndTime.ToString("h:mm tt")
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Duration & Fee</MudText>
+                    <MudText Typo="Typo.body2">@_selectedSession.DurationDisplay</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        Fee: $@_selectedSession.SessionFee.ToString("N0")
+                        @if (IsPartnerView)
+                        {
+                            <br />
+                            <span>Your Payout: $@_selectedSession.PartnerPayout.ToString("N0")</span>
+                        }
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">
+                        @(IsPartnerView ? "Client" : "Partner")
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3">
+                        @(IsPartnerView ? _selectedSession.ClientEmail : _selectedSession.PartnerEmail)
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Time Until Session</MudText>
+                    <MudChip T="string" Color="GetTimeUrgencyColor(_selectedSession.StartTime)" 
+                           Size="Size.Medium">
+                        @FormatTimeUntil(_selectedSession.StartTime)
+                    </MudChip>
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="@(() => _showDetailsDialog = false)">Close</MudButton>
+            @if (!string.IsNullOrEmpty(_selectedSession.GoogleMeetLink))
+            {
+                <MudButton Variant="Variant.Filled" 
+                         Color="Color.Success"
+                         StartIcon="@Icons.Material.Filled.VideoCall"
+                         OnClick="@(() => JoinMeeting(_selectedSession.GoogleMeetLink))"
+                         Disabled="@(!CanJoinMeeting(_selectedSession.StartTime))">
+                    @(CanJoinMeeting(_selectedSession.StartTime) ? "Join Now" : "Join Meeting")
+                </MudButton>
+            }
+        </DialogActions>
+    </MudDialog>
+}
+
+<style>
+    .text-muted {
+        color: var(--mud-palette-text-secondary) !important;
+    }
+</style>
+
+@code {
+    [Parameter] public string UserEmail { get; set; } = string.Empty;
+    [Parameter] public bool IsPartnerView { get; set; } = false;
+    [Parameter] public int MaxSessions { get; set; } = 5;
+    [Parameter] public EventCallback OnViewAllRequested { get; set; }
+    [Parameter] public EventCallback OnBookNewRequested { get; set; }
+    [Parameter] public EventCallback<SessionHistory> OnSessionCompleted { get; set; }
+
+    // State management
+    private bool _isLoading = true;
+    private bool _showDetailsDialog = false;
+    private List<SessionHistory>? _upcomingSessions;
+    private SessionHistory? _selectedSession;
+
+    // Dialog options
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        MaxWidth = MaxWidth.Medium,
+        FullWidth = true
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(UserEmail))
+        {
+            await LoadUpcomingSessions();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(UserEmail))
+        {
+            await LoadUpcomingSessions();
+        }
+    }
+
+    private async Task LoadUpcomingSessions()
+    {
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var url = IsPartnerView 
+                ? $"/api/sessions/partner/{UserEmail}/upcoming" 
+                : $"/api/sessions/client/{UserEmail}/upcoming";
+
+            var response = await Http.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                _upcomingSessions = await response.Content.ReadFromJsonAsync<List<SessionHistory>>();
+            }
+            else
+            {
+                _upcomingSessions = new List<SessionHistory>();
+                if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                {
+                    Snackbar.Add("Failed to load upcoming sessions", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading upcoming sessions: {ex.Message}", Severity.Error);
+            _upcomingSessions = new List<SessionHistory>();
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshSessions()
+    {
+        await LoadUpcomingSessions();
+        Snackbar.Add("Sessions refreshed", Severity.Success);
+    }
+
+    private void ViewSessionDetails(SessionHistory session)
+    {
+        _selectedSession = session;
+        _showDetailsDialog = true;
+    }
+
+    private async Task JoinMeeting(string meetLink)
+    {
+        await JSRuntime.InvokeVoidAsync("open", meetLink, "_blank");
+        Snackbar.Add("Opening meeting in new tab", Severity.Info);
+    }
+
+    private async Task CompleteSession(SessionHistory session)
+    {
+        // TODO: Implement session completion flow
+        // This would typically open a dialog to capture session notes and rating
+        Snackbar.Add("Session completion feature coming soon", Severity.Info);
+        await OnSessionCompleted.InvokeAsync(session);
+    }
+
+    private Color GetTimeUrgencyColor(DateTime startTime)
+    {
+        var timeUntil = startTime - DateTime.UtcNow;
+        
+        if (timeUntil.TotalMinutes <= 15)
+            return Color.Error; // Red for very soon (within 15 min)
+        else if (timeUntil.TotalHours <= 2)
+            return Color.Warning; // Orange for soon (within 2 hours)
+        else if (timeUntil.TotalDays <= 1)
+            return Color.Info; // Blue for today
+        else
+            return Color.Success; // Green for later
+    }
+
+    private string FormatTimeUntil(DateTime startTime)
+    {
+        var timeUntil = startTime - DateTime.UtcNow;
+        
+        if (timeUntil.TotalMinutes <= 0)
+            return "Now";
+        else if (timeUntil.TotalMinutes <= 60)
+            return $"in {(int)timeUntil.TotalMinutes}m";
+        else if (timeUntil.TotalHours <= 24)
+            return $"in {(int)timeUntil.TotalHours}h {(int)(timeUntil.TotalMinutes % 60)}m";
+        else if (timeUntil.TotalDays <= 7)
+            return $"in {(int)timeUntil.TotalDays}d";
+        else
+            return startTime.ToString("MMM dd");
+    }
+
+    private bool CanJoinMeeting(DateTime startTime)
+    {
+        var timeUntil = startTime - DateTime.UtcNow;
+        // Allow joining 15 minutes before to 1 hour after start time
+        return timeUntil.TotalMinutes >= -15 && timeUntil.TotalMinutes <= 60;
+    }
+
+    private string GetEmailUsername(string email)
+    {
+        if (string.IsNullOrEmpty(email))
+            return "";
+            
+        var atIndex = email.IndexOf('@');
+        return atIndex > 0 ? email.Substring(0, atIndex) : email;
+    }
+}
