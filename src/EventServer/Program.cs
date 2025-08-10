@@ -82,6 +82,8 @@ public class Program
             });
 
         builder.Services.AddSingleton<ChatGPTWithRAG>();
+        builder.Services.AddMemoryCache(); // Add memory cache for EnhancedAIMatchingService
+        builder.Services.AddScoped<EnhancedAIMatchingService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
         builder.Services.AddScoped<GoogleCalendarService>();
         builder.Services.AddScoped<EmailService>();

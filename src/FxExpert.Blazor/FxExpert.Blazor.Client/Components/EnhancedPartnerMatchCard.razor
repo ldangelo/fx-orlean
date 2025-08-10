@@ -1,0 +1,277 @@
+@using Fortium.Types
+
+<MudCard Class="mb-3 enhanced-match-card" Elevation="2">
+    <MudCardContent>
+        <MudGrid AlignItems="Center">
+            <!-- Partner Info -->
+            <MudItem xs="12" md="3">
+                <div class="d-flex align-center">
+                    <MudAvatar Size="Size.Large" Class="mr-3">
+                        @if (!string.IsNullOrEmpty(Match.Partner?.PhotoUrl))
+                        {
+                            <MudImage Src="@Match.Partner.PhotoUrl" Alt="@($"{Match.FirstName} {Match.LastName}")" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Person" />
+                        }
+                    </MudAvatar>
+                    <div>
+                        <MudText Typo="Typo.h6">@Match.FirstName @Match.LastName</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">@Match.Partner?.Title</MudText>
+                        <div class="d-flex align-center mt-1">
+                            <MudChip T="string" Size="Size.Small" Color="GetRankColor(Match.Rank)" Class="mr-2">
+                                Rank #@Match.Rank
+                            </MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="GetConfidenceColor(Match.Confidence)">
+                                @Match.Confidence Match
+                            </MudChip>
+                        </div>
+                    </div>
+                </div>
+            </MudItem>
+
+            <!-- AI Analysis -->
+            <MudItem xs="12" md="5">
+                <div class="ai-analysis-section">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Psychology" Size="Size.Small" Class="mr-1" />
+                        AI Analysis
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="reasoning-text mb-2">
+                        @Match.Reasoning
+                    </MudText>
+                    
+                    @if (Match.RelevantSkills?.Any() == true)
+                    {
+                        <div class="mb-2">
+                            <MudText Typo="Typo.caption" Class="text-muted mb-1">Key Relevant Skills:</MudText>
+                            <div class="d-flex flex-wrap">
+                                @foreach (var skill in Match.RelevantSkills.Take(4))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined" Class="mr-1 mb-1">
+                                        @skill
+                                    </MudChip>
+                                }
+                                @if (Match.RelevantSkills.Count > 4)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Class="mr-1 mb-1">
+                                        +@(Match.RelevantSkills.Count - 4) more
+                                    </MudChip>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Match.PotentialConcerns))
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" NoIcon="true" Class="pa-2">
+                            <MudText Typo="Typo.caption">⚠️ @Match.PotentialConcerns</MudText>
+                        </MudAlert>
+                    }
+                </div>
+            </MudItem>
+
+            <!-- Performance Metrics -->
+            <MudItem xs="12" md="2">
+                <div class="performance-metrics text-center">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Performance</MudText>
+                    
+                    <!-- Match Score -->
+                    <div class="mb-2">
+                        <MudText Typo="Typo.h6" Color="Color.Primary">
+                            @((Match.MatchScore * 100).ToString("F0"))%
+                        </MudText>
+                        <MudText Typo="Typo.caption" Class="text-muted">Match Score</MudText>
+                    </div>
+
+                    <!-- Success Probability -->
+                    <div class="mb-2">
+                        <MudText Typo="Typo.body1" Color="GetSuccessProbabilityColor(Match.EstimatedSuccessProbability)">
+                            @((Match.EstimatedSuccessProbability * 100).ToString("F0"))%
+                        </MudText>
+                        <MudText Typo="Typo.caption" Class="text-muted">Success Rate</MudText>
+                    </div>
+
+                    @if (Match.PerformanceMetrics != null)
+                    {
+                        <!-- Historical Performance -->
+                        <div class="mb-1">
+                            <MudText Typo="Typo.body2">
+                                @Match.PerformanceMetrics.AverageRating.ToString("F1") ⭐
+                            </MudText>
+                            <MudText Typo="Typo.caption" Class="text-muted">
+                                (@Match.PerformanceMetrics.TotalSessions sessions)
+                            </MudText>
+                        </div>
+                    }
+                </div>
+            </MudItem>
+
+            <!-- Actions -->
+            <MudItem xs="12" md="2" Class="text-right">
+                <div class="action-buttons">
+                    <MudButton Variant="Variant.Filled" 
+                             Color="Color.Primary" 
+                             Size="Size.Medium"
+                             Class="mb-2"
+                             FullWidth="true"
+                             OnClick="@(() => OnViewPartner.InvokeAsync((Match.PartnerId, ProblemDescription, Industry, Priority)))">
+                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Class="mr-1" />
+                        View Profile
+                    </MudButton>
+                    
+                    @if (Match.Partner?.AvailabilityNext30Days > 0)
+                    {
+                        <MudButton Variant="Variant.Outlined" 
+                                 Color="Color.Secondary" 
+                                 Size="Size.Small"
+                                 FullWidth="true"
+                                 OnClick="@(() => OnViewPartner.InvokeAsync((Match.PartnerId, ProblemDescription, Industry, Priority)))">
+                            <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="Size.Small" Class="mr-1" />
+                            @Match.Partner.AvailabilityNext30Days days available
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption" Class="text-muted">Limited availability</MudText>
+                    }
+                </div>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Expandable Details -->
+        @if (Match.Partner != null && (Match.Partner.WorkHistories?.Any() == true || !string.IsNullOrEmpty(Match.Partner.Bio)))
+        {
+            <MudDivider Class="my-3" />
+            <MudExpansionPanels DisableBorders="true" Elevation="0">
+                <MudExpansionPanel Icon="@Icons.Material.Filled.ExpandMore" Text="View Detailed Background">
+                    <div class="detailed-background pa-3">
+                        @if (!string.IsNullOrEmpty(Match.Partner.Bio))
+                        {
+                            <div class="mb-3">
+                                <MudText Typo="Typo.subtitle2" Class="mb-1">About</MudText>
+                                <MudText Typo="Typo.body2">@Match.Partner.Bio</MudText>
+                            </div>
+                        }
+
+                        @if (Match.Partner.WorkHistories?.Any() == true)
+                        {
+                            <div class="mb-3">
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">Recent Experience</MudText>
+                                @foreach (var work in Match.Partner.WorkHistories.Take(2))
+                                {
+                                    <div class="mb-2">
+                                        <MudText Typo="Typo.body2"><strong>@work.Title</strong> at @work.CompanyName</MudText>
+                                        <MudText Typo="Typo.caption" Class="text-muted">
+                                            @work.StartDate.ToString("MMM yyyy") - @(work.EndDate?.ToString("MMM yyyy") ?? "Present")
+                                        </MudText>
+                                        @if (!string.IsNullOrEmpty(work.Description))
+                                        {
+                                            <MudText Typo="Typo.body2" Class="mt-1">@work.Description</MudText>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (Match.PerformanceMetrics?.RecentExpertiseAreas?.Any() == true)
+                        {
+                            <div>
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">Recent Consultation Areas</MudText>
+                                <div class="d-flex flex-wrap">
+                                    @foreach (var area in Match.PerformanceMetrics.RecentExpertiseAreas.Take(5))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" Class="mr-1 mb-1">
+                                            @area
+                                        </MudChip>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter] public EnhancedPartnerMatch Match { get; set; } = new();
+    [Parameter] public string ProblemDescription { get; set; } = string.Empty;
+    [Parameter] public string Industry { get; set; } = string.Empty;
+    [Parameter] public string Priority { get; set; } = string.Empty;
+    [Parameter] public EventCallback<(string partnerId, string problemDescription, string industry, string priority)> OnViewPartner { get; set; }
+
+    private Color GetRankColor(int rank)
+    {
+        return rank switch
+        {
+            1 => Color.Success,
+            2 => Color.Info,
+            3 => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetConfidenceColor(string confidence)
+    {
+        return confidence.ToLowerInvariant() switch
+        {
+            "high" => Color.Success,
+            "medium" => Color.Warning,
+            "low" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetSuccessProbabilityColor(double probability)
+    {
+        if (probability >= 0.8) return Color.Success;
+        if (probability >= 0.6) return Color.Warning;
+        return Color.Error;
+    }
+}
+
+<style>
+    .enhanced-match-card {
+        border-left: 4px solid var(--mud-palette-primary);
+        transition: all 0.2s ease;
+    }
+
+    .enhanced-match-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .ai-analysis-section {
+        background: rgba(var(--mud-palette-primary-rgb), 0.05);
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .reasoning-text {
+        line-height: 1.4;
+        font-style: italic;
+    }
+
+    .performance-metrics {
+        background: rgba(var(--mud-palette-info-rgb), 0.05);
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .action-buttons {
+        min-width: 160px;
+    }
+
+    .detailed-background {
+        background: rgba(var(--mud-palette-surface-rgb), 0.5);
+        border-radius: 8px;
+        border: 1px solid var(--mud-palette-divider);
+    }
+
+    .text-muted {
+        color: var(--mud-palette-text-secondary) !important;
+    }
+</style>

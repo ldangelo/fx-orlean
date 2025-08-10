@@ -98,6 +98,17 @@
                 </MudItem>
             </MudGrid>
 
+            <!-- AI Matching Options -->
+            <MudStack Direction="Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+                <MudSwitch @bind-Value="useEnhancedMatching" 
+                          Label="Enhanced AI Matching"
+                          Color="Color.Primary"
+                          ThumbIcon="@Icons.Material.Filled.Psychology" />
+                <MudText Typo="Typo.caption" Class="text-muted">
+                    @(useEnhancedMatching ? "Advanced AI with session history analysis" : "Standard AI matching")
+                </MudText>
+            </MudStack>
+
             <!-- Submit Button -->
             <div class="d-flex justify-end mt-4">
                 <MudButton Variant="Variant.Filled"
@@ -120,7 +131,19 @@
         </EditForm>
     </MudPaper>
 
-    @if (partners.Count > 0)
+    <!-- Enhanced AI Matching Results -->
+    @if (useEnhancedMatching && !string.IsNullOrWhiteSpace(problemDescription))
+    {
+        <div class="mt-4">
+            <EnhancedPartnerMatchingComponent ProblemDescription="@problemDescription"
+                                            Industry="@Industry"
+                                            Priority="@Priority"
+                                            UseEnhancedMatching="true"
+                                            OnViewPartner="@OnEnhancedViewPartner" />
+        </div>
+    }
+
+    @if (partners.Count > 0 && !useEnhancedMatching)
     {
         <MudDivider Class="my-6"/>
         
@@ -349,6 +372,7 @@
     private bool isBusy;
     private string Industry = string.Empty;
     private string Priority = string.Empty;
+    private bool useEnhancedMatching = true; // Default to enhanced matching
     
     // Filter state
     private PartnerFilterCriteria currentFilters = new();
@@ -366,21 +390,26 @@
         isBusy = true;
         try
         {
-            var response = await Http.PostAsJsonAsync("/api/ai/partners", new { ProblemDescription = problemDescription });
-            if (response.IsSuccessStatusCode)
+            // Only use legacy matching when enhanced matching is disabled
+            if (!useEnhancedMatching)
             {
-                var result = await response.Content.ReadFromJsonAsync<List<Partner>>();
-                partners = result?.Where(p => p != null).ToList() ?? new List<Partner>();
-                
-                // Initialize filtered partners with all partners
-                await ApplyFilters();
+                var response = await Http.PostAsJsonAsync("/api/ai/partners", new { ProblemDescription = problemDescription });
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<List<Partner>>();
+                    partners = result?.Where(p => p != null).ToList() ?? new List<Partner>();
+                    
+                    // Initialize filtered partners with all partners
+                    await ApplyFilters();
 
-                Console.WriteLine($"Retrieved {partners.Count} partners.");
+                    Console.WriteLine($"Retrieved {partners.Count} partners.");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to retrieve partners. {response.ReasonPhrase}");
+                }
             }
-            else
-            {
-                Console.WriteLine($"Failed to retrieve partners. {response.ReasonPhrase}");
-            }
+            // Enhanced matching is handled by the EnhancedPartnerMatchingComponent automatically
         }
         catch (Exception ex)
         {
@@ -402,6 +431,15 @@
             var encodedProblemPriority = Uri.EscapeDataString(problemPriority ?? string.Empty);
             NavigationManager.NavigateTo($"/partner/{encodedEmail}/{encodedProblemDescription}/{encodedProblemIndustry}/{encodedProblemPriority}");
         }
+    }
+
+    /// <summary>
+    /// Event handler for enhanced AI partner matching component
+    /// </summary>
+    private async Task OnEnhancedViewPartner((string partnerId, string problemDescription, string industry, string priority) args)
+    {
+        ViewPartnerDetails(args.partnerId, args.problemDescription, args.industry, args.priority);
+        await Task.CompletedTask;
     }
 
     /// <summary>

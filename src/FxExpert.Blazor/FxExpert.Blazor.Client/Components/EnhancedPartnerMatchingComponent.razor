@@ -1,0 +1,216 @@
+@using Fortium.Types
+@using System.Text.Json
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<div class="enhanced-matching-container">
+    @if (_isProcessing)
+    {
+        <MudPaper Class="pa-6 text-center" Elevation="2">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Medium" Indeterminate="true" />
+            <MudText Typo="Typo.h6" Class="mt-3">Analyzing Your Challenge...</MudText>
+            <MudText Typo="Typo.body2" Class="text-muted">
+                Our AI is matching you with the best partners based on their expertise and track record
+            </MudText>
+        </MudPaper>
+    }
+    else if (_matchingResult != null && _matchingResult.Matches.Any())
+    {
+        <!-- Analysis Summary Card -->
+        <MudCard Class="mb-4" Elevation="3">
+            <MudCardContent>
+                <MudGrid AlignItems="Center">
+                    <MudItem xs="12" md="8">
+                        <MudText Typo="Typo.h5" Class="mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Psychology" Class="mr-2" />
+                            AI Analysis Results
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted mb-3">
+                            Found @_matchingResult.Matches.Count suitable partners • 
+                            Problem complexity: @_matchingResult.Metadata.ProblemComplexity •
+                            Processed in @_matchingResult.ProcessingTimeMs ms
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="4" Class="text-right">
+                        <MudChip T="string" Color="GetComplexityColor(_matchingResult.Metadata.ProblemComplexity)" 
+                               Size="Size.Medium">
+                            @_matchingResult.Metadata.ProblemComplexity Complexity
+                        </MudChip>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Top Recommendations -->
+        <div class="mb-4">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.Recommend" Class="mr-2" />
+                Top @_matchingResult.Metadata.RecommendedTopChoices Recommendations
+            </MudText>
+            
+            @foreach (var match in _matchingResult.Matches.Take(_matchingResult.Metadata.RecommendedTopChoices))
+            {
+                <EnhancedPartnerMatchCard Match="match" 
+                                        OnViewPartner="@OnViewPartner"
+                                        ProblemDescription="@ProblemDescription"
+                                        Industry="@Industry"
+                                        Priority="@Priority" />
+            }
+        </div>
+
+        <!-- All Matches -->
+        @if (_matchingResult.Matches.Count > _matchingResult.Metadata.RecommendedTopChoices)
+        {
+            <MudExpansionPanels>
+                <MudExpansionPanel Text=@($"View All {_matchingResult.Matches.Count} Matches")>
+                    <div class="pa-4">
+                        @foreach (var match in _matchingResult.Matches.Skip(_matchingResult.Metadata.RecommendedTopChoices))
+                        {
+                            <EnhancedPartnerMatchCard Match="match" 
+                                                    OnViewPartner="@OnViewPartner"
+                                                    ProblemDescription="@ProblemDescription"
+                                                    Industry="@Industry"
+                                                    Priority="@Priority" />
+                        }
+                    </div>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        }
+
+        <!-- Analytics Footer -->
+        <MudPaper Class="pa-4 mt-4 text-center" Elevation="1">
+            <MudText Typo="Typo.caption" Class="text-muted">
+                AI-powered matching with session history analysis • 
+                Average match confidence: @(_matchingResult.Matches.Any() ? GetAverageConfidence(_matchingResult.Matches) : "N/A") • 
+                @(_matchingResult.Metadata.TotalPartnersAnalyzed) partners analyzed
+            </MudText>
+        </MudPaper>
+    }
+    else if (_hasError)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            <MudText Typo="Typo.h6">AI Matching Temporarily Unavailable</MudText>
+            <MudText>We're experiencing technical difficulties with our AI matching system. Please try again in a few moments.</MudText>
+        </MudAlert>
+    }
+</div>
+
+@code {
+    [Parameter] public string ProblemDescription { get; set; } = string.Empty;
+    [Parameter] public string Industry { get; set; } = string.Empty;
+    [Parameter] public string Priority { get; set; } = string.Empty;
+    [Parameter] public bool UseEnhancedMatching { get; set; } = true;
+    [Parameter] public EventCallback<(string partnerId, string problemDescription, string industry, string priority)> OnViewPartner { get; set; }
+
+    private EnhancedMatchingResult? _matchingResult;
+    private bool _isProcessing = false;
+    private bool _hasError = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(ProblemDescription))
+        {
+            await ProcessEnhancedMatching();
+        }
+    }
+
+    public async Task ProcessEnhancedMatching()
+    {
+        if (string.IsNullOrWhiteSpace(ProblemDescription))
+            return;
+
+        _isProcessing = true;
+        _hasError = false;
+        _matchingResult = null;
+        StateHasChanged();
+
+        try
+        {
+            var request = new
+            {
+                ProblemDescription = ProblemDescription,
+                Industry = Industry,
+                Priority = Priority,
+                UseEnhancedMatching = UseEnhancedMatching,
+                Options = new
+                {
+                    IndustryPreference = Industry,
+                    UrgencyLevel = Priority,
+                    MaxResults = 8,
+                    IncludeNewPartners = true,
+                    MinimumSuccessRate = 0.0
+                },
+                SessionId = Guid.NewGuid().ToString()
+            };
+
+            var response = await Http.PostAsJsonAsync("/api/ai/partners/enhanced", request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                _matchingResult = System.Text.Json.JsonSerializer.Deserialize<EnhancedMatchingResult>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (_matchingResult?.Matches?.Any() == true)
+                {
+                    Snackbar.Add($"Found {_matchingResult.Matches.Count} partner matches with AI analysis", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("No suitable partners found for your requirements", Severity.Warning);
+                }
+            }
+            else
+            {
+                _hasError = true;
+                Snackbar.Add("Failed to get AI partner matching results", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Enhanced matching error: {ex.Message}");
+            _hasError = true;
+            Snackbar.Add("Error processing AI matching request", Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private Color GetComplexityColor(string complexity)
+    {
+        return complexity.ToLowerInvariant() switch
+        {
+            "high" => Color.Error,
+            "medium" => Color.Warning,
+            "low" => Color.Success,
+            _ => Color.Info
+        };
+    }
+
+    private string GetAverageConfidence(List<EnhancedPartnerMatch> matches)
+    {
+        var confidenceLevels = matches.Select(m => m.Confidence.ToLowerInvariant()).ToList();
+        var highCount = confidenceLevels.Count(c => c == "high");
+        var mediumCount = confidenceLevels.Count(c => c == "medium");
+        var lowCount = confidenceLevels.Count(c => c == "low");
+
+        if (highCount >= matches.Count / 2) return "High";
+        if (mediumCount >= matches.Count / 2) return "Medium";
+        return "Mixed";
+    }
+}
+
+<style>
+    .enhanced-matching-container .mud-expansion-panel {
+        margin-bottom: 1rem;
+    }
+    
+    .text-muted {
+        color: var(--mud-palette-text-secondary) !important;
+    }
+</style>
