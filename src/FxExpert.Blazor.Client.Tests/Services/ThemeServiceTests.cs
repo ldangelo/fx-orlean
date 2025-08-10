@@ -25,7 +25,7 @@ public class ThemeServiceTests
     public async Task GetCurrentThemeAsync_WhenNoStoredTheme_ReturnsLight()
     {
         // Arrange
-        _mockJSRuntime.Setup(x => x.InvokeAsync<string>("ThemeHelpers.getStoredTheme", It.IsAny<object[]>()))
+        _mockJSRuntime.Setup(x => x.InvokeAsync<string?>("ThemeHelpers.getStoredTheme", It.IsAny<object[]>()))
                      .ReturnsAsync((string?)null);
 
         // Act

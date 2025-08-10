@@ -133,7 +133,7 @@ public class FilterServiceTests
         var criteria = new PartnerFilterCriteria();
 
         // Act
-        var result = await _filterService.FilterPartnersAsync(null, criteria);
+        var result = await _filterService.FilterPartnersAsync(null!, criteria);
 
         // Assert
         result.ShouldNotBeNull();
@@ -674,7 +674,7 @@ public class FilterServiceTests
     public void SortPartners_WithNullList_ReturnsEmptyList()
     {
         // Act
-        var result = _filterService.SortPartners(null, PartnerSortOption.Name, true);
+        var result = _filterService.SortPartners(null!, PartnerSortOption.Name, true);
 
         // Assert
         result.ShouldNotBeNull();
