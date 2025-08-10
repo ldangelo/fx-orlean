@@ -11,6 +11,33 @@ public enum AvailabilityTimeframe
 }
 
 /// <summary>
+/// Partner specialization areas for advanced filtering
+/// </summary>
+public enum PartnerSpecialization
+{
+    DigitalTransformation,
+    CloudMigration,
+    Cybersecurity,
+    DataStrategy,
+    AIAndMachineLearning,
+    ITGovernance,
+    EnterpriseArchitecture,
+    DevOpsAndAutomation,
+    ProductManagement,
+    TechnicalDueDiligence,
+    VendorManagement,
+    RiskManagement,
+    ComplianceAndRegulation,
+    CrisisManagement,
+    TurnaroundAndRestructuring,
+    MergerAndAcquisition,
+    ScalingOperations,
+    TeamBuilding,
+    StrategicPlanning,
+    BudgetManagement
+}
+
+/// <summary>
 /// Filter criteria for partner search
 /// </summary>
 public class PartnerFilterCriteria
@@ -22,6 +49,25 @@ public class PartnerFilterCriteria
     public List<string>? RequiredSkills { get; set; }
     public ExperienceLevel? MinExperienceLevel { get; set; }
     public int? MinYearsExperience { get; set; }
+    
+    // Advanced search filters
+    public List<string>? Industries { get; set; }
+    public List<string>? Technologies { get; set; }
+    public List<string>? Certifications { get; set; }
+    public decimal? MinRate { get; set; }
+    public decimal? MaxRate { get; set; }
+    public bool? RemoteWork { get; set; }
+    public bool? OnSiteWork { get; set; }
+    public bool? TravelWillingness { get; set; }
+    public List<string>? Languages { get; set; }
+    public int? MinProjectSize { get; set; } // In team members or budget
+    public int? MaxProjectSize { get; set; }
+    public bool? HasSecurityClearance { get; set; }
+    public bool? ExecutiveExperience { get; set; } // C-level or VP experience
+    public bool? StartupExperience { get; set; }
+    public bool? EnterpriseExperience { get; set; }
+    public bool? ConsultingExperience { get; set; }
+    public List<PartnerSpecialization>? Specializations { get; set; }
 }
 
 /// <summary>

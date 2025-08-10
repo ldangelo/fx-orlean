@@ -38,6 +38,9 @@ public class FilterService
         // Apply skills and experience filters
         filtered = ApplySkillsFilters(filtered, criteria);
         
+        // Apply advanced filters
+        filtered = ApplyAdvancedFilters(filtered, criteria);
+        
         return filtered.ToList();
     }
 
@@ -235,6 +238,130 @@ public class FilterService
     }
 
     /// <summary>
+    /// Applies advanced filters including industries, technologies, certifications, work preferences, etc.
+    /// </summary>
+    private IEnumerable<Partner> ApplyAdvancedFilters(IEnumerable<Partner> partners, PartnerFilterCriteria criteria)
+    {
+        var filtered = partners;
+        
+        // Filter by industries
+        if (criteria.Industries?.Any() == true)
+        {
+            filtered = filtered.Where(p => 
+                criteria.Industries.Any(industry =>
+                    p.Industries.Any(partnerIndustry =>
+                        partnerIndustry.Contains(industry, StringComparison.OrdinalIgnoreCase))));
+        }
+        
+        // Filter by technologies
+        if (criteria.Technologies?.Any() == true)
+        {
+            filtered = filtered.Where(p => 
+                criteria.Technologies.All(tech =>
+                    p.Technologies.Any(partnerTech =>
+                        partnerTech.Contains(tech, StringComparison.OrdinalIgnoreCase)) ||
+                    p.Skills?.Any(skill =>
+                        skill.Skill.Contains(tech, StringComparison.OrdinalIgnoreCase)) == true));
+        }
+        
+        // Filter by certifications
+        if (criteria.Certifications?.Any() == true)
+        {
+            filtered = filtered.Where(p => 
+                criteria.Certifications.Any(cert =>
+                    p.Certifications.Any(partnerCert =>
+                        partnerCert.Contains(cert, StringComparison.OrdinalIgnoreCase))));
+        }
+        
+        // Filter by rate range
+        if (criteria.MinRate.HasValue)
+        {
+            filtered = filtered.Where(p => p.Rate.Amount >= (double)criteria.MinRate.Value);
+        }
+        
+        if (criteria.MaxRate.HasValue)
+        {
+            filtered = filtered.Where(p => p.Rate.Amount <= (double)criteria.MaxRate.Value);
+        }
+        
+        // Filter by work preferences
+        if (criteria.RemoteWork.HasValue)
+        {
+            filtered = filtered.Where(p => p.RemoteWork == criteria.RemoteWork.Value);
+        }
+        
+        if (criteria.OnSiteWork.HasValue)
+        {
+            filtered = filtered.Where(p => p.OnSiteWork == criteria.OnSiteWork.Value);
+        }
+        
+        if (criteria.TravelWillingness.HasValue)
+        {
+            filtered = filtered.Where(p => p.TravelWillingness == criteria.TravelWillingness.Value);
+        }
+        
+        // Filter by languages
+        if (criteria.Languages?.Any() == true)
+        {
+            filtered = filtered.Where(p => 
+                criteria.Languages.Any(lang =>
+                    p.Languages.Any(partnerLang =>
+                        partnerLang.Equals(lang, StringComparison.OrdinalIgnoreCase))));
+        }
+        
+        // Filter by project size preferences
+        if (criteria.MinProjectSize.HasValue)
+        {
+            filtered = filtered.Where(p => 
+                criteria.MinProjectSize.Value >= p.MinProjectSize && 
+                criteria.MinProjectSize.Value <= p.MaxProjectSize);
+        }
+        
+        if (criteria.MaxProjectSize.HasValue)
+        {
+            filtered = filtered.Where(p => 
+                criteria.MaxProjectSize.Value >= p.MinProjectSize && 
+                criteria.MaxProjectSize.Value <= p.MaxProjectSize);
+        }
+        
+        // Filter by experience types
+        if (criteria.HasSecurityClearance.HasValue && criteria.HasSecurityClearance.Value)
+        {
+            filtered = filtered.Where(p => p.HasSecurityClearance);
+        }
+        
+        if (criteria.ExecutiveExperience.HasValue && criteria.ExecutiveExperience.Value)
+        {
+            filtered = filtered.Where(p => p.ExecutiveExperience);
+        }
+        
+        if (criteria.StartupExperience.HasValue && criteria.StartupExperience.Value)
+        {
+            filtered = filtered.Where(p => p.StartupExperience);
+        }
+        
+        if (criteria.EnterpriseExperience.HasValue && criteria.EnterpriseExperience.Value)
+        {
+            filtered = filtered.Where(p => p.EnterpriseExperience);
+        }
+        
+        if (criteria.ConsultingExperience.HasValue && criteria.ConsultingExperience.Value)
+        {
+            filtered = filtered.Where(p => p.ConsultingExperience);
+        }
+        
+        // Filter by specializations
+        if (criteria.Specializations?.Any() == true)
+        {
+            filtered = filtered.Where(p => 
+                criteria.Specializations.Any(spec =>
+                    p.Specializations.Contains(spec)));
+        }
+        
+        return filtered;
+    }
+
+    /// <summary>
     /// Determines the region for a given state
     /// </summary>
     /// <param name="state">State code or name</param>
@@ -364,8 +491,8 @@ public class FilterService
                 ? partners.OrderBy(p => p.AvailabilityNext30Days) 
                 : partners.OrderByDescending(p => p.AvailabilityNext30Days),
             PartnerSortOption.Rate => ascending 
-                ? partners.OrderBy(p => p.Rate) 
-                : partners.OrderByDescending(p => p.Rate),
+                ? partners.OrderBy(p => p.Rate.Amount) 
+                : partners.OrderByDescending(p => p.Rate.Amount),
             PartnerSortOption.Relevance => partners.OrderBy(p => p.rank), // AI-determined rank
             _ => partners.OrderBy(p => p.GetFullName())
         };
@@ -396,6 +523,19 @@ public class FilterService
         if (criteria.RequiredSkills?.Any() == true) activeFilters++;
         if (criteria.MinExperienceLevel.HasValue) activeFilters++;
         if (criteria.MinYearsExperience.HasValue && criteria.MinYearsExperience > 0) activeFilters++;
+        
+        // Count advanced filters
+        if (criteria.Industries?.Any() == true) activeFilters++;
+        if (criteria.Technologies?.Any() == true) activeFilters++;
+        if (criteria.Certifications?.Any() == true) activeFilters++;
+        if (criteria.MinRate.HasValue || criteria.MaxRate.HasValue) activeFilters++;
+        if (criteria.RemoteWork.HasValue || criteria.OnSiteWork.HasValue || criteria.TravelWillingness.HasValue) activeFilters++;
+        if (criteria.Languages?.Any() == true) activeFilters++;
+        if (criteria.MinProjectSize.HasValue || criteria.MaxProjectSize.HasValue) activeFilters++;
+        if ((criteria.HasSecurityClearance == true) || (criteria.ExecutiveExperience == true) ||
+            (criteria.StartupExperience == true) || (criteria.EnterpriseExperience == true) ||
+            (criteria.ConsultingExperience == true)) activeFilters++;
+        if (criteria.Specializations?.Any() == true) activeFilters++;
 
         return new PartnerFilterStats
         {

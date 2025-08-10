@@ -57,6 +57,30 @@ public class Partner
 
   public int AvailabilityNext30Days { get; set; } = 0;
    
+  // Advanced search fields
+  public List<string> Industries { get; set; } = new();
+  public List<string> Technologies { get; set; } = new();
+  public List<string> Certifications { get; set; } = new();
+  public bool RemoteWork { get; set; } = true;
+  public bool OnSiteWork { get; set; } = true;
+  public bool TravelWillingness { get; set; } = false;
+  public List<string> Languages { get; set; } = new() { "English" };
+  public int MinProjectSize { get; set; } = 1; // Minimum team size willing to work with
+  public int MaxProjectSize { get; set; } = 100; // Maximum team size comfortable with
+  public bool HasSecurityClearance { get; set; } = false;
+  public bool ExecutiveExperience { get; set; } = false; // C-level or VP experience
+  public bool StartupExperience { get; set; } = false;
+  public bool EnterpriseExperience { get; set; } = false;
+  public bool ConsultingExperience { get; set; } = false;
+  public List<PartnerSpecialization> Specializations { get; set; } = new();
+  public string TimeZone { get; set; } = "America/New_York"; // For better availability matching
+  public string LinkedInUrl { get; set; } = "";
+  public string GitHubUrl { get; set; } = "";
+  public string PersonalWebsite { get; set; } = "";
+  public List<string> References { get; set; } = new(); // Client references (email addresses)
+  public double AverageRating { get; set; } = 0.0; // Average client rating
+  public int CompletedProjects { get; set; } = 0; // Number of completed consulting projects
+  
   public string GetFullName()
   {
     return FirstName + " " + LastName;

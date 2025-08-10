@@ -1,0 +1,757 @@
+@using System.Text.Json
+@using FxExpert.Blazor.Client.Models
+@using FxExpert.Blazor.Client.Services
+@using Fortium.Types
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@inject FilterService FilterService
+
+<div class="advanced-partner-filter-container">
+    @if (_isDesktop)
+    {
+        <!-- Desktop Sidebar -->
+        <MudPaper Class="filter-sidebar pa-4" Style="width: 350px; height: fit-content; position: sticky; top: 20px;">
+            @RenderFilterContent()
+        </MudPaper>
+    }
+    else
+    {
+        <!-- Mobile Bottom Drawer -->
+        <MudDrawer @bind-Open="_mobileDrawerOpen" 
+                   Anchor="Anchor.Bottom" 
+                   Height="80vh" 
+                   ClipMode="DrawerClipMode.Always"
+                   Variant="DrawerVariant.Temporary">
+            <div class="pa-4">
+                @RenderFilterContent()
+            </div>
+        </MudDrawer>
+        
+        <!-- Mobile Filter Button -->
+        <MudFab Color="Color.Primary" 
+               Icon="@Icons.Material.Filled.FilterList"
+               OnClick="@(() => _mobileDrawerOpen = true)"
+               Style="position: fixed; bottom: 80px; right: 20px; z-index: 1000;"
+               aria-label="Open advanced filter options">
+            @if (_activeFilterCount > 0)
+            {
+                <MudBadge Content="@_activeFilterCount" 
+                         Color="Color.Error" 
+                         Origin="Origin.TopRight"
+                         Style="position: absolute; top: -8px; right: -8px;" />
+            }
+        </MudFab>
+    }
+</div>
+
+<style>
+    .advanced-partner-filter-container {
+        position: relative;
+    }
+    
+    .filter-sidebar {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    
+    @@media (max-width: 960px) {
+        .filter-sidebar {
+            display: none;
+        }
+    }
+    
+    .mud-expansion-panel .mud-expand-panel-text {
+        font-weight: 500;
+    }
+    
+    .advanced-partner-filter-container * {
+        transition: all 200ms ease-in-out;
+    }
+    
+    .mud-input-control:focus-within {
+        box-shadow: 0 0 0 2px var(--mud-palette-primary);
+    }
+    
+    .range-slider-container {
+        margin: 16px 0;
+    }
+    
+    .chip-group {
+        margin: 8px 0;
+    }
+</style>
+
+@code {
+    #pragma warning disable CS8618
+
+    [Parameter] public List<Partner> Partners { get; set; } = new();
+    [Parameter] public EventCallback<List<Partner>> OnFiltersChanged { get; set; }
+    [Parameter] public EventCallback<PartnerFilterCriteria> OnFilterCriteriaChanged { get; set; }
+
+    // State management
+    private bool _isDesktop = true;
+    private bool _mobileDrawerOpen = false;
+    private int _activeFilterCount = 0;
+    private int _filteredCount = 0;
+    
+    // Basic filter values
+    private string? _selectedCity;
+    private string? _selectedState;
+    private HashSet<string> _selectedRegions = new();
+    private AvailabilityTimeframe? _selectedAvailability;
+    private HashSet<string> _selectedSkills = new();
+    private ExperienceLevel? _minExperienceLevel;
+    private int _minYearsExperience = 0;
+    
+    // Advanced filter values
+    private HashSet<string> _selectedIndustries = new();
+    private HashSet<string> _selectedTechnologies = new();
+    private HashSet<string> _selectedCertifications = new();
+    private decimal _minRate = 0;
+    private decimal _maxRate = 2000;
+    private bool? _remoteWork = null;
+    private bool? _onSiteWork = null;
+    private bool? _travelWillingness = null;
+    private HashSet<string> _selectedLanguages = new();
+    private int? _minProjectSize = null;
+    private int? _maxProjectSize = null;
+    private bool _hasSecurityClearance = false;
+    private bool _executiveExperience = false;
+    private bool _startupExperience = false;
+    private bool _enterpriseExperience = false;
+    private bool _consultingExperience = false;
+    private HashSet<PartnerSpecialization> _selectedSpecializations = new();
+    
+    // Data sources
+    private List<StateInfo> _availableStates = new();
+    private List<string> _availableCities = new();
+    private List<string> _availableSkills = new();
+    private List<string> _availableIndustries = new();
+    private List<string> _availableTechnologies = new();
+    private List<string> _availableCertifications = new();
+    private List<string> _availableLanguages = new();
+
+    private RenderFragment RenderFilterContent() => __builder =>
+    {
+        <div role="region" aria-label="Advanced partner search filters">
+            <!-- Filter Header -->
+            <MudStack Direction="Row" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.Tune" Class="mr-2" />
+                    Advanced Search
+                </MudText>
+                @if (_activeFilterCount > 0)
+                {
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">
+                        @_filteredCount results
+                    </MudChip>
+                }
+            </MudStack>
+            
+            <!-- Active Filters Summary -->
+            @if (_activeFilterCount > 0)
+            {
+                <MudPaper Class="pa-3 mb-3" 
+                          Style="background-color: var(--mud-palette-info-lighten); border-radius: 8px;">
+                    <MudStack Direction="Row" Spacing="1" Wrap="Wrap.Wrap" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.caption" Class="align-self-center">
+                            <strong>Active Filters:</strong>
+                        </MudText>
+                        @RenderActiveFilterChips()
+                    </MudStack>
+                    
+                    <MudButton Size="Size.Small" 
+                             Color="Color.Error" 
+                             Variant="Variant.Text"
+                             OnClick="ClearAllFilters"
+                             StartIcon="@Icons.Material.Filled.Clear"
+                             Class="mt-2">
+                        Clear All Filters
+                    </MudButton>
+                </MudPaper>
+            }
+            
+            <!-- Filter Panels -->
+            <MudExpansionPanels>
+                <!-- Location & Availability -->
+                <MudExpansionPanel Text="📍 Location & Availability" IsInitiallyExpanded="true">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudAutocomplete T="string" 
+                                           Label="City" 
+                                           SearchFunc="SearchCities"
+                                           Value="_selectedCity"
+                                           ValueChanged="OnCityChanged"
+                                           Variant="Variant.Outlined"
+                                           Clearable="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect T="string" 
+                                     Label="State" 
+                                     @bind-Value="_selectedState"
+                                     Variant="Variant.Outlined"
+                                     Clearable="true">
+                                @foreach (var state in _availableStates)
+                                {
+                                    <MudSelectItem Value="@state.Code">@state.Name (@state.Code)</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle2" Class="mb-2">Region</MudText>
+                            <MudChipSet T="string" MultiSelection="true" 
+                                       SelectedValues="_selectedRegions"
+                                       SelectedValuesChanged="OnRegionsChanged"
+                                       Filter="true">
+                                <MudChip T="string" Text="West Coast" Value="@("west-coast")" />
+                                <MudChip T="string" Text="East Coast" Value="@("east-coast")" />
+                                <MudChip T="string" Text="Midwest" Value="@("midwest")" />
+                                <MudChip T="string" Text="South" Value="@("south")" />
+                            </MudChipSet>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle2" Class="mb-2">Availability</MudText>
+                            <MudRadioGroup T="AvailabilityTimeframe?" @bind-Value="_selectedAvailability">
+                                <MudRadio T="AvailabilityTimeframe?" Option="@AvailabilityTimeframe.ThisWeek">This Week</MudRadio>
+                                <MudRadio T="AvailabilityTimeframe?" Option="@AvailabilityTimeframe.NextWeek">Next Week</MudRadio>
+                                <MudRadio T="AvailabilityTimeframe?" Option="@AvailabilityTimeframe.ThisMonth">This Month</MudRadio>
+                                <MudRadio T="AvailabilityTimeframe?" Option="@((AvailabilityTimeframe?)null)">Any Availability</MudRadio>
+                            </MudRadioGroup>
+                        </MudItem>
+                    </MudGrid>
+                </MudExpansionPanel>
+                
+                <!-- Skills & Experience -->
+                <MudExpansionPanel Text="🎯 Skills & Experience">
+                    <MudStack Spacing="3">
+                        <MudAutocomplete T="string"
+                                       Label="Required Skills"
+                                       SearchFunc="SearchSkills"
+                                       MultiSelection="true"
+                                       SelectedValues="_selectedSkills"
+                                       SelectedValuesChanged="OnSkillsChanged"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true" />
+                        
+                        <MudSelect T="ExperienceLevel?" 
+                                 @bind-Value="_minExperienceLevel"
+                                 Label="Minimum Experience Level"
+                                 Variant="Variant.Outlined"
+                                 Clearable="true">
+                            <MudSelectItem Value="ExperienceLevel.Novice">Novice</MudSelectItem>
+                            <MudSelectItem Value="ExperienceLevel.Beginner">Beginner (1-3 years)</MudSelectItem>
+                            <MudSelectItem Value="ExperienceLevel.Proficient">Proficient (4-10 years)</MudSelectItem>
+                            <MudSelectItem Value="ExperienceLevel.Expert">Expert (10+ years)</MudSelectItem>
+                        </MudSelect>
+                        
+                        <div class="range-slider-container">
+                            <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                Minimum Years of Experience: @_minYearsExperience years
+                            </MudText>
+                            <MudSlider T="int" 
+                                     @bind-Value="_minYearsExperience"
+                                     Min="0" Max="30" Step="1"
+                                     Color="Color.Primary" />
+                        </div>
+                    </MudStack>
+                </MudExpansionPanel>
+                
+                <!-- Industries & Technologies -->
+                <MudExpansionPanel Text="🏢 Industries & Technologies">
+                    <MudStack Spacing="3">
+                        <MudAutocomplete T="string"
+                                       Label="Industries"
+                                       SearchFunc="SearchIndustries"
+                                       MultiSelection="true"
+                                       SelectedValues="_selectedIndustries"
+                                       SelectedValuesChanged="OnIndustriesChanged"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true" />
+                        
+                        <MudAutocomplete T="string"
+                                       Label="Technologies"
+                                       SearchFunc="SearchTechnologies"
+                                       MultiSelection="true"
+                                       SelectedValues="_selectedTechnologies"
+                                       SelectedValuesChanged="OnTechnologiesChanged"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true" />
+                        
+                        <MudAutocomplete T="string"
+                                       Label="Certifications"
+                                       SearchFunc="SearchCertifications"
+                                       MultiSelection="true"
+                                       SelectedValues="_selectedCertifications"
+                                       SelectedValuesChanged="OnCertificationsChanged"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true" />
+                    </MudStack>
+                </MudExpansionPanel>
+                
+                <!-- Rate & Project Preferences -->
+                <MudExpansionPanel Text="💰 Rate & Project Preferences">
+                    <MudStack Spacing="3">
+                        <div class="range-slider-container">
+                            <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                Rate Range: $@_minRate - $@_maxRate per hour
+                            </MudText>
+                            <MudGrid>
+                                <MudItem xs="6">
+                                    <MudSlider T="decimal" 
+                                             @bind-Value="_minRate"
+                                             Min="0" Max="2000" Step="50"
+                                             Color="Color.Primary" />
+                                </MudItem>
+                                <MudItem xs="6">
+                                    <MudSlider T="decimal" 
+                                             @bind-Value="_maxRate"
+                                             Min="0" Max="2000" Step="50"
+                                             Color="Color.Primary" />
+                                </MudItem>
+                            </MudGrid>
+                        </div>
+                        
+                        <MudGrid>
+                            <MudItem xs="12" md="4">
+                                <MudCheckBox @bind-Value="_remoteWork" 
+                                           TriState="true"
+                                           Label="Remote Work" 
+                                           Color="Color.Primary" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudCheckBox @bind-Value="_onSiteWork" 
+                                           TriState="true"
+                                           Label="On-Site Work" 
+                                           Color="Color.Primary" />
+                            </MudItem>
+                            <MudItem xs="12" md="4">
+                                <MudCheckBox @bind-Value="_travelWillingness" 
+                                           TriState="true"
+                                           Label="Travel Willingness" 
+                                           Color="Color.Primary" />
+                            </MudItem>
+                        </MudGrid>
+                        
+                        <MudAutocomplete T="string"
+                                       Label="Languages"
+                                       SearchFunc="SearchLanguages"
+                                       MultiSelection="true"
+                                       SelectedValues="_selectedLanguages"
+                                       SelectedValuesChanged="OnLanguagesChanged"
+                                       Variant="Variant.Outlined"
+                                       Clearable="true" />
+                    </MudStack>
+                </MudExpansionPanel>
+                
+                <!-- Experience Types -->
+                <MudExpansionPanel Text="⭐ Experience Types">
+                    <MudStack Spacing="2">
+                        <MudCheckBox @bind-Value="_hasSecurityClearance" 
+                                   Label="Has Security Clearance" 
+                                   Color="Color.Info" />
+                        <MudCheckBox @bind-Value="_executiveExperience" 
+                                   Label="Executive Experience (C-level/VP)" 
+                                   Color="Color.Success" />
+                        <MudCheckBox @bind-Value="_startupExperience" 
+                                   Label="Startup Experience" 
+                                   Color="Color.Warning" />
+                        <MudCheckBox @bind-Value="_enterpriseExperience" 
+                                   Label="Enterprise Experience" 
+                                   Color="Color.Primary" />
+                        <MudCheckBox @bind-Value="_consultingExperience" 
+                                   Label="Consulting Experience" 
+                                   Color="Color.Secondary" />
+                    </MudStack>
+                </MudExpansionPanel>
+                
+                <!-- Specializations -->
+                <MudExpansionPanel Text="🔧 Specializations">
+                    <MudSelect T="PartnerSpecialization" 
+                             MultiSelection="true"
+                             SelectedValues="_selectedSpecializations"
+                             SelectedValuesChanged="OnSpecializationsChanged"
+                             Label="Partner Specializations"
+                             Variant="Variant.Outlined">
+                        @foreach (PartnerSpecialization spec in Enum.GetValues<PartnerSpecialization>())
+                        {
+                            <MudSelectItem Value="@spec">@GetSpecializationDisplayName(spec)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+            
+            <!-- Action Buttons -->
+            <MudStack Direction="Row" Justify="Justify.SpaceBetween" Class="mt-4">
+                <MudButton Variant="Variant.Outlined" 
+                         OnClick="ClearAllFilters"
+                         Disabled="@(_activeFilterCount == 0)"
+                         StartIcon="@Icons.Material.Filled.Refresh">
+                    Reset
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                         Color="Color.Primary" 
+                         OnClick="ApplyFilters"
+                         StartIcon="@Icons.Material.Filled.Search">
+                    Apply Filters
+                </MudButton>
+            </MudStack>
+        </div>
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DetectScreenSize();
+        InitializeDataSources();
+        StateHasChanged();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Partners.Any())
+        {
+            _filteredCount = Partners.Count;
+            UpdateDataSources();
+        }
+    }
+
+    private async Task DetectScreenSize()
+    {
+        try
+        {
+            var windowWidth = await JSRuntime.InvokeAsync<int>("window.innerWidth");
+            _isDesktop = windowWidth > 960;
+        }
+        catch
+        {
+            _isDesktop = true;
+        }
+    }
+
+    private void InitializeDataSources()
+    {
+        _availableStates = FilterService.GetAvailableStates(Partners);
+        UpdateDataSources();
+    }
+
+    private void UpdateDataSources()
+    {
+        // Extract unique data from partners for autocomplete fields
+        _availableCities = Partners.Where(p => !string.IsNullOrEmpty(p.City))
+            .Select(p => p.City!).Distinct().OrderBy(c => c).ToList();
+            
+        _availableSkills = Partners.SelectMany(p => p.Skills?.Select(s => s.Skill) ?? Enumerable.Empty<string>())
+            .Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(s => s).ToList();
+            
+        _availableIndustries = Partners.SelectMany(p => p.Industries)
+            .Distinct().OrderBy(i => i).ToList();
+            
+        _availableTechnologies = Partners.SelectMany(p => p.Technologies)
+            .Distinct().OrderBy(t => t).ToList();
+            
+        _availableCertifications = Partners.SelectMany(p => p.Certifications)
+            .Distinct().OrderBy(c => c).ToList();
+            
+        _availableLanguages = Partners.SelectMany(p => p.Languages)
+            .Distinct().OrderBy(l => l).ToList();
+    }
+
+    // Search functions for autocomplete fields
+    private async Task<IEnumerable<string>> SearchCities(string value, CancellationToken cancellationToken = default)
+    {
+        return await FilterService.SearchCitiesAsync(Partners, value, 10);
+    }
+
+    private async Task<IEnumerable<string>> SearchSkills(string value, CancellationToken cancellationToken = default)
+    {
+        return await FilterService.SearchSkillsAsync(Partners, value, 15);
+    }
+
+    private async Task<IEnumerable<string>> SearchIndustries(string value, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(50);
+        if (string.IsNullOrWhiteSpace(value))
+            return _availableIndustries.Take(10);
+        return _availableIndustries.Where(i => i.Contains(value, StringComparison.OrdinalIgnoreCase)).Take(10);
+    }
+
+    private async Task<IEnumerable<string>> SearchTechnologies(string value, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(50);
+        if (string.IsNullOrWhiteSpace(value))
+            return _availableTechnologies.Take(15);
+        return _availableTechnologies.Where(t => t.Contains(value, StringComparison.OrdinalIgnoreCase)).Take(15);
+    }
+
+    private async Task<IEnumerable<string>> SearchCertifications(string value, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(50);
+        if (string.IsNullOrWhiteSpace(value))
+            return _availableCertifications.Take(10);
+        return _availableCertifications.Where(c => c.Contains(value, StringComparison.OrdinalIgnoreCase)).Take(10);
+    }
+
+    private async Task<IEnumerable<string>> SearchLanguages(string value, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(50);
+        var commonLanguages = new[] { "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese", "Korean", "Arabic" };
+        
+        if (string.IsNullOrWhiteSpace(value))
+            return commonLanguages.Concat(_availableLanguages).Distinct().Take(10);
+        return commonLanguages.Concat(_availableLanguages).Distinct()
+            .Where(l => l.Contains(value, StringComparison.OrdinalIgnoreCase)).Take(10);
+    }
+
+    private void OnCityChanged(string? city)
+    {
+        _selectedCity = city;
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnRegionsChanged(IEnumerable<string> regions)
+    {
+        _selectedRegions.Clear();
+        foreach (var region in regions) _selectedRegions.Add(region);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnSkillsChanged(IEnumerable<string> skills)
+    {
+        _selectedSkills.Clear();
+        foreach (var skill in skills) _selectedSkills.Add(skill);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnIndustriesChanged(IEnumerable<string> industries)
+    {
+        _selectedIndustries.Clear();
+        foreach (var industry in industries) _selectedIndustries.Add(industry);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnTechnologiesChanged(IEnumerable<string> technologies)
+    {
+        _selectedTechnologies.Clear();
+        foreach (var tech in technologies) _selectedTechnologies.Add(tech);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnCertificationsChanged(IEnumerable<string> certifications)
+    {
+        _selectedCertifications.Clear();
+        foreach (var cert in certifications) _selectedCertifications.Add(cert);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnLanguagesChanged(IEnumerable<string> languages)
+    {
+        _selectedLanguages.Clear();
+        foreach (var lang in languages) _selectedLanguages.Add(lang);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void OnSpecializationsChanged(IEnumerable<PartnerSpecialization> specializations)
+    {
+        _selectedSpecializations.Clear();
+        foreach (var spec in specializations) _selectedSpecializations.Add(spec);
+        UpdateFilterCounts();
+        _ = ApplyFilters();
+    }
+
+    private void UpdateFilterCounts()
+    {
+        _activeFilterCount = 0;
+        
+        // Count basic filters
+        if (!string.IsNullOrEmpty(_selectedCity)) _activeFilterCount++;
+        if (!string.IsNullOrEmpty(_selectedState)) _activeFilterCount++;
+        if (_selectedRegions.Any()) _activeFilterCount++;
+        if (_selectedAvailability.HasValue) _activeFilterCount++;
+        if (_selectedSkills.Any()) _activeFilterCount++;
+        if (_minExperienceLevel.HasValue) _activeFilterCount++;
+        if (_minYearsExperience > 0) _activeFilterCount++;
+        
+        // Count advanced filters
+        if (_selectedIndustries.Any()) _activeFilterCount++;
+        if (_selectedTechnologies.Any()) _activeFilterCount++;
+        if (_selectedCertifications.Any()) _activeFilterCount++;
+        if (_minRate > 0 || _maxRate < 2000) _activeFilterCount++;
+        if (_remoteWork.HasValue || _onSiteWork.HasValue || _travelWillingness.HasValue) _activeFilterCount++;
+        if (_selectedLanguages.Any()) _activeFilterCount++;
+        if (_minProjectSize.HasValue || _maxProjectSize.HasValue) _activeFilterCount++;
+        if (_hasSecurityClearance || _executiveExperience || _startupExperience || _enterpriseExperience || _consultingExperience) _activeFilterCount++;
+        if (_selectedSpecializations.Any()) _activeFilterCount++;
+    }
+
+    private async Task ApplyFilters()
+    {
+        var criteria = BuildFilterCriteria();
+        var filteredPartners = await FilterPartners(criteria);
+        
+        _filteredCount = filteredPartners.Count;
+        UpdateFilterCounts();
+        
+        await OnFiltersChanged.InvokeAsync(filteredPartners);
+        await OnFilterCriteriaChanged.InvokeAsync(criteria);
+        
+        StateHasChanged();
+    }
+
+    private PartnerFilterCriteria BuildFilterCriteria()
+    {
+        return new PartnerFilterCriteria
+        {
+            // Basic filters
+            Cities = !string.IsNullOrEmpty(_selectedCity) ? new List<string> { _selectedCity } : null,
+            States = !string.IsNullOrEmpty(_selectedState) ? new List<string> { _selectedState } : null,
+            Regions = _selectedRegions.Any() ? _selectedRegions.ToList() : null,
+            Availability = _selectedAvailability,
+            RequiredSkills = _selectedSkills.Any() ? _selectedSkills.ToList() : null,
+            MinExperienceLevel = _minExperienceLevel,
+            MinYearsExperience = _minYearsExperience > 0 ? _minYearsExperience : null,
+            
+            // Advanced filters
+            Industries = _selectedIndustries.Any() ? _selectedIndustries.ToList() : null,
+            Technologies = _selectedTechnologies.Any() ? _selectedTechnologies.ToList() : null,
+            Certifications = _selectedCertifications.Any() ? _selectedCertifications.ToList() : null,
+            MinRate = _minRate > 0 ? _minRate : null,
+            MaxRate = _maxRate < 2000 ? _maxRate : null,
+            RemoteWork = _remoteWork,
+            OnSiteWork = _onSiteWork,
+            TravelWillingness = _travelWillingness,
+            Languages = _selectedLanguages.Any() ? _selectedLanguages.ToList() : null,
+            MinProjectSize = _minProjectSize,
+            MaxProjectSize = _maxProjectSize,
+            HasSecurityClearance = _hasSecurityClearance ? _hasSecurityClearance : null,
+            ExecutiveExperience = _executiveExperience ? _executiveExperience : null,
+            StartupExperience = _startupExperience ? _startupExperience : null,
+            EnterpriseExperience = _enterpriseExperience ? _enterpriseExperience : null,
+            ConsultingExperience = _consultingExperience ? _consultingExperience : null,
+            Specializations = _selectedSpecializations.Any() ? _selectedSpecializations.ToList() : null
+        };
+    }
+
+    private async Task<List<Partner>> FilterPartners(PartnerFilterCriteria criteria)
+    {
+        return await FilterService.FilterPartnersAsync(Partners, criteria);
+    }
+
+    private RenderFragment RenderActiveFilterChips() => __builder =>
+    {
+        // Basic filter chips
+        if (!string.IsNullOrEmpty(_selectedCity))
+        {
+            <MudChip T="string" Color="Color.Info" Size="Size.Small" OnClose="@(() => { _selectedCity = null; _ = ApplyFilters(); })">
+                📍 @_selectedCity
+            </MudChip>
+        }
+        
+        if (!string.IsNullOrEmpty(_selectedState))
+        {
+            <MudChip T="string" Color="Color.Info" Size="Size.Small" OnClose="@(() => { _selectedState = null; _ = ApplyFilters(); })">
+                📍 @_selectedState
+            </MudChip>
+        }
+        
+        foreach (var skill in _selectedSkills.Take(2))
+        {
+            <MudChip T="string" Color="Color.Primary" Size="Size.Small" OnClose="@(() => RemoveSkill(skill))">
+                🎯 @skill
+            </MudChip>
+        }
+        
+        // Advanced filter chips  
+        foreach (var industry in _selectedIndustries.Take(2))
+        {
+            <MudChip T="string" Color="Color.Success" Size="Size.Small" OnClose="@(() => RemoveIndustry(industry))">
+                🏢 @industry
+            </MudChip>
+        }
+        
+        if (_minRate > 0 || _maxRate < 2000)
+        {
+            <MudChip T="string" Color="Color.Warning" Size="Size.Small" OnClose="@(() => { _minRate = 0; _maxRate = 2000; _ = ApplyFilters(); })">
+                💰 $@_minRate-$@_maxRate
+            </MudChip>
+        }
+    };
+
+    private void RemoveSkill(string skill)
+    {
+        _selectedSkills.Remove(skill);
+        _ = ApplyFilters();
+    }
+
+    private void RemoveIndustry(string industry)
+    {
+        _selectedIndustries.Remove(industry);
+        _ = ApplyFilters();
+    }
+
+    private string GetSpecializationDisplayName(PartnerSpecialization specialization) => specialization switch
+    {
+        PartnerSpecialization.DigitalTransformation => "Digital Transformation",
+        PartnerSpecialization.CloudMigration => "Cloud Migration",
+        PartnerSpecialization.Cybersecurity => "Cybersecurity",
+        PartnerSpecialization.DataStrategy => "Data Strategy",
+        PartnerSpecialization.AIAndMachineLearning => "AI & Machine Learning",
+        PartnerSpecialization.ITGovernance => "IT Governance",
+        PartnerSpecialization.EnterpriseArchitecture => "Enterprise Architecture",
+        PartnerSpecialization.DevOpsAndAutomation => "DevOps & Automation",
+        PartnerSpecialization.ProductManagement => "Product Management",
+        PartnerSpecialization.TechnicalDueDiligence => "Technical Due Diligence",
+        PartnerSpecialization.VendorManagement => "Vendor Management",
+        PartnerSpecialization.RiskManagement => "Risk Management",
+        PartnerSpecialization.ComplianceAndRegulation => "Compliance & Regulation",
+        PartnerSpecialization.CrisisManagement => "Crisis Management",
+        PartnerSpecialization.TurnaroundAndRestructuring => "Turnaround & Restructuring",
+        PartnerSpecialization.MergerAndAcquisition => "Merger & Acquisition",
+        PartnerSpecialization.ScalingOperations => "Scaling Operations",
+        PartnerSpecialization.TeamBuilding => "Team Building",
+        PartnerSpecialization.StrategicPlanning => "Strategic Planning",
+        PartnerSpecialization.BudgetManagement => "Budget Management",
+        _ => specialization.ToString()
+    };
+
+    private async Task ClearAllFilters()
+    {
+        // Clear basic filters
+        _selectedCity = null;
+        _selectedState = null;
+        _selectedRegions.Clear();
+        _selectedAvailability = null;
+        _selectedSkills.Clear();
+        _minExperienceLevel = null;
+        _minYearsExperience = 0;
+        
+        // Clear advanced filters
+        _selectedIndustries.Clear();
+        _selectedTechnologies.Clear();
+        _selectedCertifications.Clear();
+        _minRate = 0;
+        _maxRate = 2000;
+        _remoteWork = null;
+        _onSiteWork = null;
+        _travelWillingness = null;
+        _selectedLanguages.Clear();
+        _minProjectSize = null;
+        _maxProjectSize = null;
+        _hasSecurityClearance = false;
+        _executiveExperience = false;
+        _startupExperience = false;
+        _enterpriseExperience = false;
+        _consultingExperience = false;
+        _selectedSpecializations.Clear();
+        
+        await ApplyFilters();
+        _mobileDrawerOpen = false;
+    }
+
+    #pragma warning restore CS8618
+}
