@@ -36,32 +36,30 @@
 
         <MudSpacer/>
 
-        <CascadingAuthenticationState>
-            <AuthorizeView>
-                <Authorized>
-                    <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true">
-                        <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
-                        <MudDivider/>
-                        @if (context.User.IsInRole("Partner"))
-                        {
-                            <MudMenuItem Href="/partner_home">Partner Dashboard</MudMenuItem>
-                        }
-                        else
-                        {
-                            <MudMenuItem Href="/client/sessions">My Sessions</MudMenuItem>
-                            <MudMenuItem Href="/profile">My Profile</MudMenuItem>
-                        }
-                        <MudMenuItem OnClick="@LogoutAsync">Logout</MudMenuItem>
-                    </MudMenu>
-                </Authorized>
-                <NotAuthorized>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login"
-                               Href="auth/login">
-                        Sign In
-                    </MudButton>
-                </NotAuthorized>
-            </AuthorizeView>
-        </CascadingAuthenticationState>
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true">
+                    <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
+                    <MudDivider/>
+                    @if (context.User.IsInRole("Partner"))
+                    {
+                        <MudMenuItem Href="/partner_home">Partner Dashboard</MudMenuItem>
+                    }
+                    else
+                    {
+                        <MudMenuItem Href="/client/sessions">My Sessions</MudMenuItem>
+                        <MudMenuItem Href="/profile">My Profile</MudMenuItem>
+                    }
+                    <MudMenuItem OnClick="@LogoutAsync">Logout</MudMenuItem>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Login"
+                           Href="auth/login">
+                    Sign In
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
 
         @if (_debugMode)
         {
