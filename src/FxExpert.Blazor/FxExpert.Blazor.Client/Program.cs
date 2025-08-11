@@ -20,6 +20,9 @@ builder.Services.AddTransient<AntiforgeryHandler>();
 // Configure HttpClient
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
+// Configure logging
+builder.Services.AddLogging();
+
 // Register services
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.UserService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IThemeService, FxExpert.Blazor.Client.Services.ThemeService>();
