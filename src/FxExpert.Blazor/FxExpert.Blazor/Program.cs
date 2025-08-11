@@ -36,6 +36,14 @@ builder.Services.AddScoped<FxExpert.Blazor.Client.Services.UserService>(sp =>
     new FxExpert.Blazor.Client.Services.UserService(
         sp.GetRequiredService<IHttpClientFactory>().CreateClient("EventServer")));
 
+// Add filter services
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.FilterService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.ICalendarHttpService, FxExpert.Blazor.Client.Services.CalendarHttpService>();
+builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IOptimizedFilterService, FxExpert.Blazor.Client.Services.OptimizedFilterService>();
+
+// Add performance monitoring service
+builder.Services.AddSingleton<FxExpert.Blazor.Client.Services.IPerformanceMonitoringService, FxExpert.Blazor.Client.Services.PerformanceMonitoringService>();
+
 // Add connection health service
 builder.Services.AddScoped<FxExpert.Blazor.Services.ConnectionHealthService>();
 
