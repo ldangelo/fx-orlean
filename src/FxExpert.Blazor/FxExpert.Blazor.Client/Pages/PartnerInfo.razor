@@ -1,4 +1,5 @@
 @page "/partner/{PartnerEmail}/{ProblemDescription}/{ProblemIndustry}/{ProblemPriority}"
+@rendermode InteractiveServer
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Authorization
 @using FxExpert.Blazor.Client.Components
@@ -10,7 +11,76 @@
 
 <PageTitle>Expert Profile</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
+<style>
+    /* Mobile Optimizations for Partner Profile */
+    @@media (max-width: 600px) {
+        .partner-profile-container {
+            padding: 8px !important;
+        }
+        
+        .partner-profile-card {
+            margin-bottom: 16px;
+            padding: 12px !important;
+        }
+        
+        .partner-avatar {
+            margin: 0 auto 12px auto;
+        }
+        
+        .partner-tabs .mud-tabs-panels {
+            padding: 12px !important;
+        }
+        
+        .mobile-schedule-button {
+            margin-top: 16px;
+            min-height: 48px;
+        }
+        
+        .booking-form-mobile {
+            padding: 12px !important;
+        }
+        
+        .booking-form-mobile .mud-input-control {
+            margin-bottom: 16px;
+        }
+        
+        .mobile-booking-steps {
+            margin-bottom: 16px;
+        }
+        
+        .mobile-contact-info {
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+        }
+        
+        .mobile-chip-set .mud-chip {
+            margin: 2px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @@media (min-width: 601px) and (max-width: 960px) {
+        .partner-profile-container {
+            padding: 16px;
+        }
+        
+        .partner-tabs .mud-tabs-panels {
+            padding: 20px;
+        }
+    }
+    
+    /* Touch-friendly elements */
+    .mobile-touch-friendly .mud-button {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+    
+    .mobile-enhanced-padding {
+        padding: 16px;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-4 partner-profile-container">
     @if (_loading)
     {
         <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
@@ -28,10 +98,11 @@
     {
         <MudGrid>
             <MudItem xs="12" md="4">
-                <MudPaper Elevation="3" Class="pa-4">
+                <MudPaper Elevation="3" Class="pa-4 partner-profile-card">
                     <MudStack>
                         <MudAvatar Color="Color.Primary" Size="Size.Large"
-                                   Style="height: 80px; width: 80px; font-size: 2rem; margin: 0 auto;">
+                                   Class="partner-avatar"
+                                   Style="height: 80px; width: 80px; font-size: 2rem;">
                             @_partner.FirstName?.Substring(0, 1)@_partner.LastName?.Substring(0, 1)
                         </MudAvatar>
 
@@ -41,20 +112,20 @@
 
                         <MudDivider/>
 
-                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                        <MudText Typo="Typo.body1" Class="d-flex align-center mobile-contact-info">
                             <MudIcon Icon="@Icons.Material.Filled.Email" Class="mr-2"/> @_partner.EmailAddress
                         </MudText>
-                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                        <MudText Typo="Typo.body1" Class="d-flex align-center mobile-contact-info">
                             <MudIcon Icon="@Icons.Material.Filled.Phone" Class="mr-2"/> @_partner.PrimaryPhone
                         </MudText>
-                        <MudText Typo="Typo.body1" Class="d-flex align-center">
+                        <MudText Typo="Typo.body1" Class="d-flex align-center mobile-contact-info">
                             <MudIcon Icon="@Icons.Material.Filled.LocationOn" Class="mr-2"/> @_partner.GetLocation()
                         </MudText>
 
                         <MudDivider/>
 
                         <MudText Typo="Typo.h6">Areas of Expertise</MudText>
-                        <MudChipSet T="string">
+                        <MudChipSet T="string" Class="mobile-chip-set">
                             @foreach (var skill in _partner.Skills ?? new List<PartnerSkill>())
                             {
                                 <MudChip Color="Color.Primary" Variant="Variant.Outlined">@skill.Skill</MudChip>
@@ -67,7 +138,7 @@
                                    EndIcon="@Icons.Material.Filled.CalendarToday"
                                    OnClick="ShowSchedulingPanel"
                                    Size="Size.Large"
-                                   Class="mt-4">
+                                   Class="mt-4 mobile-schedule-button mobile-touch-friendly">
                             Schedule a Consultation
                         </MudButton>
                     </MudStack>
@@ -75,7 +146,7 @@
             </MudItem>
 
             <MudItem xs="12" md="8">
-                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" Class="partner-tabs">
                     <MudTabPanel Text="Overview" Icon="@Icons.Material.Filled.Person">
                         <MudText Typo="Typo.h5" Class="mb-4">Professional Summary</MudText>
                         <MudText Typo="Typo.body1">@(_partner.Bio ?? "No bio information available.")</MudText>
@@ -152,8 +223,8 @@
 
                 @if (_showSchedule)
                 {
-                    <MudPaper Elevation="3" Class="pa-4 mt-4">
-                        <MudText Typo="Typo.h5" shrinkLabel Class="mb-3">Schedule a Consultation</MudText>
+                    <MudPaper Elevation="3" Class="pa-4 mt-4 booking-form-mobile">
+                        <MudText Typo="Typo.h5" shrinkLabel Class="mb-3 mobile-booking-steps">Schedule a Consultation</MudText>
 
                         @if (_bookingStep == BookingStep.Schedule)
                         {
@@ -196,7 +267,9 @@
                                                Color="Color.Primary"
                                                FullWidth
                                                OnClick="ProceedToPayment"
-                                               Disabled="!CanSchedule">
+                                               Disabled="!CanSchedule"
+                                               Size="Size.Large"
+                                               Class="mobile-touch-friendly">
                                         Proceed to Payment
                                     </MudButton>
                                 </MudItem>
@@ -225,7 +298,9 @@
                                 <MudItem xs="12">
                                     <MudButton Variant="Variant.Text"
                                                OnClick="BackToSchedule"
-                                               StartIcon="@Icons.Material.Filled.ArrowBack">
+                                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                                               Class="mobile-touch-friendly"
+                                               Size="Size.Large">
                                         Back to Schedule
                                     </MudButton>
                                 </MudItem>

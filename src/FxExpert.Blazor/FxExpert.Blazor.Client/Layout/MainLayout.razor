@@ -1,10 +1,43 @@
-﻿@rendermode InteractiveAuto
+﻿@rendermode InteractiveServer
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject FxExpert.Blazor.Client.Services.IThemeService ThemeService
 @inject IJSRuntime JSRuntime
 @implements IDisposable
+
+<style>
+    /* Mobile Navigation Improvements */
+    @@media (max-width: 600px) {
+        .mud-appbar .mud-typography-h5 {
+            font-size: 1.25rem;
+            margin-left: 8px;
+        }
+        
+        .mud-appbar .mud-button {
+            min-height: 48px;
+            padding: 8px 12px;
+        }
+        
+        .mobile-menu-icon {
+            margin-right: 8px;
+        }
+        
+        .mud-drawer .mud-drawer-content {
+            padding-top: 16px;
+        }
+        
+        .mud-main-content {
+            padding-top: 64px !important; /* Account for mobile app bar height */
+        }
+    }
+    
+    @@media (min-width: 601px) and (max-width: 960px) {
+        .mud-appbar .mud-typography-h5 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -19,7 +52,7 @@
 
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-                           OnClick="DrawerToggle"/>
+                           OnClick="DrawerToggle" Class="mobile-menu-icon"/>
         </MudHidden>
 
         <MudText Typo="Typo.h5" Class="ml-3">Fortium Expert Connect</MudText>
@@ -240,7 +273,10 @@
 
     private void DrawerToggle()
     {
+        Console.WriteLine("DrawerToggle called!");
         _drawerOpen = !_drawerOpen;
+        Console.WriteLine($"Drawer is now: {(_drawerOpen ? "open" : "closed")}");
+        StateHasChanged();
     }
 
     private async Task DarkModeToggle()

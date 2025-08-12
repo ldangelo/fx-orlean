@@ -5,7 +5,30 @@
 @inject IHttpClientFactory HttpClientFactory
 @implements IAsyncDisposable
 
-<MudPaper Elevation="3" Class="pa-4">
+<style>
+    /* Mobile Optimizations for Payment Form */
+    @@media (max-width: 600px) {
+        .payment-form-mobile {
+            padding: 12px !important;
+        }
+        
+        .payment-element-mobile {
+            margin: 12px 0;
+        }
+        
+        .payment-button-mobile {
+            margin-top: 16px;
+            min-height: 48px;
+        }
+        
+        .payment-info-mobile {
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+        }
+    }
+</style>
+
+<MudPaper Elevation="3" Class="pa-4 payment-form-mobile">
     <MudText Typo="Typo.h5" Class="mb-4">Payment Information</MudText>
     
     @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -27,19 +50,20 @@
                 <b>Amount:</b> $@Amount.ToString("F2")
             </MudText>
             
-            <MudText Typo="Typo.body2" Class="mb-4">
+            <MudText Typo="Typo.body2" Class="mb-4 payment-info-mobile">
                 Enter your payment information below. Your card will be authorized for $@Amount.ToString("F2") but not charged until your consultation is complete.
             </MudText>
 
             <!-- Stripe payment element will be mounted here -->
-            <div id="@PaymentElementId" class="stripe-payment-element" style="min-height: 200px;"></div>
+            <div id="@PaymentElementId" class="stripe-payment-element payment-element-mobile" style="min-height: 200px;"></div>
 
             <MudButton Variant="Variant.Filled"
                        Color="Color.Success"
                        FullWidth
                        OnClick="ProcessPayment"
                        Disabled="IsProcessing"
-                       Class="mt-4">
+                       Size="Size.Large"
+                       Class="mt-4 payment-button-mobile">
                 @if (IsProcessing)
                 {
                     <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true"/>

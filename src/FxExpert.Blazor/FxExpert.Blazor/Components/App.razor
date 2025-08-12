@@ -27,6 +27,6 @@
 @code {
     [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
 
-    private IComponentRenderMode? PageRenderMode => InteractiveAuto;
+    private IComponentRenderMode? PageRenderMode => InteractiveServer;
 
 }

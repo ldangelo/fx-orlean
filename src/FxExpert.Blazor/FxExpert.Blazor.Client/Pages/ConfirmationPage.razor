@@ -1,5 +1,6 @@
 @page "/confirmation/{PartnerEmail}"
 @page "/confirmation/{PartnerEmail}/{BookingId}"
+@rendermode InteractiveServer
 @using System.Text.Json
 @inject HttpClient Http
 @inject IHttpClientFactory HttpClientFactory
@@ -8,12 +9,62 @@
 
 <PageTitle>Booking Confirmation</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
-    <MudPaper Elevation="3" Class="pa-6 text-center">
-        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" Class="mb-4"
+<style>
+    /* Mobile Optimizations for Confirmation Page */
+    @@media (max-width: 600px) {
+        .confirmation-container {
+            padding: 16px 8px !important;
+        }
+        
+        .confirmation-card {
+            padding: 16px !important;
+        }
+        
+        .confirmation-icon {
+            width: 60px !important;
+            height: 60px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        .confirmation-title {
+            font-size: 1.5rem !important;
+            margin-bottom: 16px !important;
+        }
+        
+        .confirmation-list {
+            margin: 16px 0;
+        }
+        
+        .confirmation-list-item {
+            padding: 8px 0;
+            font-size: 0.875rem;
+        }
+        
+        .confirmation-button {
+            margin-top: 20px !important;
+            min-height: 48px;
+        }
+        
+        .confirmation-tip {
+            margin: 16px 0 !important;
+            padding: 12px !important;
+        }
+    }
+    
+    @@media (min-width: 601px) and (max-width: 960px) {
+        .confirmation-container {
+            padding: 24px 16px;
+        }
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8 confirmation-container">
+    <MudPaper Elevation="3" Class="pa-6 text-center confirmation-card">
+        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" 
+                 Class="mb-4 confirmation-icon"
                  Style="width: 80px; height: 80px;"/>
 
-        <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-4">Consultation Scheduled!</MudText>
+        <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-4 confirmation-title">Consultation Scheduled!</MudText>
 
         <MudText Typo="Typo.body1" Class="mb-6">
             Your consultation with @(_partner?.GetFullName() ?? "the expert") has been confirmed.
@@ -24,7 +75,7 @@
 
         <MudText Typo="Typo.h5" Class="mb-4">Meeting Details</MudText>
 
-        <MudList T="string" Dense="false">
+        <MudList T="string" Dense="false" Class="confirmation-list">
             <MudListItem Icon="@Icons.Material.Filled.Person">
                 <MudText Typo="Typo.body1"><b>Expert:</b> @(_partner?.GetFullName() ?? "Your selected expert")
                 </MudText>
@@ -84,7 +135,7 @@
             </MudListItem>
         </MudList>
 
-        <MudPaper Elevation="0" Class="pa-4 my-6"
+        <MudPaper Elevation="0" Class="pa-4 my-6 confirmation-tip"
                   Style="background-color: #f5f5f5; border-left: 4px solid var(--mud-palette-success);">
             <MudText Typo="Typo.body2">
                 <b>Preparation tip:</b> To make the most of your consultation, prepare specific questions and any
@@ -97,7 +148,8 @@
                    Color="Color.Primary"
                    Size="Size.Large"
                    OnClick="@(() => NavigationManager.NavigateTo("/"))"
-                   Class="mt-4">
+                   Class="mt-4 confirmation-button"
+                   FullWidth="true">
             Return to Home
         </MudButton>
     </MudPaper>

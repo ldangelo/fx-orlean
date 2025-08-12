@@ -120,26 +120,9 @@ Do not halucinate.
     // If no API key is available, return sample data for testing
     if (string.IsNullOrEmpty(apiKey))
     {
-        Log.Information("ChatGPTWithRag: No API key found, returning sample data");
-        var samplePartners = new List<Partner>
-        {
-            new Partner
-            {
-                FirstName = "Leo",
-                LastName = "DAngelo",
-                EmailAddress = "leo.dangelo@fortiumpartners.com",
-                Skills = new List<PartnerSkill>
-                {
-                    new PartnerSkill("leadership", 30, ExperienceLevel.Expert),
-                    new PartnerSkill("architecture", 30, ExperienceLevel.Expert),
-                    new PartnerSkill("aws", 30, ExperienceLevel.Expert),
-                    new PartnerSkill("dotnet", 20, ExperienceLevel.Expert)
-                }
-            }
-        };
-        return Task.FromResult(samplePartners);
+        return Task.FromResult((List<Partner>) null);
     }
-
+                               
     try
     {
         List<ChatMessage> prompts =
@@ -157,56 +140,16 @@ Do not halucinate.
 
         Log.Information("ChatGPTWithRag: Response {response}", responseString);
 
-        var resultWrapper = JsonConvert.DeserializeObject<ChatGPTResponse>(responseString);
-        var result = resultWrapper?.RankedPartners ?? resultWrapper?.Partners ?? new List<Partner>();
+        var result = JsonConvert.DeserializeObject<List<Partner>>(responseString);
 
         Log.Information("Result: {result}", result?.ToString() ?? "null");
-
-        // If the result is empty, return sample data for testing
-        if (result == null || result.Count == 0)
-        {
-            Log.Information("Empty result from API, returning sample data");
-            var samplePartners = new List<Partner>
-            {
-                new Partner
-                {
-                    FirstName = "Leo",
-                    LastName = "DAngelo",
-                    EmailAddress = "leo.dangelo@fortiumpartners.com",
-                    Skills = new List<PartnerSkill>
-                    {
-                        new PartnerSkill("leadership", 30, ExperienceLevel.Expert),
-                        new PartnerSkill("architecture", 30, ExperienceLevel.Expert),
-                        new PartnerSkill("aws", 30, ExperienceLevel.Expert),
-                        new PartnerSkill("dotnet", 20, ExperienceLevel.Expert)
-                    }
-                }
-            };
-            return Task.FromResult(samplePartners);
-        }
 
         return Task.FromResult(result);
     }
     catch (Exception ex)
     {
         Log.Error(ex, "Error calling OpenAI API, returning sample data");
-        var samplePartners = new List<Partner>
-        {
-            new Partner
-            {
-                FirstName = "Leo",
-                LastName = "DAngelo",
-                EmailAddress = "leo.dangelo@fortiumpartners.com",
-                Skills = new List<PartnerSkill>
-                {
-                    new PartnerSkill("leadership", 30, ExperienceLevel.Expert),
-                    new PartnerSkill("architecture", 30, ExperienceLevel.Expert),
-                    new PartnerSkill("aws", 30, ExperienceLevel.Expert),
-                    new PartnerSkill("dotnet", 20, ExperienceLevel.Expert)
-                }
-            }
-        };
-        return Task.FromResult(samplePartners);
+        return Task.FromResult((List<Partner>) null);
     }
   }
 }

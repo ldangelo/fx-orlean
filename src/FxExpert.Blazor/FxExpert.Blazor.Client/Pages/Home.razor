@@ -1,4 +1,5 @@
 ﻿@page "/"
+@rendermode InteractiveServer
 
 <PageTitle>Fortium Expert Connect</PageTitle>
 
@@ -35,9 +36,65 @@
         color: var(--mud-palette-text-secondary) !important;
     }
 
-    @@media (max-width: 960px) {
+    /* Mobile Optimizations */
+    @@media (max-width: 600px) {
+        .hero-section {
+            padding: 24px 0;
+        }
+        
+        .hero-section h3 {
+            font-size: 1.5rem;
+            line-height: 1.4;
+        }
+        
+        .hero-section .subtitle1 {
+            font-size: 1rem;
+        }
+        
         .partner-card {
             margin-bottom: 16px;
+        }
+        
+        .form-card {
+            margin: 16px 8px;
+        }
+        
+        .partner-card .mud-card-header {
+            padding: 12px;
+        }
+        
+        .partner-card .mud-card-content {
+            padding: 8px 12px;
+        }
+        
+        .partner-card .mud-card-actions {
+            padding: 8px 12px;
+        }
+    }
+
+    @@media (min-width: 601px) and (max-width: 960px) {
+        .partner-card {
+            margin-bottom: 16px;
+        }
+    }
+
+    /* Touch-friendly buttons on mobile */
+    @@media (max-width: 600px) {
+        .mobile-touch-friendly .mud-button {
+            min-height: 48px;
+            font-size: 1rem;
+        }
+        
+        .mobile-touch-friendly .mud-button-root {
+            padding: 12px 24px;
+        }
+        
+        .mobile-enhanced-spacing {
+            margin-bottom: 16px;
+        }
+        
+        .mobile-reduced-padding {
+            padding: 8px;
         }
     }
 </style>
@@ -55,7 +112,7 @@
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     <!-- Main Form Area -->
-    <MudPaper Elevation="3" Class="pa-6 form-card">
+    <MudPaper Elevation="3" Class="pa-6 form-card mobile-reduced-padding">
         <MudText Typo="Typo.h5" Class="mb-4">What challenge can we help you with?</MudText>
 
         <EditForm Model="@(this)" Class="mt-3">
@@ -110,13 +167,14 @@
             </MudStack>
 
             <!-- Submit Button -->
-            <div class="d-flex justify-end mt-4">
+            <div class="d-flex justify-end mt-4 mobile-touch-friendly">
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Success"
                            Size="Size.Large"
                            OnClick="SubmitProblem"
                            Disabled="isBusy"
-                           Class="py-2 px-4">
+                           Class="py-2 px-4 mobile-enhanced-spacing"
+                           FullWidth="true">
                     @if (isBusy)
                     {
                         <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true"/>
@@ -384,9 +442,15 @@
 
     private async Task SubmitProblem()
     {
+        Console.WriteLine("SubmitProblem called!");
+        
         if (string.IsNullOrWhiteSpace(problemDescription))
+        {
+            Console.WriteLine("Problem description is empty");
             return;
+        }
 
+        Console.WriteLine($"Setting isBusy to true, problem: {problemDescription}");
         isBusy = true;
         try
         {
