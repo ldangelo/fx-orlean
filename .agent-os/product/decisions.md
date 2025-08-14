@@ -134,3 +134,49 @@ Simple, transparent pricing reduces customer friction and simplifies the MVP. Th
 - May not capture full market potential
 - Limited flexibility for premium partners
 - Potential price pressure in competitive markets
+
+## 2025-08-14: Automatic Role Assignment Strategy
+
+**ID:** DEC-004
+**Status:** Accepted
+**Category:** Technical
+**Related Spec:** @.agent-os/specs/2025-08-14-automatic-role-assignment/
+
+### Decision
+
+Implement automatic role assignment based on email domain where users with "@fortiumpartners.com" emails are assigned PARTNER role and all others are assigned CLIENT role, integrated into the user creation process during authentication.
+
+### Context
+
+The platform needs to distinguish between Fortium partners and external clients to provide appropriate access control and user experiences. Manual role assignment creates friction and potential for errors during onboarding.
+
+### Alternatives Considered
+
+1. **Manual Role Assignment**
+   - Pros: Full control, flexibility for edge cases, simple implementation
+   - Cons: Administrative overhead, potential for human error, poor user experience
+
+2. **Keycloak Mapper Configuration**
+   - Pros: External to application, handled by identity provider, no code changes
+   - Cons: Couples business logic to Keycloak config, harder to modify, less audit trail
+
+3. **Authentication Middleware Approach**
+   - Pros: Centralized logic, works across all flows, easy to test
+   - Cons: Performance overhead, doesn't fit event sourcing architecture
+
+### Rationale
+
+Email domain-based automatic assignment provides the best balance of user experience and maintainability. It leverages the existing event sourcing architecture for audit trails and keeps business logic in the domain model where it can be easily tested and modified.
+
+### Consequences
+
+**Positive:**
+- Seamless onboarding experience for both partners and clients
+- Eliminates manual role assignment administrative overhead
+- Clear audit trail through event sourcing architecture
+- Business logic remains testable and maintainable in domain model
+
+**Negative:**
+- Assumes email domains accurately reflect user roles
+- Potential issues if partners use non-Fortium email addresses
+- Need for future enhancement to handle edge cases and role overrides
