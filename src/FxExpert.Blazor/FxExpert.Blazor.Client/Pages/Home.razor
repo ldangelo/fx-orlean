@@ -133,7 +133,7 @@
                                ShrinkLabel
                                Label="Industry (Optional)"
                                Variant="Variant.Outlined"
-                               FullWidth="true"
+                               FullWidth
                                Class="mb-3">
                         <MudSelectItem Value=@("Financial Services")>Financial Services</MudSelectItem>
                         <MudSelectItem Value=@("Healthcare")>Healthcare</MudSelectItem>
@@ -146,7 +146,7 @@
                 <MudItem xs="12" md="6">
                     <MudSelect T="string" @bind-Value="Priority" ShrinkLabel Label="Urgency (Optional)"
                                Variant="Variant.Outlined"
-                               FullWidth="true"
+                               FullWidth
                                Class="mb-3">
                         <MudSelectItem Value=@("High")>High - Need solution within days</MudSelectItem>
                         <MudSelectItem Value=@("Medium")>Medium - Need solution within weeks</MudSelectItem>
@@ -174,10 +174,10 @@
                            OnClick="SubmitProblem"
                            Disabled="isBusy"
                            Class="py-2 px-4 mobile-enhanced-spacing"
-                           FullWidth="true">
+                           FullWidth>
                     @if (isBusy)
                     {
-                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true"/>
+                        <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate/>
                         <span>Finding Experts...</span>
                     }
                     else
@@ -196,7 +196,7 @@
             <EnhancedPartnerMatchingComponent ProblemDescription="@problemDescription"
                                             Industry="@Industry"
                                             Priority="@Priority"
-                                            UseEnhancedMatching="true"
+                                            UseEnhancedMatching
                                             OnViewPartner="@OnEnhancedViewPartner" />
         </div>
     }

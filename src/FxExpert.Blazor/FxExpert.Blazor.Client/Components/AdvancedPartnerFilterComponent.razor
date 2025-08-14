@@ -227,8 +227,7 @@
                         <MudAutocomplete T="string"
                                        Label="Required Skills"
                                        SearchFunc="SearchSkills"
-                                       MultiSelection="true"
-                                       SelectedValues="_selectedSkills"
+                                       MultiSelection                                       SelectedValues="_selectedSkills"
                                        SelectedValuesChanged="OnSkillsChanged"
                                        Variant="Variant.Outlined"
                                        Clearable="true" />
@@ -262,8 +261,7 @@
                         <MudAutocomplete T="string"
                                        Label="Industries"
                                        SearchFunc="SearchIndustries"
-                                       MultiSelection="true"
-                                       SelectedValues="_selectedIndustries"
+                                       MultiSelection                                       SelectedValues="_selectedIndustries"
                                        SelectedValuesChanged="OnIndustriesChanged"
                                        Variant="Variant.Outlined"
                                        Clearable="true" />
@@ -271,8 +269,7 @@
                         <MudAutocomplete T="string"
                                        Label="Technologies"
                                        SearchFunc="SearchTechnologies"
-                                       MultiSelection="true"
-                                       SelectedValues="_selectedTechnologies"
+                                       MultiSelection                                       SelectedValues="_selectedTechnologies"
                                        SelectedValuesChanged="OnTechnologiesChanged"
                                        Variant="Variant.Outlined"
                                        Clearable="true" />
@@ -280,8 +277,7 @@
                         <MudAutocomplete T="string"
                                        Label="Certifications"
                                        SearchFunc="SearchCertifications"
-                                       MultiSelection="true"
-                                       SelectedValues="_selectedCertifications"
+                                       MultiSelection                                       SelectedValues="_selectedCertifications"
                                        SelectedValuesChanged="OnCertificationsChanged"
                                        Variant="Variant.Outlined"
                                        Clearable="true" />
@@ -314,20 +310,17 @@
                         <MudGrid>
                             <MudItem xs="12" md="4">
                                 <MudCheckBox @bind-Value="_remoteWork" 
-                                           TriState="true"
-                                           Label="Remote Work" 
+                                           TriState                                           Label="Remote Work" 
                                            Color="Color.Primary" />
                             </MudItem>
                             <MudItem xs="12" md="4">
                                 <MudCheckBox @bind-Value="_onSiteWork" 
-                                           TriState="true"
-                                           Label="On-Site Work" 
+                                           TriState                                           Label="On-Site Work" 
                                            Color="Color.Primary" />
                             </MudItem>
                             <MudItem xs="12" md="4">
                                 <MudCheckBox @bind-Value="_travelWillingness" 
-                                           TriState="true"
-                                           Label="Travel Willingness" 
+                                           TriState                                           Label="Travel Willingness" 
                                            Color="Color.Primary" />
                             </MudItem>
                         </MudGrid>
@@ -335,8 +328,7 @@
                         <MudAutocomplete T="string"
                                        Label="Languages"
                                        SearchFunc="SearchLanguages"
-                                       MultiSelection="true"
-                                       SelectedValues="_selectedLanguages"
+                                       MultiSelection                                       SelectedValues="_selectedLanguages"
                                        SelectedValuesChanged="OnLanguagesChanged"
                                        Variant="Variant.Outlined"
                                        Clearable="true" />
@@ -367,8 +359,7 @@
                 <!-- Specializations -->
                 <MudExpansionPanel Text="🔧 Specializations">
                     <MudSelect T="PartnerSpecialization" 
-                             MultiSelection="true"
-                             SelectedValues="_selectedSpecializations"
+                             MultiSelection                             SelectedValues="_selectedSpecializations"
                              SelectedValuesChanged="OnSpecializationsChanged"
                              Label="Partner Specializations"
                              Variant="Variant.Outlined">

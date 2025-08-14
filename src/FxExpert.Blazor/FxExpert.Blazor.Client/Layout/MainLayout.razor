@@ -45,7 +45,7 @@
 <MudSnackbarProvider/>
 
 <MudLayout>
-    <MudAppBar Elevation="3" Color="Color.Primary" Fixed="true">
+    <MudAppBar Elevation="3" Color="Color.Primary" Fixed>
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudImage Src="images/fortium-logo.png" Alt="Fortium Logo" Height="40" Class="mr-3"/>
         </MudHidden>
@@ -59,7 +59,7 @@
         <MudSpacer/>
 
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <MudStack Row="true">
+            <MudStack Row>
                 <MudButton Href="/" Color="Color.Inherit" Class="ml-2">Home</MudButton>
                 <MudButton Href="/about" Color="Color.Inherit" Class="ml-2">About</MudButton>
                 <MudButton Href="/experts" Color="Color.Inherit" Class="ml-2">Our Experts</MudButton>
@@ -71,7 +71,7 @@
 
         <AuthorizeView>
             <Authorized>
-                <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense="true">
+                <MudMenu Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" Dense>
                     <MudText Typo="Typo.body2" Class="px-4 py-2">@context.User.Identity?.Name</MudText>
                     <MudDivider/>
                     @if (context.User.IsInRole("Partner"))

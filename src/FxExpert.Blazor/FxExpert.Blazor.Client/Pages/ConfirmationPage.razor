@@ -75,7 +75,7 @@
 
         <MudText Typo="Typo.h5" Class="mb-4">Meeting Details</MudText>
 
-        <MudList T="string" Dense="false" Class="confirmation-list">
+        <MudList T="string" Dense="@false" Class="confirmation-list">
             <MudListItem Icon="@Icons.Material.Filled.Person">
                 <MudText Typo="Typo.body1"><b>Expert:</b> @(_partner?.GetFullName() ?? "Your selected expert")
                 </MudText>
@@ -149,7 +149,7 @@
                    Size="Size.Large"
                    OnClick="@(() => NavigationManager.NavigateTo("/"))"
                    Class="mt-4 confirmation-button"
-                   FullWidth="true">
+                   FullWidth>
             Return to Home
         </MudButton>
     </MudPaper>

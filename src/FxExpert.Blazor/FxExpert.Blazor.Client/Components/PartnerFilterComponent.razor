@@ -294,8 +294,7 @@
                                            Value="_selectedCity"
                                            ValueChanged="OnCityChanged"
                                            Variant="Variant.Outlined"
-                                           Clearable="true"
-                                           aria-label="Filter by city"
+                                           Clearable                                           aria-label="Filter by city"
                                            HelperText="Type to search cities" />
                         </MudItem>
                         <MudItem xs="12" md="6">
@@ -303,8 +302,7 @@
                                      Label="State" 
                                      @bind-Value="_selectedState"
                                      Variant="Variant.Outlined"
-                                     Clearable="true"
-                                     aria-label="Filter by state">
+                                     Clearable                                     aria-label="Filter by state">
                                 @foreach (var state in _availableStates)
                                 {
                                     <MudSelectItem Value="@state.Code">@state.Name (@state.Code)</MudSelectItem>
@@ -320,11 +318,9 @@
                         <MudAutocomplete T="string"
                                        Label="Search Skills"
                                        SearchFunc="SearchSkills"
-                                       MultiSelection="true"
-                                       @bind-SelectedValues="_selectedSkills"
+                                       MultiSelection                                       @bind-SelectedValues="_selectedSkills"
                                        Variant="Variant.Outlined"
-                                       Clearable="true"
-                                       aria-label="Search and select required skills"
+                                       Clearable                                       aria-label="Search and select required skills"
                                        HelperText="Partners must have ALL selected skills" />
                     </MudStack>
                 </MudExpansionPanel>

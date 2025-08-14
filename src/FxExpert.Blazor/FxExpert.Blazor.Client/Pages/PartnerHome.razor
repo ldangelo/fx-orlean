@@ -17,26 +17,17 @@
                 <MudItem xs="12" md="6">
                     <MudPaper Class="pa-4 mb-4">
                         <MudForm @ref="elementForm" @bind-IsValid="@success" @bind-Errors="@errors">
-                            <MudTextField @bind-Value="partner.FirstName" Label="First Name" Required="true"
-                                          RequiredError="First name is required!"/>
-                            <MudTextField @bind-Value="partner.LastName" Label="Last Name" Required="true"
-                                          RequiredError="Last name is required!"/>
-                            <MudTextField @bind-Value="partner.PrimaryPhone" Label="Phone Number" Required="true"
-                                          RequiredError="Phone number is required!"
+                            <MudTextField @bind-Value="partner.FirstName" Label="First Name" Required                                          RequiredError="First name is required!"/>
+                            <MudTextField @bind-Value="partner.LastName" Label="Last Name" Required                                          RequiredError="Last name is required!"/>
+                            <MudTextField @bind-Value="partner.PrimaryPhone" Label="Phone Number" Required                                          RequiredError="Phone number is required!"
                                           Validation="@(new Func<string, string>(ValidatePhone))"/>
-                            <MudTextField @bind-Value="partner.Title" Label="Title" Required="true"
-                                          RequiredError="Title is required!"/>
-                            <MudTextField @bind-Value="partner.City" Label="City" Required="true"
-                                          RequiredError="City is required!"/>
-                            <MudTextField @bind-Value="partner.State" Label="State" Required="true"
-                                          RequiredError="State is required!"/>
-                            <MudTextField @bind-Value="partner.Country" Label="Country" Required="true"
-                                          RequiredError="Country is required!"/>
-                            <MudTextField @bind-Value="partner.PhotoUrl" Label="Photo URL" Required="true"
-                                          RequiredError="Photo URL is required!"
+                            <MudTextField @bind-Value="partner.Title" Label="Title" Required                                          RequiredError="Title is required!"/>
+                            <MudTextField @bind-Value="partner.City" Label="City" Required                                          RequiredError="City is required!"/>
+                            <MudTextField @bind-Value="partner.State" Label="State" Required                                          RequiredError="State is required!"/>
+                            <MudTextField @bind-Value="partner.Country" Label="Country" Required                                          RequiredError="Country is required!"/>
+                            <MudTextField @bind-Value="partner.PhotoUrl" Label="Photo URL" Required                                          RequiredError="Photo URL is required!"
                                           Validation="@(new Func<string, string>(ValidateUrl))"/>
-                            <MudTextField @bind-Value="partner.Bio" Label="Bio" Lines="5" Required="true"
-                                          RequiredError="Bio is required!"/>
+                            <MudTextField @bind-Value="partner.Bio" Label="Bio" Lines="5" Required                                          RequiredError="Bio is required!"/>
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4"
                                        OnClick="SaveProfile">Save Profile
                             </MudButton>
@@ -50,7 +41,7 @@
 
                         @if (partner.Skills != null && partner.Skills.Any())
                         {
-                            <MudList T="string" clickable="false">
+                            <MudList T="string" clickable="@false">
                                 @foreach (var skill in partner.Skills)
                                 {
                                     <MudListItem>
@@ -67,8 +58,7 @@
                         <MudDivider Class="my-3"/>
                         <MudText Typo="Typo.subtitle1" Class="mb-2">Add New Skill</MudText>
 
-                        <MudTextField @bind-Value="newSkill.Skill" Label="Skill Name" Required="true"
-                                      RequiredError="Skill name is required!"/>
+                        <MudTextField @bind-Value="newSkill.Skill" Label="Skill Name" Required                                      RequiredError="Skill name is required!"/>
                         <MudNumericField @bind-Value="newSkill.YearsOfExperience" Label="Years of Experience" Min="0"
                                          Max="50" Required="true"/>
                         <MudSelect @bind-Value="newSkill.ExperienceLevel" Label="Experience Level" Required="true">
@@ -87,7 +77,7 @@
 
                         @if (partner.WorkHistories != null && partner.WorkHistories.Any())
                         {
-                            <MudList T="string" clickable="false">
+                            <MudList T="string" clickable="@false">
                                 @foreach (var work in partner.WorkHistories)
                                 {
                                     <MudListItem>

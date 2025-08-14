@@ -22,11 +22,11 @@
             
             @if (isLoading)
             {
-                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                <MudProgressCircular Color="Color.Primary" Indeterminate />
             }
             else
             {
-                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                <MudTabs Elevation="2" Rounded ApplyEffectsToContainer PanelClass="pa-6">
                     <MudTabPanel Text="Personal Information">
                         <EditForm Model="@profileModel" OnValidSubmit="SaveProfileAsync" FormName="ProfileForm">
                             <DataAnnotationsValidator />

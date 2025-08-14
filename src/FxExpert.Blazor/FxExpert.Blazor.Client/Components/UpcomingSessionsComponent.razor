@@ -22,14 +22,14 @@
         @if (_isLoading)
         {
             <div class="d-flex justify-center pa-4">
-                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate />
                 <MudText Typo="Typo.body2" Class="ml-2">Loading sessions...</MudText>
             </div>
         }
         else if (_upcomingSessions?.Any() == true)
         {
             <!-- Sessions List -->
-            <MudList T="SessionHistory" Clickable="false">
+            <MudList T="SessionHistory" Clickable="@false">
                 @foreach (var session in _upcomingSessions.Take(MaxSessions))
                 {
                     <MudListItem>

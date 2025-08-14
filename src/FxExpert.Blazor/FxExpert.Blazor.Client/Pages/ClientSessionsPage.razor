@@ -68,11 +68,11 @@
     </MudGrid>
 
     <!-- Main Content Tabs -->
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-0">
+    <MudTabs Elevation="2" Rounded ApplyEffectsToContainer PanelClass="pa-0">
         <MudTabPanel Text="Upcoming Sessions" Icon="@Icons.Material.Filled.Schedule">
             <MudPaper Class="pa-4">
                 <UpcomingSessionsComponent UserEmail="@_userEmail" 
-                                         IsPartnerView="false" 
+                                         IsPartnerView="@false" 
                                          MaxSessions="20"
                                          OnViewAllRequested="@(() => _selectedTab = 1)"
                                          OnBookNewRequested="BookNewConsultation" />
@@ -80,7 +80,7 @@
         </MudTabPanel>
 
         <MudTabPanel Text="All Sessions" Icon="@Icons.Material.Filled.History">
-            <SessionHistoryComponent UserEmail="@_userEmail" IsPartnerView="false" />
+            <SessionHistoryComponent UserEmail="@_userEmail" IsPartnerView="@false" />
         </MudTabPanel>
 
         <MudTabPanel Text="Session Insights" Icon="@Icons.Material.Filled.Analytics">
@@ -159,7 +159,7 @@
                                         <div>
                                             <MudText Typo="Typo.subtitle2">Average Rating</MudText>
                                             <MudStack Direction="Direction.Row" AlignItems="AlignItems.Center" Spacing="2">
-                                                <MudRating ReadOnly="true" SelectedValue="(int)Math.Round(_statistics.AverageRating)" MaxValue="5" />
+                                                <MudRating ReadOnly SelectedValue="(int)Math.Round(_statistics.AverageRating)" MaxValue="5" />
                                                 <MudText Typo="Typo.body2">@_statistics.AverageRating.ToString("F1") / 5.0</MudText>
                                             </MudStack>
                                         </div>
@@ -175,7 +175,7 @@
                 else
                 {
                     <div class="d-flex justify-center pa-8">
-                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                        <MudProgressCircular Color="Color.Primary" Indeterminate />
                     </div>
                 }
             </MudPaper>
