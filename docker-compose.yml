@@ -91,6 +91,15 @@ services:
     command: ["-config.file=/etc/loki/local-config.yaml"]
     ports:
       - "3100:3100"
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog:latest
+    platform: ${DOCKER_PLATFORM}
+    ports:
+      - "1025:1025"  # SMTP Server
+      - "8025:8025"  # Web UI
+    networks:
+      - data-network
   eventserver:
     image: eventserver
     build:
@@ -115,9 +124,3 @@ volumes:
 networks:
   data-network:
     driver: bridge
-
-  eventserver:
-    image: eventserver
-    build:
-      context: .
-      dockerfile: src/EventServer/Dockerfile

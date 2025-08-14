@@ -27,17 +27,31 @@ public class EmailService
         _fromAddress = configuration["Email:FromAddress"] ?? "noreply@fx-orleans.com";
         _fromName = configuration["Email:FromName"] ?? "FX-Orleans Platform";
 
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        // Check if we're using a test email server (like MailHog) that doesn't require authentication
+        var isTestServer = smtpHost == "localhost" && smtpPort == 1025;
+        
+        if (!isTestServer && (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)))
         {
             throw new InvalidOperationException("Email configuration is missing. Please set SMTP_USERNAME and SMTP_PASSWORD environment variables or configure Email section in appsettings.");
         }
 
         _smtpClient = new SmtpClient(smtpHost, smtpPort)
         {
-            Credentials = new NetworkCredential(username, password),
-            EnableSsl = true,
             DeliveryMethod = SmtpDeliveryMethod.Network
         };
+
+        // Only set credentials and SSL for non-test servers
+        if (!isTestServer)
+        {
+            _smtpClient.Credentials = new NetworkCredential(username, password);
+            _smtpClient.EnableSsl = true;
+        }
+        else
+        {
+            // MailHog doesn't require authentication or SSL
+            _smtpClient.EnableSsl = false;
+            _logger.LogInformation("Using test email server (MailHog) - authentication and SSL disabled");
+        }
 
         _logger.LogInformation("Email service initialized with SMTP host: {SmtpHost}:{SmtpPort}", smtpHost, smtpPort);
     }

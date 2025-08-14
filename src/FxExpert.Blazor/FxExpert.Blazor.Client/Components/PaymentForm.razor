@@ -3,6 +3,7 @@
 @inject IStripePaymentService StripeService
 @inject IPaymentConfigurationService PaymentConfigService
 @inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
 <style>
@@ -55,7 +56,11 @@
             </MudText>
 
             <!-- Stripe payment element will be mounted here -->
-            <div id="@PaymentElementId" class="stripe-payment-element payment-element-mobile" style="min-height: 200px;"></div>
+            <!-- Only render when we have a ClientSecret to ensure proper timing -->
+            @if (!string.IsNullOrEmpty(ClientSecret))
+            {
+                <div id="@PaymentElementId" class="stripe-payment-element payment-element-mobile" style="min-height: 200px; border: 1px solid #e0e0e0; border-radius: 4px; background-color: #fff;"></div>
+            }
 
             <MudButton Variant="Variant.Filled"
                        Color="Color.Success"
@@ -88,10 +93,20 @@
     private bool IsLoading = true;
     private bool IsProcessing = false;
     private string? ErrorMessage;
+    private bool _paymentFormCreated = false;
 
     protected override async Task OnInitializedAsync()
     {
         await SetupPayment();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Only create payment form after DOM is rendered and we have ClientSecret
+        if (!string.IsNullOrEmpty(ClientSecret) && !_paymentFormCreated && !IsLoading)
+        {
+            await CreatePaymentForm();
+        }
     }
 
     private async Task SetupPayment()
@@ -143,18 +158,6 @@
 
             PaymentIntentId = paymentIntent.PaymentIntentId;
             ClientSecret = paymentIntent.ClientSecret;
-
-            // Wait a moment for the DOM to update
-            await Task.Delay(100);
-
-            // Create payment form elements
-            var formCreated = await StripeService.CreatePaymentFormAsync(PaymentElementId, ClientSecret);
-            
-            if (!formCreated)
-            {
-                ErrorMessage = "Failed to create payment form. Please refresh and try again.";
-                return;
-            }
         }
         catch (Exception ex)
         {
@@ -168,6 +171,34 @@
         }
     }
 
+    private async Task CreatePaymentForm()
+    {
+        try
+        {
+            Console.WriteLine($"Creating payment form - Element ID: {PaymentElementId}");
+            
+            var formCreated = await StripeService.CreatePaymentFormAsync(PaymentElementId, ClientSecret!);
+            
+            if (formCreated)
+            {
+                _paymentFormCreated = true;
+                Console.WriteLine("Payment form created successfully");
+            }
+            else
+            {
+                ErrorMessage = "Failed to create payment form. Please refresh and try again.";
+                Console.WriteLine($"Payment form creation failed - Element ID: {PaymentElementId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Payment form creation failed: {ex.Message}";
+            Console.WriteLine($"Payment form creation error: {ex.Message}");
+        }
+        
+        StateHasChanged();
+    }
+
     private async Task ProcessPayment()
     {
         try
@@ -175,8 +206,9 @@
             IsProcessing = true;
             ErrorMessage = null;
 
-            // Confirm payment with Stripe
-            var result = await StripeService.ConfirmPaymentAsync("about:blank"); // Return URL not used with redirect: 'if_required'
+            // Confirm payment with Stripe - use current page URL as return URL
+            var returnUrl = NavigationManager.Uri;
+            var result = await StripeService.ConfirmPaymentAsync(returnUrl);
             
             if (!result.Success)
             {
@@ -203,6 +235,7 @@
             StateHasChanged();
         }
     }
+
 
     public async ValueTask DisposeAsync()
     {

@@ -60,7 +60,7 @@ The following features have been implemented:
 
 - [ ] **Partner Dashboard** - Comprehensive partner management interface `L`
 - [ ] **Client Dashboard** - Client booking history and preferences `M`
-- [ ] **Dark Mode Toggle Fix** - Persistent theme switching with user preference integration `S`
+- [x] **Dark Mode Toggle Fix** - Persistent theme switching with user preference integration `S`
 - [ ] **Rating and Reviews** - Post-session feedback system `M`
 - [ ] **Notification System** - Email and in-app notifications `S`
 

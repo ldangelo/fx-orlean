@@ -9,8 +9,13 @@ public class PaymentService : IPaymentService
 
     public PaymentService()
     {
-        // TODO: Move to configuration
-        StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY") ?? "sk_test_...";
+        var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+        if (string.IsNullOrEmpty(secretKey))
+        {
+            throw new InvalidOperationException("STRIPE_SECRET_KEY environment variable is not set. Please configure your Stripe secret key.");
+        }
+        
+        StripeConfiguration.ApiKey = secretKey;
         _paymentIntentService = new PaymentIntentService();
     }
 

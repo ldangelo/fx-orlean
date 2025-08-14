@@ -91,7 +91,7 @@ public static class BookingController
             );
 
             // Step 5: Start the event stream for this booking
-            var startStream = MartenOps.StartStream<VideoConferenceState>(command.BookingId, bookingCompletedEvent);
+            var startStream = MartenOps.StartStream<VideoConferenceState>(command.BookingId.ToString(), bookingCompletedEvent);
 
             logger.LogInformation("Booking completion successful for BookingId: {BookingId}", command.BookingId);
             return (bookingCompletedEvent, startStream);

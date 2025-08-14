@@ -19,9 +19,20 @@ window.stripeInterop = {
     // Create payment form elements
     createPaymentForm: function (elementId, clientSecret) {
         try {
+            console.log('Creating payment form with element ID:', elementId);
+            
             if (!stripe) {
-                throw new Error('Stripe not initialized');
+                console.error('Stripe not initialized');
+                return false;
             }
+
+            const targetElement = document.getElementById(elementId);
+            if (!targetElement) {
+                console.error('DOM element not found:', elementId);
+                return false;
+            }
+
+            console.log('Target element found:', targetElement);
 
             elements = stripe.elements({
                 clientSecret: clientSecret,
@@ -57,11 +68,19 @@ window.stripeInterop = {
                 throw new Error('Stripe or elements not initialized');
             }
 
+            console.log('Confirming payment with return URL:', returnUrl);
+
+            // Prepare confirmation parameters
+            const confirmParams = {};
+            
+            // Only add return_url if we have a valid URL
+            if (returnUrl && returnUrl !== 'about:blank' && returnUrl.startsWith('http')) {
+                confirmParams.return_url = returnUrl;
+            }
+
             const result = await stripe.confirmPayment({
                 elements,
-                confirmParams: {
-                    return_url: returnUrl,
-                },
+                confirmParams: confirmParams,
                 redirect: 'if_required'
             });
 

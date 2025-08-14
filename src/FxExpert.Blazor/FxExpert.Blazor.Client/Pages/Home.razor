@@ -490,10 +490,19 @@
         if (!string.IsNullOrEmpty(partnerEmail))
         {
             var encodedEmail = Uri.EscapeDataString(partnerEmail);
-            var encodedProblemDescription = Uri.EscapeDataString(problemDescription ?? string.Empty);
-            var encodedProblemIndustry = Uri.EscapeDataString(problemIndustry ?? string.Empty);
-            var encodedProblemPriority = Uri.EscapeDataString(problemPriority ?? string.Empty);
-            NavigationManager.NavigateTo($"/partner/{encodedEmail}/{encodedProblemDescription}/{encodedProblemIndustry}/{encodedProblemPriority}");
+            var queryParams = new List<string>();
+            
+            if (!string.IsNullOrEmpty(problemDescription))
+                queryParams.Add($"ProblemDescription={Uri.EscapeDataString(problemDescription)}");
+            
+            if (!string.IsNullOrEmpty(problemIndustry))
+                queryParams.Add($"ProblemIndustry={Uri.EscapeDataString(problemIndustry)}");
+                
+            if (!string.IsNullOrEmpty(problemPriority))
+                queryParams.Add($"ProblemPriority={Uri.EscapeDataString(problemPriority)}");
+            
+            var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+            NavigationManager.NavigateTo($"/partner/{encodedEmail}{queryString}");
         }
     }
 
