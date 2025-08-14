@@ -1,105 +1,257 @@
 # FX-Orleans Development Guide
 
-## Enhanced System Architecture
+> Expert consultation platform connecting businesses with fractional executives (CIO, CTO, CISO)
+> Last Updated: 2025-08-14
 
-### Home Page / Problem Statement Interface
+## Project Overview
 
-Clean, professional form for users to describe their challenges
-AI-powered analysis of the problem statement
-Optional fields for industry, urgency, and specific expertise needs
+FX-Orleans is a specialized platform that helps businesses find and engage with qualified Fortium partners for fractional executive leadership through AI-powered matching, integrated booking, and payment processing.
 
-### AI Matching Engine
+**Current Status:** Phase 1 MVP - Core booking and payment flow completion
 
-Natural language processing to extract key requirements
-Matching algorithm to identify partners with relevant skills and experience
-Availability filter to only show partners who can meet soon
+## System Architecture
 
-### Partner Selection Interface
+### Core Components
 
-Display of matched partners with relevance scores
-Brief profiles highlighting expertise relevant to the stated problem
-Availability calendar for each partner
+**Frontend (Blazor Server + WebAssembly)**
+- **Client App:** Interactive UI components with MudBlazor
+- **Server App:** Authentication and server-side rendering
+- **Shared Components:** Reusable UI elements and services
 
-### Booking System
+**Backend (Event Sourcing + CQRS)**
+- **EventServer:** ASP.NET Core 9.0 with Marten/Wolverine
+- **Event Store:** PostgreSQL with Marten events
+- **Aggregates:** Partners, Users, VideoConferences, Payments, Calendar
 
-Seamless transition to scheduling once a partner is selected
-Calendar integration
-Confirmation and reminder system
-The booking system should add a meeting request to the partners calander,
-inviting the user and adding a google meeting link.
+**External Integrations**
+- **AI Matching:** OpenAI GPT with RAG implementation
+- **Authentication:** Keycloak with OpenID Connect
+- **Payments:** Stripe.net for payment processing
+- **Calendar:** Google Calendar API v3
+- **Video:** Google Meet integration
 
-### Payment Authorization
+### Key Features (Implemented)
 
-Using stripe authorize a payment for 800.00 for a 60 minute session.
-The payment should be collected prior to the user joining the meeting.
+**✅ AI-Powered Partner Matching**
+- Natural language processing of problem statements
+- RAG-based matching against partner expertise
+- Relevance scoring and ranking
 
-### Confirmation Email
+**✅ Authentication & User Management**
+- Keycloak integration with OpenID Connect
+- Role-based access (clients, partners)
+- User profile management
 
-The confirmation page will display the details of the scheduled meeting.
-Additionally confirmation e-mails will be sent out from the google meeting request.
+**✅ Partner Profiles**
+- Comprehensive skill inventories
+- Work history categorization
+- Expertise levels and specializations
 
-### Implementation Approach
+**✅ Booking System** 
+- Google Calendar integration
+- Real-time availability checks
+- Meeting request generation with Google Meet links
 
-For the AI matching component, you could:
+**✅ Payment Processing**
+- Stripe payment authorization ($800/60min sessions)
+- Pre-meeting payment collection
+- Revenue share tracking (80% to partners)
 
-Use a Large Language Model (LLM) like OpenAI's GPT or similar:
+**✅ Session Management**
+- Confirmation emails and calendar invites
+- Partner dashboard for session management
+- Session history tracking
 
-Process problem statements
-Extract key skills, industries, and technologies mentioned
-Match against structured partner profiles
+## Development Setup
 
-Partner Profile Database:
+### Prerequisites
 
-Detailed skills inventory for each partner
-Previous experience categorized by industry and role
-Areas of specialty and expertise levels
+- .NET 9.0 SDK
+- Docker (for infrastructure services)
+- Node.js (for frontend tooling)
 
-Availability System:
+### Build & Run Commands
 
-Calendar API integration (Google Calendar)
-Real-time availability checks
+**Build Project:**
+```bash
+# Build entire solution
+dotnet build
 
-## Build & Run Commands
+# Build with Justfile
+just build
+```
 
-- Build: `dotnet build`
-- Run EventServer: `dotnet watch --project src/EventServer/EventServer.csproj`
-- Run FxExpert Blazor: `dotnet watch --project src/FxExpert.Blazor/FxExpert.Blazor/FxExpert.Blazor.csproj`
-- Run both services: `just run`
+**Run Services:**
+```bash
+# Run EventServer only
+dotnet watch --project src/EventServer/EventServer.csproj
 
-## Test Commands
+# Run FxExpert Blazor only  
+dotnet watch --project src/FxExpert.Blazor/FxExpert.Blazor/FxExpert.Blazor.csproj --launch-profile https
 
-- Run all tests: `dotnet test`
-- Run specific test: `dotnet test --filter "FullyQualifiedName=EventServer.Tests.UserTests.CreateUserTest"`
-- Tests use xUnit, Alba for HTTP testing, and Shouldly for assertions
+# Run both services
+just run
 
-## Code Style Guidelines
+# Run infrastructure (Docker containers)
+docker-compose up -d
+# OR
+process-compose up
+```
 
+### Testing
+
+**Unit & Integration Tests:**
+```bash
+# Run all tests
+dotnet test
+
+# Run specific test
+dotnet test --filter "FullyQualifiedName=EventServer.Tests.UserTests.CreateUserTest"
+
+# Run E2E tests
+cd tests/FxExpert.E2E.Tests
+dotnet test
+```
+
+**Test Coverage:**
+- **Unit Tests:** xUnit with Alba (HTTP testing) and Shouldly (assertions)
+- **E2E Tests:** Playwright with NUnit for cross-browser testing
+- **Integration Tests:** Test complete booking flows and payment processes
+
+## Project Structure
+
+```
+fx-orleans/
+├── src/
+│   ├── EventServer/                    # Backend API (.NET 9)
+│   │   ├── Aggregates/                # Event sourcing aggregates
+│   │   ├── Controllers/               # API controllers
+│   │   └── Services/                  # Business services
+│   ├── FxExpert.Blazor/               # Frontend applications
+│   │   ├── FxExpert.Blazor/          # Server-side Blazor
+│   │   └── FxExpert.Blazor.Client/   # WebAssembly client
+│   └── common/                        # Shared utilities
+├── shared-types/                      # Shared data models
+├── tests/
+│   └── FxExpert.E2E.Tests/           # End-to-end testing
+├── docs/                             # Technical documentation
+├── infrastructure/                   # K8s manifests
+└── .agent-os/                       # Agent OS configuration
+```
+
+## Technical Standards
+
+### Code Style Guidelines
+
+**General Principles:**
 - Use type hints everywhere for clarity
 - Code should be simple, readable, and self-explanatory
 - Use meaningful names that reveal intent
 - Function names should describe actions performed
 - Prefer exceptions over error codes for error handling
 - Use immutable types whenever possible
-- In controllers, use Wolverine attributes and return command events
-- In the UI use Blazor and MudComponents.
-- Prefer MudCompenents over standard html.
 
-## Architecture Overview
+**Framework-Specific:**
+- **Controllers:** Use Wolverine attributes and return command events
+- **UI:** Use Blazor with MudBlazor components
+- **HTML:** Prefer MudComponents over standard HTML elements
+- **Formatting:** Follow Agent OS code style standards (@~/.agent-os/standards/code-style.md)
 
-- System uses CQRS and Event Sourcing patterns
+### Architecture Patterns
+
+**Event Sourcing + CQRS:**
 - Commands represent intent to change state
 - Events represent state changes that have occurred
-- Main aggregates: Partners, Users, VideoConferences, Payments, Calendar
-- UI uses Blazor with MudBlazor component library
+- Projections provide read models for queries
+- Marten handles event storage and projections
 
-## Instructions
+**Main Aggregates:**
+- **Partners:** Profile management, skills, availability
+- **Users:** Client profiles and preferences  
+- **VideoConferences:** Session scheduling and management
+- **Payments:** Stripe integration and revenue tracking
+- **Calendar:** Google Calendar integration and availability
 
-## Agent OS Documentation
+**Service Layer:**
+- **AI Matching:** ChatGPT with RAG for partner recommendations
+- **Calendar Service:** Google Calendar API integration
+- **Payment Service:** Stripe payment processing
+- **Email Service:** Automated notifications and confirmations
 
-### Product Context
+## Development Workflow
+
+### Current Priorities (Phase 1 MVP)
+
+**High Priority (Complete by Q4 2024):**
+- ✅ Complete booking system with partner availability
+- ✅ Payment authorization flow ($800 sessions)  
+- ✅ Google Meet integration with calendar invites
+- ✅ Session management for partners
+- ✅ Basic note-taking and payment capture
+
+**Next Phase (Q1 2025):**
+- Advanced partner search and filtering
+- Mobile-responsive design optimization
+- Enhanced AI matching with feedback integration
+- Partner and client dashboard improvements
+
+### Key Development Commands
+
+**Quick Start:**
+```bash
+# Start infrastructure
+docker-compose up -d
+
+# Run both services
+just run
+
+# Run tests
+dotnet test
+```
+
+**Environment Configuration:**
+- **Development:** Local with Docker containers
+- **Authentication:** Keycloak on localhost:8080
+- **Database:** PostgreSQL with Marten event store
+- **Monitoring:** OpenTelemetry + Zipkin tracing
+
+## Troubleshooting
+
+### Common Issues
+
+**Build Issues:**
+- Ensure .NET 9 SDK is installed
+- Check Docker containers are running
+- Verify Keycloak realm configuration
+
+**Authentication Issues:**
+- Check Keycloak service status: `docker ps`
+- Verify realm-export.json configuration
+- Review OpenID Connect settings in appsettings.json
+
+**Testing Issues:**
+- Ensure test databases are clean
+- Check E2E test browser configuration
+- Verify Playwright dependencies
+
+### Debugging
+
+**Application Logs:**
+- EventServer logs: Console output from `dotnet watch`
+- Blazor logs: Browser developer tools
+- Infrastructure logs: `docker-compose logs`
+
+**Performance Monitoring:**
+- OpenTelemetry traces in Zipkin (http://localhost:9411)
+- Application metrics in console output
+- Database query performance in Marten logs
+
+## Agent OS Integration
+
+### Product Documentation
 
 - **Mission & Vision:** @.agent-os/product/mission.md
-- **Technical Architecture:** @.agent-os/product/tech-stack.md
+- **Technical Stack:** @.agent-os/product/tech-stack.md
 - **Development Roadmap:** @.agent-os/product/roadmap.md
 - **Decision History:** @.agent-os/product/decisions.md
 
@@ -111,21 +263,36 @@ Real-time availability checks
 ### Project Management
 
 - **Active Specs:** @.agent-os/specs/
-- **Spec Planning:** Use `@~/.agent-os/instructions/create-spec.md`
-- **Tasks Execution:** Use `@~/.agent-os/instructions/execute-tasks.md`
+- **Spec Planning:** Use @~/.agent-os/instructions/create-spec.md
+- **Task Execution:** Use @~/.agent-os/instructions/execute-tasks.md
 
-## Workflow Instructions
+## Contributing Guidelines
 
-When asked to work on this codebase:
+### Before Starting Work
 
-1. **First**, check @.agent-os/product/roadmap.md for current priorities
-2. **Then**, follow the appropriate instruction file:
-   - For new features: @.agent-os/instructions/create-spec.md
-   - For tasks execution: @.agent-os/instructions/execute-tasks.md
-3. **Always**, adhere to the standards in the files listed above
+1. **Check current priorities** in @.agent-os/product/roadmap.md
+2. **Review related specifications** in @.agent-os/specs/
+3. **Follow established patterns** in existing codebase
+4. **Run tests** to ensure clean baseline
+
+### Development Process
+
+1. **Create feature branch** following Git flow
+2. **Write tests first** (TDD approach)
+3. **Implement functionality** following SOLID principles
+4. **Ensure all tests pass** including E2E tests
+5. **Update documentation** if needed
+
+### Code Quality Standards
+
+- **Test Coverage:** Maintain >80% unit test coverage
+- **Performance:** API responses <200ms, UI interactions <100ms
+- **Security:** Follow OWASP guidelines, no hardcoded secrets
+- **Accessibility:** WCAG 2.1 AA compliance for UI components
 
 ## Important Notes
 
-- Product-specific files in `.agent-os/product/` override any global standards
-- User's specific instructions override (or amend) instructions found in `.agent-os/specs/...`
-- Always adhere to established patterns, code style, and best practices documented above.
+- **Agent OS Override:** Product-specific files in `.agent-os/product/` override global standards
+- **User Instructions:** User-specific instructions override specifications in `.agent-os/specs/`
+- **Pattern Consistency:** Always adhere to established patterns and conventions
+- **Quality Gates:** All changes must pass automated testing pipeline
