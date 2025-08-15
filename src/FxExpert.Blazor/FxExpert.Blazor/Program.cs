@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using FxExpert.Blazor;
 using FxExpert.Blazor.Components;
+using FxExpert.Blazor.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.SignalR;
@@ -46,6 +47,9 @@ builder.Services.AddSingleton<FxExpert.Blazor.Client.Services.IPerformanceMonito
 
 // Add connection health service
 builder.Services.AddScoped<FxExpert.Blazor.Services.ConnectionHealthService>();
+
+// Add authentication integration service
+builder.Services.AddScoped<FxExpert.Blazor.Services.IAuthenticationIntegrationService, FxExpert.Blazor.Services.AuthenticationIntegrationService>();
 
 // Add services to the container.
 builder
@@ -201,12 +205,12 @@ builder
               Log.Information("Redirecting to: {AuthorizationEndpoint}", context.ProtocolMessage.AuthorizationEndpoint);
               return Task.CompletedTask;
             },
-            OnTokenValidated = context =>
+            OnTokenValidated = async context =>
             {
               // Map Keycloak roles to claims
               var identity = context.Principal?.Identity as ClaimsIdentity;
               if (identity == null)
-                return Task.CompletedTask;
+                return;
 
               Log.Information("OnTokenValidated: Token validated successfully");
               Log.Information("Identity Name: {IdentityName}", identity.Name);
@@ -306,7 +310,20 @@ builder
               foreach (var claim in identity.Claims)
                 Log.Information("Role: {RoleType}:{RoleValue}", claim.Type, claim.Value);
 
-              return Task.CompletedTask;
+              // Ensure user exists in EventServer with automatic role assignment
+              try
+              {
+                var serviceProvider = context.HttpContext.RequestServices;
+                var authIntegrationService = serviceProvider.GetRequiredService<FxExpert.Blazor.Services.IAuthenticationIntegrationService>();
+                
+                var userCreated = await authIntegrationService.EnsureUserExistsAsync(context.Principal!, context.HttpContext.RequestAborted);
+                Log.Information("User integration result: {UserCreated}", userCreated);
+              }
+              catch (Exception ex)
+              {
+                Log.Error(ex, "Error ensuring user exists in EventServer during authentication");
+                // Continue with authentication even if EventServer integration fails
+              }
             },
 
             // Handle authentication errors
