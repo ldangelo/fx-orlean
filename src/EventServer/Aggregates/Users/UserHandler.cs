@@ -1,5 +1,6 @@
 using EventServer.Aggregates.Users.Commands;
 using EventServer.Aggregates.Users.Events;
+using EventServer.Services;
 using Fortium.Types;
 using Serilog;
 
@@ -14,10 +15,11 @@ public class UserHandler {
 
     public static void Handle(UserCreatedEvent @event, User user)
     {
-        Log.Information("UserHandler: Applying {type} to {EmailAddress}", typeof(UserCreatedEvent),@event.EmailAddress);
+        Log.Information("UserHandler: Applying {type} to {EmailAddress} with role {Role}", typeof(UserCreatedEvent), @event.EmailAddress, @event.Role);
         user.FirstName = @event.FirstName;
         user.LastName = @event.LastName;
         user.EmailAddress = @event.EmailAddress;
+        user.Role = @event.Role;
         user.CreateDate = DateTime.Now;
     }
 

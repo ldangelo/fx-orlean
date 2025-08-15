@@ -1,6 +1,7 @@
 using EventServer.Aggregates.Users;
 using EventServer.Aggregates.Users.Commands;
 using EventServer.Aggregates.Users.Events;
+using EventServer.Services;
 using Fortium.Types;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -16,9 +17,15 @@ public static class UserController
     public static (CreationResponse, IStartStream) CreateUsers(CreateUserCommand command)
     {
         Log.Information("Creating user {Id}.", command.EmailAddress);
+        
+        // Determine user role - use provided role or auto-assign based on email domain
+        var assignedRole = command.Role ?? RoleAssignmentService.DetermineUserRole(command.EmailAddress);
+        
+        Log.Information("Assigning role {Role} to user {EmailAddress}.", assignedRole, command.EmailAddress);
+        
         var start = MartenOps.StartStream<User>(
             command.EmailAddress,
-            new UserCreatedEvent(command.FirstName, command.LastName, command.EmailAddress)
+            new UserCreatedEvent(command.FirstName, command.LastName, command.EmailAddress, assignedRole)
         );
         var response = new CreationResponse("/users/" + start.StreamId);
         return (response, start);

@@ -14,6 +14,7 @@ public class UserProjection : SingleStreamProjection<User, string>
         user.FirstName = @event.FirstName;
         user.LastName = @event.LastName;
         user.EmailAddress = @event.EmailAddress;
+        user.Role = @event.Role;
         user.CreateDate = DateTime.Now;
         user.Active = false;
 

@@ -7,7 +7,7 @@ public interface IUserCommand
 }
 
 [Serializable]
-public record CreateUserCommand(string FirstName, string LastName, string EmailAddress) : IUserCommand {}
+public record CreateUserCommand(string FirstName, string LastName, string EmailAddress, string? Role = null) : IUserCommand {}
 
 [Serializable]
 public record AddVideoConferenceToUserCommand(string EmailAddress, Guid? ConferenceId): IUserCommand {}
@@ -67,6 +67,9 @@ public class CreateUserCommandValdator : AbstractValidator<CreateUserCommand>
             .NotEmpty()
             .EmailAddress()
             .WithMessage("Email address is required and must be valid.");
+        RuleFor(command => command.Role)
+            .Must(role => role == null || role == "PARTNER" || role == "CLIENT")
+            .WithMessage("Role must be either 'PARTNER' or 'CLIENT' if specified.");
     }
 }
 
