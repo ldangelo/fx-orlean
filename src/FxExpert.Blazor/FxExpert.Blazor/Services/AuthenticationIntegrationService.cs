@@ -14,8 +14,8 @@ public interface IAuthenticationIntegrationService
     /// </summary>
     /// <param name="principal">Claims principal from successful authentication</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if user was successfully processed</returns>
-    Task<bool> EnsureUserExistsAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default);
+    /// <returns>UserIntegrationResult containing success status and assigned role</returns>
+    Task<UserIntegrationResult> EnsureUserExistsAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default);
 }
 
 public class AuthenticationIntegrationService : IAuthenticationIntegrationService
@@ -31,7 +31,7 @@ public class AuthenticationIntegrationService : IAuthenticationIntegrationServic
         _logger = logger;
     }
 
-    public async Task<bool> EnsureUserExistsAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
+    public async Task<UserIntegrationResult> EnsureUserExistsAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -43,7 +43,7 @@ public class AuthenticationIntegrationService : IAuthenticationIntegrationServic
             if (string.IsNullOrEmpty(email))
             {
                 _logger.LogWarning("No email claim found in authentication principal");
-                return false;
+                return new UserIntegrationResult { Success = false };
             }
 
             _logger.LogInformation("Ensuring user exists in EventServer: {Email}", email);
@@ -52,8 +52,8 @@ public class AuthenticationIntegrationService : IAuthenticationIntegrationServic
             var existingUser = await GetUserAsync(email, cancellationToken);
             if (existingUser != null)
             {
-                _logger.LogInformation("User already exists in EventServer: {Email}", email);
-                return true;
+                _logger.LogInformation("User already exists in EventServer: {Email} with role: {Role}", email, existingUser.Role);
+                return new UserIntegrationResult { Success = true, AssignedRole = existingUser.Role };
             }
 
             // Create user with automatic role assignment based on email domain
@@ -66,22 +66,22 @@ public class AuthenticationIntegrationService : IAuthenticationIntegrationServic
                 Role = null
             };
 
-            var success = await CreateUserAsync(createUserRequest, cancellationToken);
-            if (success)
+            var createdUser = await CreateUserAsync(createUserRequest, cancellationToken);
+            if (createdUser != null)
             {
-                _logger.LogInformation("Successfully created user in EventServer: {Email}", email);
+                _logger.LogInformation("Successfully created user in EventServer: {Email} with role: {Role}", email, createdUser.Role);
+                return new UserIntegrationResult { Success = true, AssignedRole = createdUser.Role };
             }
             else
             {
                 _logger.LogError("Failed to create user in EventServer: {Email}", email);
+                return new UserIntegrationResult { Success = false };
             }
-
-            return success;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error ensuring user exists in EventServer");
-            return false;
+            return new UserIntegrationResult { Success = false };
         }
     }
 
@@ -138,7 +138,7 @@ public class AuthenticationIntegrationService : IAuthenticationIntegrationServic
         }
     }
 
-    private async Task<bool> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken)
+    private async Task<UserResponse?> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken)
     {
         try
         {
@@ -153,25 +153,34 @@ public class AuthenticationIntegrationService : IAuthenticationIntegrationServic
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("User created successfully: {Email}", request.EmailAddress);
-                return true;
+                
+                // Retrieve the created user to get the assigned role
+                await Task.Delay(100, cancellationToken); // Brief delay to ensure user is created
+                return await GetUserAsync(request.EmailAddress, cancellationToken);
             }
             else
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
                 _logger.LogError("Failed to create user. Status: {StatusCode}, Error: {Error}", 
                     response.StatusCode, errorContent);
-                return false;
+                return null;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user: {Email}", request.EmailAddress);
-            return false;
+            return null;
         }
     }
 }
 
-// DTOs for EventServer communication
+// Result and DTOs for EventServer communication
+public class UserIntegrationResult
+{
+    public bool Success { get; set; }
+    public string? AssignedRole { get; set; }
+}
+
 public class CreateUserRequest
 {
     public string FirstName { get; set; } = string.Empty;

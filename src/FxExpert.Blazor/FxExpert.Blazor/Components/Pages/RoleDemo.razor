@@ -1,0 +1,127 @@
+@page "/role-demo"
+@using FxExpert.Blazor.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@inject IRoleService RoleService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
+<PageTitle>Role Demo</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudPaper Class="pa-6">
+        <MudText Typo="Typo.h4" Class="mb-4">User Role Information</MudText>
+        
+        @if (authenticationState?.User?.Identity?.IsAuthenticated == true)
+        {
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">EventServer Role Assignment</MudText>
+                            
+                            <MudList T="string">
+                                <MudListItem Icon="@Icons.Material.Filled.Person">
+                                    <MudText><strong>Assigned Role:</strong> @(assignedRole ?? "None")</MudText>
+                                </MudListItem>
+                                
+                                <MudListItem Icon="@Icons.Material.Filled.Business">
+                                    <MudText>
+                                        <strong>Is Partner:</strong> 
+                                        <MudChip T="string" Color="@(isPartner ? Color.Success : Color.Default)" Size="Size.Small">
+                                            @(isPartner ? "Yes" : "No")
+                                        </MudChip>
+                                    </MudText>
+                                </MudListItem>
+                                
+                                <MudListItem Icon="@Icons.Material.Filled.PersonOutline">
+                                    <MudText>
+                                        <strong>Is Client:</strong> 
+                                        <MudChip T="string" Color="@(isClient ? Color.Success : Color.Default)" Size="Size.Small">
+                                            @(isClient ? "Yes" : "No")
+                                        </MudChip>
+                                    </MudText>
+                                </MudListItem>
+                            </MudList>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                
+                <MudItem xs="12" md="6">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">All Claims</MudText>
+                            
+                            <MudList T="string" Dense="true">
+                                @foreach (var claim in allClaims)
+                                {
+                                    <MudListItem>
+                                        <MudText Typo="Typo.body2">
+                                            <strong>@claim.Type:</strong> @claim.Value
+                                        </MudText>
+                                    </MudListItem>
+                                }
+                            </MudList>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">Role-Based Content</MudText>
+                            
+                            @if (isPartner)
+                            {
+                                <MudAlert Severity="Severity.Success" Class="mb-3">
+                                    <strong>Partner Dashboard Access:</strong> You have access to partner-specific features like session management, calendar availability, and earnings tracking.
+                                </MudAlert>
+                            }
+                            
+                            @if (isClient)
+                            {
+                                <MudAlert Severity="Severity.Info" Class="mb-3">
+                                    <strong>Client Portal Access:</strong> You can book consultations, view session history, and access client resources.
+                                </MudAlert>
+                            }
+                            
+                            @if (!isPartner && !isClient)
+                            {
+                                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                                    <strong>No Role Assigned:</strong> Please contact support if you should have partner or client access.
+                                </MudAlert>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning">
+                You must be logged in to view role information.
+            </MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private AuthenticationState? authenticationState;
+    private string? assignedRole;
+    private bool isPartner;
+    private bool isClient;
+    private List<Claim> allClaims = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
+        if (authenticationState?.User?.Identity?.IsAuthenticated == true)
+        {
+            assignedRole = RoleService.GetAssignedRole(authenticationState.User);
+            isPartner = RoleService.IsPartner(authenticationState.User);
+            isClient = RoleService.IsClient(authenticationState.User);
+            allClaims = authenticationState.User.Claims.ToList();
+        }
+    }
+}

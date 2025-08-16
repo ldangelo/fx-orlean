@@ -51,6 +51,10 @@ builder.Services.AddScoped<FxExpert.Blazor.Services.ConnectionHealthService>();
 // Add authentication integration service
 builder.Services.AddScoped<FxExpert.Blazor.Services.IAuthenticationIntegrationService, FxExpert.Blazor.Services.AuthenticationIntegrationService>();
 
+// Add role service for accessing user roles from claims
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<FxExpert.Blazor.Services.IRoleService, FxExpert.Blazor.Services.RoleService>();
+
 // Add services to the container.
 builder
     .Services.AddRazorComponents()
@@ -316,8 +320,21 @@ builder
                 var serviceProvider = context.HttpContext.RequestServices;
                 var authIntegrationService = serviceProvider.GetRequiredService<FxExpert.Blazor.Services.IAuthenticationIntegrationService>();
                 
-                var userCreated = await authIntegrationService.EnsureUserExistsAsync(context.Principal!, context.HttpContext.RequestAborted);
-                Log.Information("User integration result: {UserCreated}", userCreated);
+                var integrationResult = await authIntegrationService.EnsureUserExistsAsync(context.Principal!, context.HttpContext.RequestAborted);
+                Log.Information("User integration result: Success={Success}, AssignedRole={AssignedRole}", integrationResult.Success, integrationResult.AssignedRole);
+                
+                // Add EventServer-assigned role to authentication claims
+                if (integrationResult.Success && !string.IsNullOrEmpty(integrationResult.AssignedRole))
+                {
+                  // Add the EventServer role as an application-specific claim
+                  identity.AddClaim(new Claim("application_role", integrationResult.AssignedRole));
+                  identity.AddClaim(new Claim("fx_role", integrationResult.AssignedRole));
+                  
+                  // Also add it as a standard role claim for compatibility
+                  identity.AddClaim(new Claim(ClaimTypes.Role, integrationResult.AssignedRole));
+                  
+                  Log.Information("Added EventServer role to claims: {Role}", integrationResult.AssignedRole);
+                }
               }
               catch (Exception ex)
               {
