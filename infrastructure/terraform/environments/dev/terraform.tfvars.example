@@ -1,0 +1,87 @@
+# AWS Configuration
+aws_region   = "us-west-2"
+environment  = "dev"
+cluster_name = "fx-orleans-dev"
+
+# VPC Configuration
+vpc_cidr = "10.0.0.0/16"
+
+# EKS Configuration
+kubernetes_version       = "1.28"
+node_group_desired_size = 2
+node_group_max_size     = 4
+node_group_min_size     = 1
+instance_types          = ["t3.medium"]
+capacity_type           = "ON_DEMAND"
+disk_size              = 50
+
+# Access Configuration
+cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]  # Restrict this in production
+ec2_ssh_key                         = "my-key-pair"    # Optional: EC2 key pair name
+
+# Security Configuration
+enable_ssh_access       = true
+ssh_allowed_cidr_blocks = ["10.0.0.0/16"]
+enable_rds_admin_access = true
+rds_admin_cidr_blocks   = ["10.0.0.0/16"]
+
+# Database Configuration
+db_name     = "fxorleans"
+db_username = "fxadmin"
+db_password = "CHANGE_ME_SECURE_PASSWORD_123!"
+
+# RDS Configuration
+rds_instance_class              = "db.t3.micro"
+rds_allocated_storage          = 20
+rds_max_allocated_storage      = 100
+rds_multi_az                   = false  # Set to true for production
+rds_backup_retention_period    = 7
+rds_deletion_protection        = false  # Set to true for production
+rds_skip_final_snapshot       = true   # Set to false for production
+rds_create_read_replica       = false
+rds_monitoring_interval       = 60
+rds_performance_insights_enabled = true
+
+# Application Secrets - CHANGE ALL OF THESE
+openai_api_key          = "sk-your-openai-api-key-here"
+stripe_secret_key       = "sk_test_your-stripe-secret-key"
+stripe_publishable_key  = "pk_test_your-stripe-publishable-key"
+stripe_webhook_secret   = "whsec_your-webhook-secret"
+
+# Google OAuth Configuration
+google_client_id     = "your-google-client-id"
+google_client_secret = "your-google-client-secret"
+google_project_id    = "your-google-project-id"
+
+# Keycloak Configuration
+keycloak_admin_username = "admin"
+keycloak_admin_password = "CHANGE_ME_KEYCLOAK_ADMIN_PASSWORD"
+keycloak_client_secret  = "your-keycloak-client-secret"
+
+# JWT Configuration
+jwt_signing_key = "your-jwt-signing-key-32-chars-min"
+jwt_issuer      = "fx-orleans-dev"
+jwt_audience    = "fx-orleans-api"
+
+# Application Security
+app_encryption_key = "your-app-encryption-key-32-chars"
+session_secret     = "your-session-secret-key-32-chars"
+rate_limit_secret  = "your-rate-limit-secret-key"
+
+# CORS Configuration
+cors_origins = [
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "https://dev.fx-orleans.com"
+]
+
+# Example Production Values (commented out):
+# environment = "prod"
+# cluster_name = "fx-orleans-prod"
+# rds_instance_class = "db.r5.large"
+# rds_multi_az = true
+# rds_deletion_protection = true
+# rds_skip_final_snapshot = false
+# capacity_type = "ON_DEMAND"
+# node_group_desired_size = 3
+# node_group_max_size = 10

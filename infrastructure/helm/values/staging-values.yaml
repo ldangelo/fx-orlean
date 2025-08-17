@@ -1,0 +1,113 @@
+# Staging Environment Values Override
+# Override values for fx-orleans staging environment
+
+global:
+  namespace: fx-orleans-staging
+  clusterName: fx-orleans-staging
+  environment: staging
+  region: us-west-2
+
+# EventServer overrides for staging
+eventserver:
+  replicaCount: 2
+  image:
+    tag: staging-latest
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+  env:
+    ASPNETCORE_ENVIRONMENT: "Staging"
+    LOGGING_LEVEL: "Information"
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+    hosts:
+      - host: api-staging.fx-orleans.internal
+
+# Blazor Frontend overrides for staging
+blazor-frontend:
+  replicaCount: 2
+  image:
+    tag: staging-latest
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+    hosts:
+      - host: staging.fx-orleans.internal
+        paths:
+          - path: /
+            pathType: Prefix
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: eventserver
+                port: 80
+
+# Keycloak overrides for staging
+keycloak:
+  replicaCount: 2
+  image:
+    tag: 25.0.4
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+  env:
+    KC_LOG_LEVEL: "INFO"
+  ingress:
+    hosts:
+      - host: auth-staging.fx-orleans.internal
+        paths:
+          - path: /
+            pathType: Prefix
+
+# External Secrets overrides for staging
+external-secrets:
+  aws:
+    region: us-west-2
+  externalSecrets:
+    database:
+      awsSecretName: fx-orleans-staging/database
+    openai:
+      awsSecretName: fx-orleans-staging/openai
+    stripe:
+      awsSecretName: fx-orleans-staging/stripe
+    googleCalendar:
+      awsSecretName: fx-orleans-staging/google-calendar
+    keycloak:
+      awsSecretName: fx-orleans-staging/keycloak
+    keycloakDb:
+      awsSecretName: fx-orleans-staging/keycloak-database
+    keycloakAdmin:
+      awsSecretName: fx-orleans-staging/keycloak-admin
+    eventserver:
+      awsSecretName: fx-orleans-staging/eventserver

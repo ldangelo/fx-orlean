@@ -1,0 +1,232 @@
+# Blazor Frontend Helm Chart Values
+
+# Global settings
+global:
+  namespace: fx-orleans
+  clusterName: fx-orleans-dev
+  environment: dev
+  region: us-west-2
+
+# Image configuration
+image:
+  repository: fx-orleans/blazor-frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Deployment configuration
+replicaCount: 3
+revisionHistoryLimit: 3
+
+# Service Account for IRSA
+serviceAccount:
+  create: true
+  name: blazor-frontend
+  annotations:
+    eks.amazonaws.com/role-arn: ""  # Will be set by Terraform output
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+# Ingress configuration for ALB
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: ""  # Will be set by Terraform output
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=60
+    alb.ingress.kubernetes.io/group.name: fx-orleans
+  hosts:
+    - host: fx-orleans.com
+      paths:
+        - path: /
+          pathType: Prefix
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: eventserver
+              port: 80
+  tls:
+    - secretName: fx-orleans-tls
+      hosts:
+        - fx-orleans.com
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 15
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Health checks
+healthcheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# AWS-specific configuration
+aws:
+  region: us-west-2
+
+# External services configuration (using External Secrets)
+externalServices:
+  eventserver:
+    url: "http://eventserver:80"
+    secretName: "fx-orleans-eventserver"
+  keycloak:
+    url: ""  # Will be set from External Secret
+    secretName: "fx-orleans-keycloak"
+
+# Application-specific environment variables
+env:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
+  TZ: "UTC"
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Node selector and affinity
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - blazor-frontend
+          topologyKey: kubernetes.io/hostname
+
+# Monitoring and observability
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /metrics
+    port: 8080
+
+# Logging configuration
+logging:
+  level: Information
+  structured: true
+
+# Volume mounts for temporary files and static content
+volumes:
+  - name: tmp
+    emptyDir: {}
+  - name: cache
+    emptyDir: {}
+  - name: wwwroot
+    emptyDir: {}
+
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  - name: cache
+    mountPath: /app/cache
+  - name: wwwroot
+    mountPath: /app/wwwroot/cache
+
+# ConfigMap data
+configMap:
+  data:
+    appsettings.json: |
+      {
+        "Logging": {
+          "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
+          }
+        },
+        "AllowedHosts": "*",
+        "EventServerUrl": "${EVENTSERVER_URL}",
+        "Keycloak": {
+          "Url": "${KEYCLOAK_URL}",
+          "Realm": "fx-orleans",
+          "ClientId": "fx-orleans-blazor"
+        },
+        "AWS": {
+          "Region": "${AWS_REGION}"
+        },
+        "OpenTelemetry": {
+          "ServiceName": "BlazorFrontend",
+          "ServiceVersion": "1.0.0"
+        }
+      }

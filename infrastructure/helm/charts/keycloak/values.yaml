@@ -1,0 +1,232 @@
+# Keycloak Helm Chart Values
+
+# Global settings
+global:
+  namespace: fx-orleans
+  clusterName: fx-orleans-dev
+  environment: dev
+  region: us-west-2
+
+# Image configuration
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: 25.0.4
+  pullPolicy: IfNotPresent
+
+# Deployment configuration
+replicaCount: 2
+revisionHistoryLimit: 3
+
+# Service Account for IRSA
+serviceAccount:
+  create: true
+  name: keycloak
+  annotations:
+    eks.amazonaws.com/role-arn: ""  # Will be set by Terraform output
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+
+# Ingress configuration for ALB
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: ""  # Will be set by Terraform output
+    alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "10"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+    alb.ingress.kubernetes.io/group.name: fx-orleans-internal
+  hosts:
+    - host: auth.fx-orleans.internal
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: fx-orleans-internal-tls
+      hosts:
+        - auth.fx-orleans.internal
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Health checks
+healthcheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8080
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# AWS-specific configuration
+aws:
+  region: us-west-2
+
+# Database configuration (using External Secrets for RDS)
+database:
+  secretName: "fx-orleans-keycloak-db"
+  vendor: "postgres"
+  sslMode: "require"
+
+# Keycloak configuration
+keycloak:
+  realm: "fx-orleans"
+  adminUser: "admin"
+  # Admin password will come from External Secret
+  adminSecretName: "fx-orleans-keycloak-admin"
+  
+  # Keycloak startup command
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+  args:
+    - "start"
+    - "--optimized"
+    - "--cache=ispn"
+    - "--cache-stack=kubernetes"
+    - "--db=postgres"
+    - "--features=token-exchange,admin-fine-grained-authz"
+    - "--spi-sticky-session-encoder-infinispan-should-attach-route=false"
+
+  # JVM options
+  javaOpts: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -Djava.awt.headless=true -Djgroups.dns.query=keycloak-headless"
+
+# Application-specific environment variables
+env:
+  KEYCLOAK_ADMIN: "admin"
+  KC_HOSTNAME_STRICT: "false"
+  KC_HOSTNAME_STRICT_HTTPS: "false"
+  KC_HTTP_ENABLED: "true"
+  KC_HEALTH_ENABLED: "true"
+  KC_METRICS_ENABLED: "true"
+  KC_PROXY: "edge"
+  KC_LOG_LEVEL: "INFO"
+  JAVA_OPTS_APPEND: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -Djava.awt.headless=true -Djgroups.dns.query=keycloak-headless"
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false  # Keycloak needs to write to some directories
+  allowPrivilegeEscalation: false
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Node selector and affinity
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - keycloak
+          topologyKey: kubernetes.io/hostname
+
+# Monitoring and observability
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /metrics
+    port: 8080
+
+# Logging configuration
+logging:
+  level: INFO
+  structured: true
+
+# Persistent volume for Keycloak data
+persistence:
+  enabled: false  # Using external database
+  
+# Volume mounts for temporary files
+volumes:
+  - name: tmp
+    emptyDir: {}
+  - name: keycloak-data
+    emptyDir: {}
+
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  - name: keycloak-data
+    mountPath: /opt/keycloak/data
+
+# Headless service for clustering
+headlessService:
+  enabled: true
+  ports:
+    - name: jgroups
+      port: 7600
+      protocol: TCP

@@ -1,0 +1,25 @@
+apiVersion: v2
+name: eventserver
+description: FX-Orleans EventServer - Core API and event processing service
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+maintainers:
+  - name: FX-Orleans Team
+    email: team@fx-orleans.com
+
+keywords:
+  - fx-orleans
+  - eventserver
+  - api
+  - event-sourcing
+  - cqrs
+
+home: https://fx-orleans.com
+sources:
+  - https://github.com/fortium/fx-orleans
+
+annotations:
+  category: Application
+  licenses: MIT

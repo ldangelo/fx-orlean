@@ -1,0 +1,141 @@
+# Production Environment Values Override
+# Override values for fx-orleans production environment
+
+global:
+  namespace: fx-orleans-prod
+  clusterName: fx-orleans-prod
+  environment: prod
+  region: us-west-2
+
+# EventServer overrides for production
+eventserver:
+  replicaCount: 3
+  image:
+    tag: "1.0.0"  # Use specific version tags in production
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+  env:
+    ASPNETCORE_ENVIRONMENT: "Production"
+    LOGGING_LEVEL: "Warning"
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/certificate-arn: ""  # Set by Terraform
+    hosts:
+      - host: api.fx-orleans.com
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+# Blazor Frontend overrides for production
+blazor-frontend:
+  replicaCount: 5
+  image:
+    tag: "1.0.0"  # Use specific version tags in production
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/certificate-arn: ""  # Set by Terraform
+    hosts:
+      - host: fx-orleans.com
+        paths:
+          - path: /
+            pathType: Prefix
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: eventserver
+                port: 80
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 3
+
+# Keycloak overrides for production
+keycloak:
+  replicaCount: 3
+  image:
+    tag: "25.0.4"  # Pin to specific version in production
+  resources:
+    limits:
+      cpu: 3000m
+      memory: 3Gi
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+  env:
+    KC_LOG_LEVEL: "WARN"
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal  # Keep auth internal
+    hosts:
+      - host: auth.fx-orleans.internal
+        paths:
+          - path: /
+            pathType: Prefix
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+# External Secrets overrides for production
+external-secrets:
+  aws:
+    region: us-west-2
+  externalSecrets:
+    database:
+      awsSecretName: fx-orleans-prod/database
+      refreshInterval: 600s  # Longer refresh in prod
+    openai:
+      awsSecretName: fx-orleans-prod/openai
+      refreshInterval: 7200s  # 2 hours for API keys
+    stripe:
+      awsSecretName: fx-orleans-prod/stripe
+      refreshInterval: 7200s  # 2 hours for payment keys
+    googleCalendar:
+      awsSecretName: fx-orleans-prod/google-calendar
+      refreshInterval: 7200s  # 2 hours for API keys
+    keycloak:
+      awsSecretName: fx-orleans-prod/keycloak
+      refreshInterval: 600s   # 10 minutes for auth config
+    keycloakDb:
+      awsSecretName: fx-orleans-prod/keycloak-database
+      refreshInterval: 600s   # 10 minutes for DB config
+    keycloakAdmin:
+      awsSecretName: fx-orleans-prod/keycloak-admin
+      refreshInterval: 600s   # 10 minutes for admin creds
+    eventserver:
+      awsSecretName: fx-orleans-prod/eventserver
+      refreshInterval: 600s   # 10 minutes for service config

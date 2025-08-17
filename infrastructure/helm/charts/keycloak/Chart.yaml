@@ -1,0 +1,26 @@
+apiVersion: v2
+name: keycloak
+description: FX-Orleans Keycloak - Identity and access management platform
+type: application
+version: 1.0.0
+appVersion: "25.0.4"
+
+maintainers:
+  - name: FX-Orleans Team
+    email: team@fx-orleans.com
+
+keywords:
+  - fx-orleans
+  - keycloak
+  - identity
+  - authentication
+  - iam
+  - sso
+
+home: https://fx-orleans.com
+sources:
+  - https://github.com/fortium/fx-orleans
+
+annotations:
+  category: Application
+  licenses: MIT

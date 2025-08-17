@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "keycloak.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "{{ .Values.monitoring.enabled }}"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+      labels:
+        {{- include "keycloak.selectorLabels" . | nindent 8 }}
+        version: {{ .Values.image.tag | quote }}
+    spec:
+      serviceAccountName: {{ include "keycloak.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.keycloak.command | nindent 12 }}
+          args:
+            {{- toYaml .Values.keycloak.args | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: jgroups
+              containerPort: 7600
+              protocol: TCP
+          env:
+            # Application environment
+            - name: KEYCLOAK_ADMIN
+              value: {{ .Values.env.KEYCLOAK_ADMIN | quote }}
+            - name: KC_HOSTNAME_STRICT
+              value: {{ .Values.env.KC_HOSTNAME_STRICT | quote }}
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: {{ .Values.env.KC_HOSTNAME_STRICT_HTTPS | quote }}
+            - name: KC_HTTP_ENABLED
+              value: {{ .Values.env.KC_HTTP_ENABLED | quote }}
+            - name: KC_HEALTH_ENABLED
+              value: {{ .Values.env.KC_HEALTH_ENABLED | quote }}
+            - name: KC_METRICS_ENABLED
+              value: {{ .Values.env.KC_METRICS_ENABLED | quote }}
+            - name: KC_PROXY
+              value: {{ .Values.env.KC_PROXY | quote }}
+            - name: KC_LOG_LEVEL
+              value: {{ .Values.env.KC_LOG_LEVEL | quote }}
+            - name: JAVA_OPTS_APPEND
+              value: {{ .Values.env.JAVA_OPTS_APPEND | quote }}
+            
+            # Admin password from External Secret
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keycloak.adminSecretName }}
+                  key: password
+            
+            # Database configuration from External Secret
+            - name: KC_DB
+              value: {{ .Values.database.vendor | quote }}
+            - name: KC_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName }}
+                  key: url
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName }}
+                  key: username
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.secretName }}
+                  key: password
+            
+            # Clustering configuration
+            - name: jgroups.dns.query
+              value: {{ include "keycloak.headlessServiceName" . }}
+            - name: KC_CACHE
+              value: "ispn"
+            - name: KC_CACHE_STACK
+              value: "kubernetes"
+          
+          {{- if .Values.healthcheck.enabled }}
+          livenessProbe:
+            {{- toYaml .Values.healthcheck.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.healthcheck.readinessProbe | nindent 12 }}
+          {{- end }}
+          
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          
+          volumeMounts:
+            {{- range .Values.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- if .readOnly }}
+              readOnly: {{ .readOnly }}
+              {{- end }}
+            {{- end }}
+      
+      volumes:
+        {{- range .Values.volumes }}
+        - name: {{ .name }}
+          {{- if .emptyDir }}
+          emptyDir: {}
+          {{- else if .configMap }}
+          configMap:
+            name: {{ .configMap.name }}
+          {{- else if .secret }}
+          secret:
+            secretName: {{ .secret.secretName }}
+          {{- end }}
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

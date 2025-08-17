@@ -14,7 +14,10 @@
       "mcp__node__update_issue",
       "Bash(dotnet test:*)",
       "Bash(dotnet build:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(make test-external-secrets:*)",
+      "Bash(mkdir:*)",
+      "Bash(make test:*)"
     ],
     "deny": []
   }

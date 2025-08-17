@@ -1,0 +1,211 @@
+# EventServer Helm Chart Values
+
+# Global settings
+global:
+  namespace: fx-orleans
+  clusterName: fx-orleans-dev
+  environment: dev
+  region: us-west-2
+
+# Image configuration
+image:
+  repository: fx-orleans/eventserver
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Deployment configuration
+replicaCount: 2
+revisionHistoryLimit: 3
+
+# Service Account for IRSA
+serviceAccount:
+  create: true
+  name: eventserver
+  annotations:
+    eks.amazonaws.com/role-arn: ""  # Will be set by Terraform output
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+# Ingress configuration (will be handled by ALB ingress controller)
+ingress:
+  enabled: false
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+  hosts:
+    - host: api.fx-orleans.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: fx-orleans-tls
+      hosts:
+        - api.fx-orleans.com
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Health checks
+healthcheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# AWS-specific configuration
+aws:
+  region: us-west-2
+  
+# Database configuration (using External Secrets)
+database:
+  host: ""  # Will be injected from External Secret
+  port: "5432"
+  name: "fxorleans"
+  secretName: "fx-orleans-database"
+  
+# External services configuration
+externalServices:
+  openai:
+    secretName: "fx-orleans-openai"
+  stripe:
+    secretName: "fx-orleans-stripe"
+  google:
+    secretName: "fx-orleans-google-calendar"
+  keycloak:
+    secretName: "fx-orleans-keycloak"
+
+# Application-specific environment variables
+env:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://+:8080"
+  TZ: "UTC"
+  
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Node selector and affinity
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - eventserver
+          topologyKey: kubernetes.io/hostname
+
+# Monitoring and observability
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /metrics
+    port: 8080
+
+# Logging configuration
+logging:
+  level: Information
+  structured: true
+  
+# Volume mounts for temporary files
+volumes:
+  - name: tmp
+    emptyDir: {}
+  - name: cache
+    emptyDir: {}
+
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+  - name: cache
+    mountPath: /app/cache
+
+# ConfigMap data
+configMap:
+  data:
+    appsettings.json: |
+      {
+        "Logging": {
+          "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
+          }
+        },
+        "AllowedHosts": "*",
+        "ConnectionStrings": {
+          "DefaultConnection": "Host=${DATABASE_HOST};Port=${DATABASE_PORT};Database=${DATABASE_NAME};Username=${DATABASE_USERNAME};Password=${DATABASE_PASSWORD}"
+        },
+        "AWS": {
+          "Region": "${AWS_REGION}"
+        },
+        "OpenTelemetry": {
+          "ServiceName": "EventServer",
+          "ServiceVersion": "1.0.0"
+        }
+      }

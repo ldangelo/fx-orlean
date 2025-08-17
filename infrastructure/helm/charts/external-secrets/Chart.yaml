@@ -1,0 +1,25 @@
+apiVersion: v2
+name: external-secrets
+description: FX-Orleans External Secrets Configuration - AWS Secrets Manager integration
+type: application
+version: 1.0.0
+appVersion: "0.10.4"
+
+maintainers:
+  - name: FX-Orleans Team
+    email: team@fx-orleans.com
+
+keywords:
+  - fx-orleans
+  - external-secrets
+  - aws-secrets-manager
+  - secrets
+  - configuration
+
+home: https://fx-orleans.com
+sources:
+  - https://github.com/fortium/fx-orleans
+
+annotations:
+  category: Application
+  licenses: MIT

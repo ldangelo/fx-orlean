@@ -1,0 +1,97 @@
+# Development Environment Values Override
+# Override values for fx-orleans development environment
+
+global:
+  namespace: fx-orleans-dev
+  clusterName: fx-orleans-dev
+  environment: dev
+  region: us-west-2
+
+# EventServer overrides for dev
+eventserver:
+  replicaCount: 1
+  image:
+    tag: dev-latest
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  autoscaling:
+    enabled: false
+  env:
+    ASPNETCORE_ENVIRONMENT: "Development"
+    LOGGING_LEVEL: "Debug"
+  ingress:
+    enabled: false  # Use port-forward for dev access
+
+# Blazor Frontend overrides for dev
+blazor-frontend:
+  replicaCount: 1
+  image:
+    tag: dev-latest
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 125m
+      memory: 128Mi
+  autoscaling:
+    enabled: false
+  ingress:
+    enabled: true
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internal
+    hosts:
+      - host: dev.fx-orleans.internal
+        paths:
+          - path: /
+            pathType: Prefix
+
+# Keycloak overrides for dev
+keycloak:
+  replicaCount: 1
+  image:
+    tag: 25.0.4
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: false
+  env:
+    KC_LOG_LEVEL: "DEBUG"
+  ingress:
+    hosts:
+      - host: auth-dev.fx-orleans.internal
+        paths:
+          - path: /
+            pathType: Prefix
+
+# External Secrets overrides for dev
+external-secrets:
+  aws:
+    region: us-west-2
+  externalSecrets:
+    database:
+      awsSecretName: fx-orleans-dev/database
+    openai:
+      awsSecretName: fx-orleans-dev/openai
+    stripe:
+      awsSecretName: fx-orleans-dev/stripe
+    googleCalendar:
+      awsSecretName: fx-orleans-dev/google-calendar
+    keycloak:
+      awsSecretName: fx-orleans-dev/keycloak
+    keycloakDb:
+      awsSecretName: fx-orleans-dev/keycloak-database
+    keycloakAdmin:
+      awsSecretName: fx-orleans-dev/keycloak-admin
+    eventserver:
+      awsSecretName: fx-orleans-dev/eventserver

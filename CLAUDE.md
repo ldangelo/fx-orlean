@@ -1,13 +1,13 @@
 # FX-Orleans Development Guide
 
 > Expert consultation platform connecting businesses with fractional executives (CIO, CTO, CISO)
-> Last Updated: 2025-08-14
+> Last Updated: 2025-08-17
 
 ## Project Overview
 
 FX-Orleans is a specialized platform that helps businesses find and engage with qualified Fortium partners for fractional executive leadership through AI-powered matching, integrated booking, and payment processing.
 
-**Current Status:** Phase 1 MVP - Core booking and payment flow completion
+**Current Status:** Phase 1 MVP Complete - Production-ready Kubernetes deployment with comprehensive Helm charts
 
 ## System Architecture
 
@@ -29,6 +29,14 @@ FX-Orleans is a specialized platform that helps businesses find and engage with 
 - **Payments:** Stripe.net for payment processing
 - **Calendar:** Google Calendar API v3
 - **Video:** Google Meet integration
+
+**Cloud Infrastructure (AWS EKS)**
+- **Container Orchestration:** Kubernetes with AWS EKS
+- **Service Mesh:** Helm charts for application deployment
+- **Secret Management:** External Secrets Operator with AWS Secrets Manager
+- **Load Balancing:** AWS Application Load Balancer (ALB)
+- **Authentication:** IAM Roles for Service Accounts (IRSA)
+- **Monitoring:** Prometheus + Grafana with ServiceMonitor integration
 
 ### Key Features (Implemented)
 
@@ -62,6 +70,14 @@ FX-Orleans is a specialized platform that helps businesses find and engage with 
 - Partner dashboard for session management
 - Session history tracking
 
+**✅ Production Deployment Infrastructure**
+- Comprehensive Helm charts for all services
+- AWS EKS integration with IRSA authentication
+- External Secrets Operator for secure configuration management
+- Multi-environment support (dev, staging, production)
+- Auto-scaling and high availability configuration
+- Application Load Balancer with SSL/TLS termination
+
 ## Development Setup
 
 ### Prerequisites
@@ -69,6 +85,9 @@ FX-Orleans is a specialized platform that helps businesses find and engage with 
 - .NET 9.0 SDK
 - Docker (for infrastructure services)
 - Node.js (for frontend tooling)
+- Helm 3.18+ (for Kubernetes deployments)
+- kubectl (for Kubernetes cluster management)
+- AWS CLI (for EKS deployments)
 
 ### Build & Run Commands
 
@@ -113,10 +132,24 @@ cd tests/FxExpert.E2E.Tests
 dotnet test
 ```
 
+**Helm Chart Tests:**
+```bash
+# Test all Helm charts
+cd infrastructure/helm/tests
+make test
+
+# Test individual charts
+make test-eventserver
+make test-blazor
+make test-keycloak
+make test-external-secrets
+```
+
 **Test Coverage:**
 - **Unit Tests:** xUnit with Alba (HTTP testing) and Shouldly (assertions)
 - **E2E Tests:** Playwright with NUnit for cross-browser testing
 - **Integration Tests:** Test complete booking flows and payment processes
+- **Helm Chart Tests:** Terratest with Go for Kubernetes deployment validation
 
 ## Project Structure
 
@@ -134,8 +167,19 @@ fx-orleans/
 ├── shared-types/                      # Shared data models
 ├── tests/
 │   └── FxExpert.E2E.Tests/           # End-to-end testing
+├── infrastructure/                   # Kubernetes deployment
+│   └── helm/                         # Helm charts and configuration
+│       ├── charts/                   # Application Helm charts
+│       │   ├── eventserver/          # Backend API chart
+│       │   ├── blazor-frontend/      # Frontend application chart
+│       │   ├── keycloak/             # Identity management chart
+│       │   └── external-secrets/     # Secret management chart
+│       ├── values/                   # Environment-specific values
+│       │   ├── dev-values.yaml       # Development overrides
+│       │   ├── staging-values.yaml   # Staging overrides
+│       │   └── prod-values.yaml      # Production overrides
+│       └── tests/                    # Helm chart testing
 ├── docs/                             # Technical documentation
-├── infrastructure/                   # K8s manifests
 └── .agent-os/                       # Agent OS configuration
 ```
 
@@ -209,11 +253,31 @@ just run
 dotnet test
 ```
 
+**Kubernetes Deployment:**
+```bash
+# Deploy to development environment
+helm install fx-orleans-dev ./infrastructure/helm/charts/eventserver \
+  -f ./infrastructure/helm/values/dev-values.yaml \
+  --namespace fx-orleans-dev
+
+# Deploy to staging environment
+helm install fx-orleans-staging ./infrastructure/helm/charts/eventserver \
+  -f ./infrastructure/helm/values/staging-values.yaml \
+  --namespace fx-orleans-staging
+
+# Deploy to production environment
+helm install fx-orleans-prod ./infrastructure/helm/charts/eventserver \
+  -f ./infrastructure/helm/values/prod-values.yaml \
+  --namespace fx-orleans-prod
+```
+
 **Environment Configuration:**
-- **Development:** Local with Docker containers
-- **Authentication:** Keycloak on localhost:8080
-- **Database:** PostgreSQL with Marten event store
-- **Monitoring:** OpenTelemetry + Zipkin tracing
+- **Development:** Local with Docker containers or EKS dev cluster
+- **Staging:** EKS cluster with internal load balancers
+- **Production:** EKS cluster with internet-facing load balancers
+- **Authentication:** Keycloak with external PostgreSQL (RDS)
+- **Database:** PostgreSQL with Marten event store (RDS in production)
+- **Monitoring:** OpenTelemetry + Zipkin tracing + Prometheus/Grafana
 
 ## Troubleshooting
 
@@ -233,6 +297,13 @@ dotnet test
 - Ensure test databases are clean
 - Check E2E test browser configuration
 - Verify Playwright dependencies
+
+**Kubernetes/Helm Issues:**
+- Verify kubectl context: `kubectl config current-context`
+- Check cluster connectivity: `kubectl cluster-info`
+- Validate Helm charts: `helm lint ./infrastructure/helm/charts/eventserver`
+- Debug failed deployments: `kubectl describe pod <pod-name>`
+- Check External Secrets: `kubectl get externalsecrets -n fx-orleans`
 
 ### Debugging
 

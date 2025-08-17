@@ -1,0 +1,140 @@
+# External Secrets Helm Chart Values
+
+# Global settings
+global:
+  namespace: fx-orleans
+  clusterName: fx-orleans-dev
+  environment: dev
+  region: us-west-2
+
+# AWS-specific configuration
+aws:
+  region: us-west-2
+  secretsManager:
+    role: ""  # Will be set by Terraform output - IRSA role for External Secrets Operator
+
+# Secret Store configuration
+secretStore:
+  name: fx-orleans-aws-secret-store
+  serviceAccount: external-secrets-sa
+
+# External Secrets configuration
+externalSecrets:
+  # Database secrets
+  database:
+    name: fx-orleans-database
+    secretName: fx-orleans-database
+    awsSecretName: fx-orleans/database
+    refreshInterval: 300s
+    keys:
+      - key: host
+        property: host
+      - key: port
+        property: port
+      - key: dbname
+        property: dbname
+      - key: username
+        property: username
+      - key: password
+        property: password
+      - key: connection_string
+        property: connection_string
+
+  # OpenAI secrets
+  openai:
+    name: fx-orleans-openai
+    secretName: fx-orleans-openai
+    awsSecretName: fx-orleans/openai
+    refreshInterval: 3600s
+    keys:
+      - key: api_key
+        property: api_key
+
+  # Stripe secrets
+  stripe:
+    name: fx-orleans-stripe
+    secretName: fx-orleans-stripe
+    awsSecretName: fx-orleans/stripe
+    refreshInterval: 3600s
+    keys:
+      - key: secret_key
+        property: secret_key
+      - key: publishable_key
+        property: publishable_key
+      - key: webhook_secret
+        property: webhook_secret
+
+  # Google Calendar secrets
+  googleCalendar:
+    name: fx-orleans-google-calendar
+    secretName: fx-orleans-google-calendar
+    awsSecretName: fx-orleans/google-calendar
+    refreshInterval: 3600s
+    keys:
+      - key: client_id
+        property: client_id
+      - key: client_secret
+        property: client_secret
+      - key: project_id
+        property: project_id
+
+  # Keycloak secrets
+  keycloak:
+    name: fx-orleans-keycloak
+    secretName: fx-orleans-keycloak
+    awsSecretName: fx-orleans/keycloak
+    refreshInterval: 300s
+    keys:
+      - key: admin_username
+        property: admin_username
+      - key: admin_password
+        property: admin_password
+      - key: client_secret
+        property: client_secret
+      - key: url
+        property: url
+
+  # Keycloak Database secrets
+  keycloakDb:
+    name: fx-orleans-keycloak-db
+    secretName: fx-orleans-keycloak-db
+    awsSecretName: fx-orleans/keycloak-database
+    refreshInterval: 300s
+    keys:
+      - key: url
+        property: url
+      - key: username
+        property: username
+      - key: password
+        property: password
+
+  # Keycloak Admin secrets
+  keycloakAdmin:
+    name: fx-orleans-keycloak-admin
+    secretName: fx-orleans-keycloak-admin
+    awsSecretName: fx-orleans/keycloak-admin
+    refreshInterval: 300s
+    keys:
+      - key: password
+        property: password
+
+  # EventServer service secrets
+  eventserver:
+    name: fx-orleans-eventserver
+    secretName: fx-orleans-eventserver
+    awsSecretName: fx-orleans/eventserver
+    refreshInterval: 300s
+    keys:
+      - key: url
+        property: url
+
+# Service Account for External Secrets Operator
+serviceAccount:
+  create: true
+  name: external-secrets-sa
+  annotations:
+    eks.amazonaws.com/role-arn: ""  # Will be set by Terraform output
+
+# Monitoring and observability
+monitoring:
+  enabled: true

@@ -1,0 +1,25 @@
+apiVersion: v2
+name: blazor-frontend
+description: FX-Orleans Blazor Frontend - Client application for expert consultation platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+maintainers:
+  - name: FX-Orleans Team
+    email: team@fx-orleans.com
+
+keywords:
+  - fx-orleans
+  - blazor
+  - frontend
+  - client
+  - ui
+
+home: https://fx-orleans.com
+sources:
+  - https://github.com/fortium/fx-orleans
+
+annotations:
+  category: Application
+  licenses: MIT
