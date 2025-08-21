@@ -5,13 +5,14 @@ global:
   namespace: fx-orleans-dev
   clusterName: fx-orleans-dev
   environment: dev
-  region: us-west-2
+  region: us-east-2
 
 # EventServer overrides for dev
 eventserver:
   replicaCount: 1
   image:
-    tag: dev-latest
+    repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-eventserver
+    tag: latest
   resources:
     limits:
       cpu: 500m
@@ -31,7 +32,8 @@ eventserver:
 blazor-frontend:
   replicaCount: 1
   image:
-    tag: dev-latest
+    repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-blazor
+    tag: latest
   resources:
     limits:
       cpu: 250m
@@ -50,6 +52,10 @@ blazor-frontend:
         paths:
           - path: /
             pathType: Prefix
+  monitoring:
+    enabled: false
+  podDisruptionBudget:
+    enabled: false
 
 # Keycloak overrides for dev
 keycloak:
@@ -77,7 +83,7 @@ keycloak:
 # External Secrets overrides for dev
 external-secrets:
   aws:
-    region: us-west-2
+    region: us-east-2
   externalSecrets:
     database:
       awsSecretName: fx-orleans-dev/database

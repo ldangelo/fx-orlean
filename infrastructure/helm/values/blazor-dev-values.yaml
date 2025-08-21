@@ -1,0 +1,63 @@
+# Development Environment Values Override for Blazor Frontend
+# Specific values for blazor-frontend chart
+
+global:
+  namespace: fx-orleans-dev
+  clusterName: fx-orleans-dev
+  environment: dev
+  region: us-east-2
+
+# Image configuration
+image:
+  repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-blazor
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Deployment configuration
+replicaCount: 1
+revisionHistoryLimit: 3
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 125m
+    memory: 128Mi
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+
+# Ingress configuration for ALB
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internal
+  hosts:
+    - host: dev.fx-orleans.internal
+      paths:
+        - path: /
+          pathType: Prefix
+
+# Monitoring and observability
+monitoring:
+  enabled: false
+
+# AWS-specific configuration
+aws:
+  region: us-east-2
+
+# Application-specific environment variables
+env:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:8080"
+  TZ: "UTC"
+  LOGGING_LEVEL: "Debug"
