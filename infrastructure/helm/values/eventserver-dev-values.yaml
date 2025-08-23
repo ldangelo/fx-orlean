@@ -1,0 +1,58 @@
+# EventServer Development Environment Values
+global:
+  namespace: fx-orleans-dev
+  environment: dev
+  region: us-east-2
+
+image:
+  repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-eventserver
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Reduced replicas for dev environment
+replicaCount: 1
+
+# Disable autoscaling for dev
+autoscaling:
+  enabled: false
+
+# Disable pod disruption budget for dev
+podDisruptionBudget:
+  enabled: false
+
+# Disable monitoring for dev environment
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+
+# Development environment variables
+env:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:8080"
+  TZ: "UTC"
+  LOGGING_LEVEL: "Debug"
+
+# AWS configuration
+aws:
+  region: us-east-2
+
+# Development resources
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Internal ingress for dev
+ingress:
+  enabled: true
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+  hosts:
+    - host: api.fx-orleans.internal
+      paths:
+        - path: /
+          pathType: Prefix

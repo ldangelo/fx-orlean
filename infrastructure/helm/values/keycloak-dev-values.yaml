@@ -1,0 +1,82 @@
+# Keycloak Development Environment Values
+global:
+  namespace: fx-orleans-dev
+  environment: dev
+  region: us-east-2
+
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: 25.0.4
+  pullPolicy: IfNotPresent
+
+# Use ECR compatible values
+replicaCount: 1  # Start with 1 replica for dev
+
+aws:
+  region: us-east-2
+
+# Development-specific ingress configuration
+ingress:
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+  hosts:
+    - host: auth.fx-orleans.internal
+      paths:
+        - path: /
+          pathType: Prefix
+
+# Reduced resources for dev environment
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Disable autoscaling for dev
+autoscaling:
+  enabled: false
+
+# Development environment variables
+env:
+  KC_LOG_LEVEL: "DEBUG"
+  KC_HOSTNAME_STRICT: "false"
+  KC_HOSTNAME_STRICT_HTTPS: "false"
+  KC_HTTP_ENABLED: "true"
+  KC_HEALTH_ENABLED: "true"
+  KC_METRICS_ENABLED: "true"
+  KC_DB: "postgres"  # Use environment variable instead of command line arg
+
+# Override keycloak startup args to use non-optimized mode for dev
+keycloak:
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+  args:
+    - "start-dev"
+
+# Fix health check ports for dev mode (health endpoints are on management port 9000)
+healthcheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Disable monitoring for dev environment
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false

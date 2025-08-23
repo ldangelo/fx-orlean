@@ -10,8 +10,8 @@ global:
 # Image configuration
 image:
   repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-blazor
-  tag: latest
-  pullPolicy: IfNotPresent
+  tag: v1.1.4
+  pullPolicy: Always
 
 # Deployment configuration
 replicaCount: 1
@@ -54,6 +54,21 @@ monitoring:
 # AWS-specific configuration
 aws:
   region: us-east-2
+
+# External services configuration (using External Secrets)
+externalServices:
+  eventserver:
+    secretName: "fx-orleans-eventserver"
+  keycloak:
+    secretName: "fx-orleans-keycloak"
+
+# Keycloak configuration
+keycloak:
+  clientId: "fx-expert"
+  requireHttps: false
+
+# Application URL (used for redirect URIs)
+applicationUrl: "https://fx-orleans.fortiumpartners.com"
 
 # Application-specific environment variables
 env:

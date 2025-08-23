@@ -50,7 +50,7 @@ ingress:
     alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=60
     alb.ingress.kubernetes.io/group.name: fx-orleans
   hosts:
-    - host: fx-orleans.com
+    - host: fx-orleans.fortiumpartners.com
       paths:
         - path: /
           pathType: Prefix
@@ -63,7 +63,7 @@ ingress:
   tls:
     - secretName: fx-orleans-tls
       hosts:
-        - fx-orleans.com
+        - fx-orleans.fortiumpartners.com
 
 # Resource limits and requests
 resources:
@@ -132,6 +132,14 @@ externalServices:
   keycloak:
     url: ""  # Will be set from External Secret
     secretName: "fx-orleans-keycloak"
+
+# Keycloak configuration
+keycloak:
+  clientId: "fx-expert"
+  requireHttps: false
+
+# Application URL (used for redirect URIs)
+applicationUrl: "https://fx-orleans.fortiumpartners.com"
 
 # Application-specific environment variables
 env:

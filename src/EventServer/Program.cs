@@ -92,6 +92,9 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddWolverineHttp();
+        
+        // Add health checks
+        builder.Services.AddHealthChecks();
 
         var app = builder.Build();
         //
@@ -140,6 +143,10 @@ public class Program
                 }
             });
         });
+
+        // Add health check endpoints for Kubernetes probes
+        app.MapHealthChecks("/health");
+        app.MapHealthChecks("/ready");
 
         // Define the minimal API endpoint
 

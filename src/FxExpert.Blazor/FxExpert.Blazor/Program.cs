@@ -42,6 +42,9 @@ builder.Services.AddScoped<FxExpert.Blazor.Client.Services.FilterService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.ICalendarHttpService, FxExpert.Blazor.Client.Services.CalendarHttpService>();
 builder.Services.AddScoped<FxExpert.Blazor.Client.Services.IOptimizedFilterService, FxExpert.Blazor.Client.Services.OptimizedFilterService>();
 
+// Add health checks
+builder.Services.AddHealthChecks();
+
 // Add performance monitoring service
 builder.Services.AddSingleton<FxExpert.Blazor.Client.Services.IPerformanceMonitoringService, FxExpert.Blazor.Client.Services.PerformanceMonitoringService>();
 
@@ -118,16 +121,16 @@ builder
         MS_OIDC_SCHEME,
         options =>
         {
-          // Get settings from configuration
+          // Get settings from configuration, with environment variable overrides
           var config = builder.Configuration.GetSection("OpenIdConnect");
-          options.Authority = config["Authority"];
-          options.ClientId = config["ClientId"];
-          options.ClientSecret = config["ClientSecret"];
+          options.Authority = Environment.GetEnvironmentVariable("KEYCLOAK_AUTHORITY") ?? config["Authority"];
+          options.ClientId = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_ID") ?? config["ClientId"];
+          options.ClientSecret = Environment.GetEnvironmentVariable("KEYCLOAK_CLIENT_SECRET") ?? config["ClientSecret"];
           options.MapInboundClaims = false;
           options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
           options.ResponseType = OpenIdConnectResponseType.Code;
-          options.RequireHttpsMetadata = config.GetValue<bool>("RequireHttpsMetadata");
+          options.RequireHttpsMetadata = Environment.GetEnvironmentVariable("KEYCLOAK_REQUIRE_HTTPS")?.ToLower() == "true" || config.GetValue<bool>("RequireHttpsMetadata");
           options.UsePkce = config.GetValue<bool>("UsePkce");
           options.SaveTokens = config.GetValue<bool>("SaveTokens");
           options.GetClaimsFromUserInfoEndpoint = config.GetValue<bool>(
@@ -162,9 +165,26 @@ builder
           var urls = builder.WebHost.GetSetting("urls")?.Split(';');
           if (urls?.Length > 0 && !string.IsNullOrEmpty(urls[0]))
           {
-            var url = new Uri(urls[0]);
-            host = url.Authority;
-            scheme = url.Scheme; // Use the actual scheme from the URL
+            // Handle ASP.NET Core wildcard binding format (e.g., http://+:8080)
+            var urlString = urls[0];
+            if (urlString.Contains("+"))
+            {
+              // For wildcard URLs, use APPLICATION_URL environment variable for the host
+              var applicationUrl = Environment.GetEnvironmentVariable("APPLICATION_URL");
+              if (!string.IsNullOrEmpty(applicationUrl))
+              {
+                var appUri = new Uri(applicationUrl);
+                host = appUri.Authority;
+                scheme = appUri.Scheme;
+              }
+              // Otherwise keep the defaults
+            }
+            else
+            {
+              var url = new Uri(urlString);
+              host = url.Authority;
+              scheme = url.Scheme; // Use the actual scheme from the URL
+            }
           }
           else if (!builder.Environment.IsDevelopment())
           {
@@ -394,6 +414,11 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(_Imports).Assembly);
 
 app.MapGroup("/auth").MapLoginAndLogout();
+
+// Add health check endpoints for Kubernetes probes
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/ready");
+
 app.Run();
 
 
