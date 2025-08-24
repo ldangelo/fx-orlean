@@ -127,6 +127,46 @@ output "helm_values" {
   sensitive = false
 }
 
+# Public Ingress Outputs
+output "public_ingress" {
+  description = "Public ingress configuration and URLs"
+  value = {
+    blazor_hostname    = module.public_ingress.blazor_public_hostname
+    keycloak_hostname  = module.public_ingress.keycloak_public_hostname
+    blazor_ingress     = module.public_ingress.blazor_ingress_name
+    keycloak_ingress   = module.public_ingress.keycloak_ingress_name
+  }
+}
+
+# DNS Configuration Outputs
+output "dns_configuration" {
+  description = "DNS configuration details"
+  value = {
+    hosted_zone_id   = module.dns.hosted_zone_id
+    hosted_zone_name = module.dns.hosted_zone_name
+    blazor_fqdn      = module.dns.blazor_fqdn
+    keycloak_fqdn    = module.dns.keycloak_fqdn
+    public_urls      = module.dns.public_urls
+  }
+}
+
+# ALB Information
+output "load_balancers" {
+  description = "Load balancer information"
+  value = {
+    blazor_alb = {
+      name     = data.aws_lb.blazor_public.name
+      dns_name = data.aws_lb.blazor_public.dns_name
+      zone_id  = data.aws_lb.blazor_public.zone_id
+    }
+    keycloak_alb = {
+      name     = data.aws_lb.keycloak_public.name
+      dns_name = data.aws_lb.keycloak_public.dns_name
+      zone_id  = data.aws_lb.keycloak_public.zone_id
+    }
+  }
+}
+
 # Next Steps Information
 output "next_steps" {
   description = "Next steps for deployment"
@@ -134,6 +174,11 @@ output "next_steps" {
     configure_kubectl = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
     install_helm_charts = "Navigate to ../../helm/ directory and follow deployment instructions"
     verify_deployment = "kubectl get nodes && kubectl get pods -A"
-    access_applications = "Check ALB DNS name after deploying ingress controller"
+    access_applications = "Applications are now accessible via custom domains"
+    public_urls = module.dns.public_urls
+    dns_test = {
+      blazor_dns   = "dig +short ${module.dns.blazor_fqdn}"
+      keycloak_dns = "dig +short ${module.dns.keycloak_fqdn}"
+    }
   }
 }

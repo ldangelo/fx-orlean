@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.23"
+    }
   }
 }
 
@@ -19,6 +23,18 @@ provider "aws" {
       ManagedBy   = "terraform"
       CreatedBy   = "fx-orleans-infrastructure"
     }
+  }
+}
+
+# Configure Kubernetes Provider
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", var.aws_region]
   }
 }
 
@@ -164,4 +180,58 @@ module "secrets" {
   session_secret          = var.session_secret
   cors_origins            = var.cors_origins
   rate_limit_secret       = var.rate_limit_secret
+}
+
+# Data sources for existing ALBs
+data "aws_lb" "blazor_public" {
+  name = "k8s-fxorleanspublic-33bd7ae412"
+}
+
+data "aws_lb" "keycloak_public" {
+  name = "k8s-fxorleanspublicau-725663288d"
+}
+
+# Public Ingress Module
+module "public_ingress" {
+  source = "../../modules/public-ingress"
+
+  cluster_name           = var.cluster_name
+  environment           = var.environment
+  kubernetes_namespace  = "${var.cluster_name}-${var.environment}"
+  
+  # Public hostnames (updated to fortiumsoftware.com)
+  blazor_public_hostname    = "fx-expert-dev.fortiumsoftware.com"
+  keycloak_public_hostname  = "fx-expert-keycloak.fortiumsoftware.com"
+  
+  # Service configuration
+  blazor_service_name    = var.blazor_service_name
+  blazor_service_port    = var.blazor_service_port
+  keycloak_service_name  = var.keycloak_service_name
+  keycloak_service_port  = var.keycloak_service_port
+  
+  # SSL configuration (disabled for now)
+  enable_ssl           = var.enable_ssl
+  ssl_certificate_arn  = var.ssl_certificate_arn
+}
+
+# DNS Module
+module "dns" {
+  source = "../../modules/dns"
+
+  cluster_name        = var.cluster_name
+  environment        = var.environment
+  aws_region         = var.aws_region
+  
+  # Domain configuration
+  domain_name          = "fortiumsoftware.com"
+  blazor_subdomain     = "fx-expert-dev"
+  keycloak_subdomain   = "fx-expert-keycloak"
+  
+  # ALB DNS names from data sources
+  blazor_alb_dns_name   = data.aws_lb.blazor_public.dns_name
+  keycloak_alb_dns_name = data.aws_lb.keycloak_public.dns_name
+  
+  # DNS configuration
+  dns_ttl              = 300
+  enable_health_checks = var.enable_dns_health_checks
 }

@@ -6,8 +6,8 @@ global:
 
 image:
   repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-eventserver
-  tag: latest
-  pullPolicy: IfNotPresent
+  tag: v1.1.5
+  pullPolicy: Always
 
 # Reduced replicas for dev environment
 replicaCount: 1

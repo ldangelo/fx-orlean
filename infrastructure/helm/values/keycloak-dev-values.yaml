@@ -15,12 +15,18 @@ replicaCount: 1  # Start with 1 replica for dev
 aws:
   region: us-east-2
 
-# Development-specific ingress configuration
+# Development-specific ingress configuration - Public Access (HTTP only for now)
 ingress:
+  enabled: true
+  className: "alb"
   annotations:
-    alb.ingress.kubernetes.io/scheme: internal
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/group.name: fx-orleans-public-auth
   hosts:
-    - host: auth.fx-orleans.internal
+    - host: fx-expert-keycloak.fortiumpartners.com
       paths:
         - path: /
           pathType: Prefix

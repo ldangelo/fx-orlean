@@ -288,3 +288,60 @@ variable "rate_limit_secret" {
   sensitive   = true
   default     = "dev-rate-limit-secret"
 }
+
+# Public Ingress Configuration
+variable "blazor_public_hostname" {
+  description = "Public hostname for Blazor frontend"
+  type        = string
+  default     = "fx-expert-dev.fortiumpartners.com"
+}
+
+variable "keycloak_public_hostname" {
+  description = "Public hostname for Keycloak"
+  type        = string
+  default     = "fx-expert-keycloak.fortiumpartners.com"
+}
+
+variable "blazor_service_name" {
+  description = "Name of the Blazor frontend Kubernetes service"
+  type        = string
+  default     = "fx-orleans-blazor-blazor-frontend"
+}
+
+variable "blazor_service_port" {
+  description = "Port of the Blazor frontend Kubernetes service"
+  type        = number
+  default     = 80
+}
+
+variable "keycloak_service_name" {
+  description = "Name of the Keycloak Kubernetes service"
+  type        = string
+  default     = "fx-orleans-keycloak"
+}
+
+variable "keycloak_service_port" {
+  description = "Port of the Keycloak Kubernetes service"
+  type        = number
+  default     = 80
+}
+
+# SSL Configuration
+variable "enable_ssl" {
+  description = "Enable SSL/TLS termination at the load balancer"
+  type        = bool
+  default     = false
+}
+
+variable "ssl_certificate_arn" {
+  description = "ARN of the SSL certificate in AWS Certificate Manager"
+  type        = string
+  default     = ""
+}
+
+# DNS Configuration
+variable "enable_dns_health_checks" {
+  description = "Enable Route 53 health checks for the services"
+  type        = bool
+  default     = false
+}

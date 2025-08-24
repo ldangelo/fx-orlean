@@ -10,7 +10,7 @@ global:
 # Image configuration
 image:
   repository: 754345703722.dkr.ecr.us-east-2.amazonaws.com/fx-orleans-blazor
-  tag: v1.1.4
+  tag: v1.1.5
   pullPolicy: Always
 
 # Deployment configuration
@@ -34,15 +34,18 @@ autoscaling:
 podDisruptionBudget:
   enabled: false
 
-# Ingress configuration for ALB
+# Ingress configuration for ALB - Public Access (HTTP only for now)
 ingress:
   enabled: true
   className: "alb"
   annotations:
     kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/group.name: fx-orleans-public
   hosts:
-    - host: dev.fx-orleans.internal
+    - host: fx-expert-dev.fortiumpartners.com
       paths:
         - path: /
           pathType: Prefix
